@@ -57,7 +57,6 @@ parseSource = ( sourcePath, file, ready ) ->
             console.log "Parsing " + filePath
             imports = result.match new RegExp "import_source[(][\"].*[\"][);]", "g"
             if imports
-                console.log "YIPPEE FUCKING SKIPPY!"
                 files = ( (target.match ///[\"].*[\"]///)[0] for target in imports)
                 console.log x for x in files
                 files = (x.replace(///[\"]///g,'') for x in files)
