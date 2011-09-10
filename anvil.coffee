@@ -3,7 +3,7 @@ path = require "path"
 jsp = require("uglify-js").parser;
 pro = require("uglify-js").uglify;
 
-
+config = {}
 console.log "Checking for config..."
 path.exists "./build.json", ( exists ) ->
     if exists
@@ -17,9 +17,10 @@ loadConfig = () ->
         if err
             yell()
         else
-            process JSON.parse( result )
+            config = JSON.parse( result )
+            process()
 
-process = ( config ) ->
+process = () ->
     {
         source: sourcePath,
         modules: modulePath,
@@ -29,72 +30,96 @@ process = ( config ) ->
         prefix: prepend,
         suffix: append
     } = config
-    files = 0
-    onFile = (file) ->
-        console.log "Combining " + file.file + "'s includes"
-        combine outputPath, file, () ->
-            files = files - 1
-            if files == 0
-                uglifyOutput outputPath, uglifyOptions, () -> finish prepend append
-    findImports sourcePath, onFile, (total) -> files = total
+
+    forFilesIn sourcePath, parseSource, (combineList) ->
+        forAll combineList, createTransforms, (withTransforms) ->
+            forAll withTransforms, combine, (combined) ->
+                forAll combined, lint, (passed) ->
+                    forAll passed, uglify, (uggered) ->
+                        forAll uggered, gzip, (gzipped) ->
+                            console.log "Output: " + gzipped.toString()
 
 
-findImports = ( sourcePath, onFile, onCount ) ->
-    fs.readdir sourcePath, ( err, files ) ->
+forFilesIn( path, onFile, onComplete )
+    count = 0
+    results = []
+    done = ( result ) ->
+        count = count - 1
+        results.push result
+        if count == 0
+            onComplete( results )
+    fs.readdir path, ( err, files ) ->
         if err
             yell()
         else
-            console.log "Found " + files.length
-            onCount( files.length )
-            parseSource sourcePath, file, onFile for file in files
+            count = files.length
+            onFile path, file, done for file in files
 
-parseSource = ( sourcePath, file, ready ) ->
+forAll( list, onItem, onComplete )
+    if not list
+        onComplete []
+
+    count = list.length
+    results = []
+    done = ( result ) ->
+        count = count - 1
+        results.push result
+        if count == 0
+            onComplete( results )
+    onItem item, done for item in list
+
+parseSource = ( sourcePath, file, parsed ) ->
     filePath = path.join sourcePath, file
     fs.readFile filePath, "utf8", ( err, result ) ->
         if err
             yell()
         else
             console.log "Parsing " + filePath
-            imports = result.match new RegExp "import_source[(][\"].*[\"][);]", "g"
+            imports = result.match new RegExp "[\/\/]import_source[(][\"].*[\"][);]", "g"
             if imports
-                console.log "YIPPEE FUCKING SKIPPY!"
                 files = ( (target.match ///[\"].*[\"]///)[0] for target in imports)
                 console.log x for x in files
                 files = (x.replace(///[\"]///g,'') for x in files)
-                ready { fullPath: filePath, file: file, path: sourcePath, includes: files }
+                parsed { fullPath: filePath, file: file, path: sourcePath, includes: files }
 
-combine = ( outputPath, item ) ->
-    console.log JSON.stringify( item )
-    fs.readFile item.fullPath, "utf8", (err, parent ) ->
+createTransforms = ( item, done ) ->
+    forAll item.includes,
+            (x, onTx) -> buildTransforms( x, item, onTx ),
+            (transforms) ->
+                item.transforms = transforms
+                done item
+
+buildTransforms = ( include, item, done ) ->
+    pattern = new RegExp("[\/\/]import_source[(][\"]" + include + "[\"][);]","g")
+    filePath = path.join config.output, include
+    fs.readFile filePath, "utf", ( err, content ) ->
         if err
             yell()
         else
-            count = item.includes.length
-            transforms = []
-            done = (transform) ->
-                count--
-                transforms.push( transform )
-                if count == 0
-                    output = path.join outputPath, item.file
-                    parent = tx( parent ) for tx in transforms
-                    fs.writeFile output, parent, (err) ->
-                        if err
-                            yell()
-            replace item.path, target, done for target in item.includes
+            done (x) -> x.replace pattern, content
 
-
-replace = ( sourcePath, target, done ) ->
-    filePath = path.join sourcePath, target
-    console.log "Replacing placeholders for " + filePath
-    fs.readFile filePath, "utf8", ( err, result ) ->
+combine = ( item, done ) ->
+    fs.readFile item.fullPath, "utf8", (err, file ) ->
         if err
             yell()
         else
-            pattern = new RegExp("import_source[(][\"]"+target+"[\"][);]","g")
-            done( (x) -> x.replace( pattern, result )  )
+            output = path.join outputPath, item.file
+            parent = tx( parent ) for tx in item.transforms
+            fs.writeFile output, parent, (err) ->
+                if err
+                    yell()
+                else
+                    done output
 
-uglifyOutput = ( outputPath, uglifyOptions, done ) ->
-    done()
+
+lint = ( item, done ) ->
+    done item
+
+uglify = ( item, done ) ->
+    done item
+
+gzip = ( item, done ) ->
+    done item
 
 finish = ( prepend, append ) ->
     console.log "DONE"
