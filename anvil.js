@@ -70,7 +70,6 @@
         console.log("Parsing " + filePath);
         imports = result.match(new RegExp("import_source[(][\"].*[\"][);]", "g"));
         if (imports) {
-          console.log("YIPPEE FUCKING SKIPPY!");
           files = (function() {
             var _i, _len, _results;
             _results = [];
