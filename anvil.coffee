@@ -1,7 +1,10 @@
+colors = require "colors"
 fs = require "fs"
 path = require "path"
-jsp = require("uglify-js").parser;
-pro = require("uglify-js").uglify;
+jsp = require("uglify-js").parser
+pro = require("uglify-js").uglify
+jshint = require "jshint"
+gzipper = require "gzip"
 
 config = {}
 console.log "Checking for config..."
@@ -68,7 +71,7 @@ parseSource = ( sourcePath, file, parsed ) ->
             yell()
         else
             console.log "Parsing " + filePath
-            imports = result.match new RegExp "[\/\/]import_source[(][\"].*[\"][);]", "g"
+            imports = result.match new RegExp "[//]import_source[(][\"].*[\"][);]", "g"
             console.log "\t" + filePath + " has " + imports?.length + " imports "
             if imports
                 files = ( (target.match ///[\"].*[\"]///)[0] for target in imports)
@@ -86,7 +89,7 @@ createTransforms = ( item, done ) ->
                 done item
 
 buildTransforms = ( include, item, done ) ->
-    pattern = new RegExp("[\/\/]import_source[(][\"]" + include + "[\"][);]","g")
+    pattern = new RegExp("[/][/]import_source[(][\"]" + include + "[\"][)];","g")
     filePath = path.join config.source, include
     console.log "building transform for " + filePath
     fs.readFile filePath, "utf8", ( err, content ) ->
@@ -111,16 +114,65 @@ combine = ( item, done ) ->
 
 
 lint = ( item, done ) ->
-    done item
+    if !config.lint
+        done item
+    console.log "Linting " + item
+    fs.readFile item, "utf8", ( err, file ) ->
+        if err
+            yell("lint read")
+            done item
+        else
+            result = jshint.JSHINT(file, {plusplus: true})
+            if result.errors
+                console.log "LINT FAILED ON " + item
+                console.log "\t" + error for error in result.errors
+            else
+                console.log "Lint passed!".green
+            done item
 
 uglify = ( item, done ) ->
-    done item
+    console.log "Uglifying " + item
+    fs.readFile item, "utf8", ( readErr, file ) ->
+        if readErr
+            yell("uglify read")
+            done item
+        else
+            ast = jsp.parse file
+            ast = pro.ast_mangle ast
+            ast = pro.ast_squeeze ast
+            output = pro.gen_code ast
+            ugg = item.replace(".js",".uggo.js")
+            fs.writeFile ugg, output, ( writeErr ) ->
+                if writeErr
+                    yell "uglify write"
+                    done item
+                 else
+                    console.log ugg + " is an uggo!".green
+                    done ugg
 
 gzip = ( item, done ) ->
-    done item
+    console.log "Zipping " + item
+    fs.readFile item, "utf8", ( readErr, file ) ->
+        if readErr
+            yell( "zip read" )
+            done item
+        else
+            gzipper file, ( zipErr, output ) ->
+                if zipErr
+                    yell "zipping"
+                    done item
+                else
+                    gz = item.replace(".js",".gz.js")
+                    fs.writeFile gz, output, ( writeErr ) ->
+                        if writeErr
+                            yell "zip write"
+                            done item
+                        else
+                            console.log gz + " is gzipped!".green
+                            done gz
 
 finish = ( prepend, append ) ->
     console.log "DONE"
 
 yell = (x) ->
-    console.log  x + " FAILED! I'M SCREAMING, I'M SCREAMING, I'M SCREAMING!"
+    console.log  x + " FAILED! I'M SCREAMING, I'M SCREAMING, I'M SCREAMING!".red

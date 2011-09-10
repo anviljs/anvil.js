@@ -1,1 +1,3 @@
-// this is a test. really. I know, it's pathetic, but what else do I do? : (
+var Test1 = function() {
+    this.sayHi = function() { console.log( "Hi." ); };
+};
