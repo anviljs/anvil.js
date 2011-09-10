@@ -1,0 +1,18 @@
+{
+    "name": "anvil.js",
+    "description": "Uselessly simple javascript build utility",
+    "version": "0.1.0",
+    "authors": ["Alex Robson"],
+    "keywords": ["build"],
+    "main": "./anvil.js",
+    "homepage": "http://arobson.github.com/anvil",
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/arobson/anvil.git"
+    },
+    "engines" : { "node" : ">=0.4.0" },
+    "dependencies": {
+        "uglify-js": ">=1.0.7"
+    },
+    "preferGlobal": true
+}
