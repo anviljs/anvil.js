@@ -23,8 +23,9 @@ Anvil just wants to be your friend. All you need is a build.json file in the roo
 
 ## To Do
 
-* Use prefix and suffix
+* Use prefix and suffix (check)
 * Make gzip and uglify optional
+* Clean up console output
 * Make extensions configurable
 * Make gzip and uglify steps options
 * Provide advanced uglify configuration options
@@ -32,4 +33,6 @@ Anvil just wants to be your friend. All you need is a build.json file in the roo
 * Detect hierarchical dependencies and process in proper order
 * Include better convention around what gets emitted
 * Allow for multiple build "targets" ( simple client side vs. CommonJs )
+* Add support for compiling .coffee files to .js
+* Add test integration options
 * Finish package for npm upload

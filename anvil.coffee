@@ -29,10 +29,11 @@ process = () ->
     forFilesIn config.source, parseSource, (combineList) ->
         forAll combineList, createTransforms, (withTransforms) ->
             forAll withTransforms, combine, (combined) ->
-                forAll combined, lint, (passed) ->
-                    forAll passed, uglify, (uggered) ->
-                        forAll uggered, gzip, (gzipped) ->
-                            console.log "Output: " + gzipped.toString()
+                forAll combined, wrap, (wrapped) ->
+                    forAll wrapped, lint, (passed) ->
+                        forAll passed, uglify, (uggered) ->
+                            forAll uggered, gzip, (gzipped) ->
+                                console.log "Output: " + gzipped.toString()
 
 
 forFilesIn = ( path, onFile, onComplete ) ->
@@ -116,21 +117,22 @@ combine = ( item, done ) ->
 
 
 lint = ( item, done ) ->
-    if !config.lint
+    unless config.lint
         done item
-    console.log "Linting " + item
-    fs.readFile item, "utf8", ( err, file ) ->
-        if err
-            yell("lint read")
-            done item
-        else
-            result = jshint.JSHINT(file, {plusplus: true})
-            if result.errors
-                console.log "LINT FAILED ON " + item
-                console.log "\t" + error for error in result.errors
+    else
+        console.log "Linting " + item
+        fs.readFile item, "utf8", ( err, file ) ->
+            if err
+                yell("lint read")
+                done item
             else
-                console.log "Lint passed!".green
-            done item
+                result = jshint.JSHINT(file, {plusplus: true})
+                if result.errors
+                    console.log "LINT FAILED ON " + item
+                    console.log "\t" + error for error in result.errors
+                else
+                    console.log "Lint passed!".green
+                done item
 
 uglify = ( item, done ) ->
     console.log "Uglifying " + item
@@ -173,8 +175,27 @@ gzip = ( item, done ) ->
                             console.log gz + " is gzipped!".green
                             done gz
 
-finish = ( prepend, append ) ->
-    console.log "DONE"
+wrap = ( item, done ) ->
+    unless config.prefix or config.suffix
+        done item
+
+    console.log "Wrapping " + item
+    fs.readFile item, "utf8", ( readErr, file ) ->
+        if readErr
+            yell( "wrapper read" )
+            done item
+        else
+            if config.prefix
+                file = config.prefix + "\r\n" + file
+            if config.suffix
+                file = file + "\r\n" + config.suffix
+            fs.writeFile item, file, ( writeErr ) ->
+                if writeErr
+                    yell "wrapper write"
+                    done item
+                else
+                    console.log item + " successfully wrapped!".green
+                    done item
 
 yell = (x) ->
     console.log  x + " FAILED! I'M SCREAMING, I'M SCREAMING, I'M SCREAMING!".red

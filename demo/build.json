@@ -6,5 +6,5 @@
         { "name": "underscore" }
     ],
     "prefix": "(function(context) {",
-    "suffix": ")(this));"
+    "suffix": "})(this);"
  }
