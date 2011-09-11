@@ -6,7 +6,9 @@ pro = require("uglify-js").uglify
 jshint = require "jshint"
 gzipper = require "gzip"
 
-config = {}
+config =
+{
+}
 console.log "Checking for config..."
 path.exists "./build.json", ( exists ) ->
     if exists

@@ -23,7 +23,13 @@ Anvil just wants to be your friend. All you need is a build.json file in the roo
 
 ## To Do
 
+* Use prefix and suffix
+* Make gzip and uglify optional
+* Make extensions configurable
 * Make gzip and uglify steps options
 * Provide advanced uglify configuration options
 * Look at possible JLint integration for better syntax validation
+* Detect hierarchical dependencies and process in proper order
+* Include better convention around what gets emitted
+* Allow for multiple build "targets" ( simple client side vs. CommonJs )
 * Finish package for npm upload
