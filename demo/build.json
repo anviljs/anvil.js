@@ -1,10 +1,13 @@
 {
     "source": "src",
     "modules": "node_modules",
-    "output": "./",
+    "output": "build",
     "packages": [
         { "name": "underscore" }
     ],
+    "uglify": {},
+    "gzip": {},
+    "lint": {},
     "prefix": "(function(context) {",
     "suffix": "})(this);"
  }

@@ -9,30 +9,26 @@ Anvil just wants to be your friend. All you need is a build.json file in the roo
 ## The Build File
 
     {
-        source: "src",
-        modules: "node_modules",
-        output: "./",
-        packages: [
-            { name: "underscore" }
+        "source": "src",
+        "modules": "node_modules",
+        "output": "./",
+        "packages": [
+            { "name": "underscore" }
         ],
-        uglify: {
-        }
-        prefix: "(function(context) {",
-        suffix: ")(this));"
+        "uglify": {},
+        "gzip": {},
+
+        "extensions": { "uglify": "uggo", "gzip": "gzp" },
+        "prefix": "(function(context) {",
+        "suffix": "})(this);"
     }
 
 ## To Do
 
-* Use prefix and suffix (check)
-* Make gzip and uglify optional
-* Clean up console output
-* Make extensions configurable
-* Make gzip and uglify steps options
-* Provide advanced uglify configuration options
-* Look at possible JLint integration for better syntax validation
-* Detect hierarchical dependencies and process in proper order
-* Include better convention around what gets emitted
-* Allow for multiple build "targets" ( simple client side vs. CommonJs )
-* Add support for compiling .coffee files to .js
-* Add test integration options
 * Finish package for npm upload
+* Add support for compiling .coffee files to .js
+* Add ability to run based on convention w/o build files
+* Provide advanced uglify configuration options
+* Provide advanced JSLint configuration options
+* Allow for multiple build "targets" ( simple client side vs. CommonJs )
+* Add test integration options

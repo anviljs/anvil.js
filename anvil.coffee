@@ -1,40 +1,32 @@
 colors = require "colors"
 fs = require "fs"
+mkdir = require( "mkdirp" ).mkdirp
 path = require "path"
-jsp = require("uglify-js").parser
-pro = require("uglify-js").uglify
-jshint = require "jshint"
+jsp = require( "uglify-js" ).parser
+pro = require( "uglify-js" ).uglify
+jslint = require( "readyjslint" ).JSLINT
 gzipper = require "gzip"
+_ = require "underscore"
 
 config =
 {
 }
-console.log "Checking for config..."
-path.exists "./build.json", ( exists ) ->
-    if exists
-        loadConfig()
-    else
-        yell()
 
-loadConfig = () ->
-    console.log "Loading config..."
-    fs.readFile "./build.json", "utf8", ( err, result ) ->
-        if err
-            yell()
-        else
-            config = JSON.parse( result )
-            process()
+ext =
+    gzip: "gz"
+    uglify: "min"
 
-process = () ->
-    forFilesIn config.source, parseSource, (combineList) ->
-        forAll combineList, createTransforms, (withTransforms) ->
-            forAll withTransforms, combine, (combined) ->
-                forAll combined, wrap, (wrapped) ->
-                    forAll wrapped, lint, (passed) ->
-                        forAll passed, uglify, (uggered) ->
-                            forAll uggered, gzip, (gzipped) ->
-                                console.log "Output: " + gzipped.toString()
+onEvent = (x) ->
+    console.log "   #{x}"
 
+onStep = (x) ->
+    console.log "#{x}".blue
+
+onComplete = (x) ->
+    console.log "#{x}".green
+
+onError = (x) ->
+    console.log "!!! Error: #{x} !!!".red
 
 forFilesIn = ( path, onFile, onComplete ) ->
     count = 0
@@ -47,16 +39,14 @@ forFilesIn = ( path, onFile, onComplete ) ->
             onComplete( results )
     fs.readdir path, ( err, files ) ->
         if err
-            yell()
+            onError "#{err} occurred trying to read the path #{path}"
         else
             count = files.length
             onFile path, file, done for file in files
 
 forAll = ( list, onItem, onComplete ) ->
     if not list
-        console.log "You passed forAll an empty array"
         onComplete []
-
     count = list.length
     results = []
     done = ( result ) ->
@@ -67,122 +57,206 @@ forAll = ( list, onItem, onComplete ) ->
             onComplete( results )
     onItem item, done for item in list
 
+onStep "Checking for config..."
+path.exists "./build.json", ( exists ) ->
+    if exists
+        loadConfig()
+    else
+        onError "No build file available."
+
+loadConfig = () ->
+    onStep "Loading config..."
+    fs.readFile "./build.json", "utf8", ( err, result ) ->
+        if err
+            onError "Could not read build.json file."
+        else
+            config = JSON.parse( result )
+            if config.extensions
+                ext.gzip = config.extensions.gzip || ext.gzip
+                ext.uglify = config.extensions.uglify || ext.uglify
+            path.exists config.output, ( exists ) ->
+                unless exists
+                    mkdir config.output, 0755, ( mkdirErr ) ->
+                        if mkdirErr
+                            onError "Output directory could not be created."
+                        else
+                            process()
+                else
+                    process()
+
+process = () ->
+    forFilesIn config.source, parseSource, (combineList) ->
+        transformer = ( x, y ) -> createTransforms x, combineList, y
+        forAll combineList, transformer, (withTransforms) ->
+            analyzed = rebuildList withTransforms
+            combiner = ( x, y ) -> combine( x, analyzed, y )
+            forAll analyzed, combiner, (combined) ->
+                buildList = removeIntermediates combined
+                forAll _.pluck( buildList, "file" ), wrap, (wrapped) ->
+                    forAll wrapped, lint, (passed) ->
+                        forAll passed, uglify, (uggered) ->
+                            forAll uggered, gzip, (gzipped) ->
+                                onComplete "Output: " + gzipped.toString()
+
 parseSource = ( sourcePath, file, parsed ) ->
     filePath = path.join sourcePath, file
     fs.readFile filePath, "utf8", ( err, result ) ->
         if err
-            yell()
+            onError ("{#err} trying to parse #{sourcePath}/#{file}" )
         else
-            console.log "Parsing " + filePath
-            imports = result.match new RegExp "[//]import_source[(][\"].*[\"][);]", "g"
-            console.log "\t" + filePath + " has " + imports?.length + " imports "
+            onEvent "Parsing #{filePath}"
+            imports = result.match new RegExp "[//]import[(][\"].*[\"][);]", "g"
+            count = imports?.length
+            onEvent "   found #{count or= 0} imports"
             if imports
                 files = ( (target.match ///[\"].*[\"]///)[0] for target in imports)
                 files = (x.replace(///[\"]///g,'') for x in files)
-                console.log "\t\t -" + x for x in files
-                parsed { fullPath: filePath, file: file, path: sourcePath, includes: files }
+                onEvent "   - #{x}" for x in files
+                parsed { fullPath: filePath, file: file, path: sourcePath, includes: files, combined: false }
             else
                 parsed null
 
-createTransforms = ( item, done ) ->
+createTransforms = ( item, list, done ) ->
     forAll item.includes,
-            (x, onTx) -> buildTransforms( x, item, onTx ),
+            (x, onTx) -> buildTransforms( x, item, list, onTx ),
             (transforms) ->
                 item.transforms = transforms
                 done item
 
-buildTransforms = ( include, item, done ) ->
-    pattern = new RegExp("[/][/]import_source[(][\"]" + include + "[\"][)];","g")
-    filePath = path.join config.source, include
-    console.log "building transform for " + filePath
-    fs.readFile filePath, "utf8", ( err, content ) ->
-        if err
-            yell("build transform read ")
-        else
-            done (x) -> x.replace pattern, content
+buildTransforms = ( include, item, list, done ) ->
+    pattern = new RegExp("([/]{2}|[#])import[( ][\"]" + include + "[\"][ )][;]?","g")
+    includedItem = _.detect list, ( x ) -> x.file == include
+    outputPath = config.source
+    if includedItem
+        outputPath = config.output
+    filePath = path.join outputPath, include
+    onStep "Building transform for #{filePath}"
+    done (x) ->
+        try
+            content = fs.readFileSync filePath, "utf8"
+            x.replace pattern, content
+        catch err
+            onError "#{err} trying to read #{filePath} while building transforms"
 
-combine = ( item, done ) ->
-    console.log "Combining " + item.fullPath
-    fs.readFile item.fullPath, "utf8", (err, file ) ->
-        if err
-            yell("combine read")
-        else
-            output = path.join config.output, item.file
-            file = tx( file ) for tx in item.transforms
-            fs.writeFile output, file, (err) ->
-                if err
-                    yell("combine write")
-                else
-                    done output
+rebuildList = ( list ) ->
+    list = ( findUses x, list for x in list )
+    _.select list, ( x ) -> x != undefined
 
+findUses = ( item, list ) ->
+    unless item
+        undefined
+    else
+        uses = _.select list,
+            ( x ) -> _.any x.includes, ( y ) -> item.file == y
+        count = uses?.length
+        item.used = count or= 0
+        item
+
+combine = ( item, list, done ) ->
+    if item.combined
+        return item.combined
+    unless done
+        onError " AW SHIT! YOU DONE PASSED EMPTY DONE UP IN DIS #{item.file}!"
+    onStep "Combining #{item.fullPath} and its includes"
+    precombineIncludes item.includes, list, done
+    try
+        file = fs.readFileSync item.fullPath, "utf8"
+        output = path.join config.output, item.file
+        file = tx( file ) for tx in item.transforms
+        try
+            fs.writeFileSync output, file
+            onEvent "  writing #{output}"
+            item.file = output
+            item.combined = true
+            done item
+        catch writeErr
+            onError "#{writeErr} when writing output to #{output}"
+    catch readErr
+            onError "#{readErr} while reading #{item.fullPath} for combination"
+
+precombineIncludes = ( includes, list, done ) ->
+    items = _.select list, ( x ) -> _.any includes, ( y ) -> y == x and not x.combined
+    combine x, list, done for x in items
+
+removeIntermediates = ( list ) ->
+    intermediate = _.pluck _.select( list, ( y ) -> y.used > 0 ), "file"
+    output = _.select( list, ( y ) -> y.used == 0 )
+    fs.unlink x for x in intermediate
+    output
 
 lint = ( item, done ) ->
     unless config.lint
         done item
     else
-        console.log "Linting " + item
+        onStep "Linting #{item}"
         fs.readFile item, "utf8", ( err, file ) ->
             if err
-                yell("lint read")
+                onError "#{err} when reading #{item}"
                 done item
             else
-                result = jshint.JSHINT(file, {plusplus: true})
-                if result.errors
-                    console.log "LINT FAILED ON " + item
-                    console.log "\t" + error for error in result.errors
+                result = jslint file, {}
+                unless result
+                    onError "LINT FAILED ON #{item}"
+                    onEvent "   line #{x.line}, pos #{x.character} - #{x.reason}".red for x in jslint.errors
                 else
-                    console.log "Lint passed!".green
+                    onComplete "Lint for #{item} passed!"
                 done item
 
 uglify = ( item, done ) ->
-    console.log "Uglifying " + item
-    fs.readFile item, "utf8", ( readErr, file ) ->
-        if readErr
-            yell("uglify read")
-            done item
-        else
-            ast = jsp.parse file
-            ast = pro.ast_mangle ast
-            ast = pro.ast_squeeze ast
-            output = pro.gen_code ast
-            ugg = item.replace(".js",".uggo.js")
-            fs.writeFile ugg, output, ( writeErr ) ->
-                if writeErr
-                    yell "uglify write"
-                    done item
-                 else
-                    console.log ugg + " is an uggo!".green
-                    done ugg
+    unless config.uglify
+        done item
+    else
+        onStep "Uglifying #{item}"
+        fs.readFile item, "utf8", ( readErr, file ) ->
+            if readErr
+                onError "#{readErr} reading while uglifying #{file}"
+                done item
+            else
+                ast = jsp.parse file
+                ast = pro.ast_mangle ast
+                ast = pro.ast_squeeze ast
+                output = pro.gen_code ast
+                ugg = item.replace(".js","." + ext.uglify + ".js")
+                fs.writeFile ugg, output, ( writeErr ) ->
+                    if writeErr
+                        onError "#{writeErr} writing while uglifying #{output}"
+                        done item
+                     else
+                        onComplete "#{ugg} uglified successfully"
+                        done ugg
 
 gzip = ( item, done ) ->
-    console.log "Zipping " + item
-    fs.readFile item, "utf8", ( readErr, file ) ->
-        if readErr
-            yell( "zip read" )
-            done item
-        else
-            gzipper file, ( zipErr, output ) ->
-                if zipErr
-                    yell "zipping"
-                    done item
-                else
-                    gz = item.replace(".js",".gz.js")
-                    fs.writeFile gz, output, ( writeErr ) ->
-                        if writeErr
-                            yell "zip write"
-                            done item
-                        else
-                            console.log gz + " is gzipped!".green
-                            done gz
+    unless config.gzip
+        done item
+    else
+        onStep "Zipping #{item}"
+        fs.readFile item, "utf8", ( readErr, file ) ->
+            if readErr
+                onError "#{readErr} reading while zipping #{item}"
+                done item
+            else
+                gzipper file, ( zipErr, output ) ->
+                    if zipErr
+                        onError "#{zipErr} zipping #{item}"
+                        done item
+                    else
+                        gz = item.replace(".js","." + ext.gzip + ".js")
+                        fs.writeFile gz, output, ( writeErr ) ->
+                            if writeErr
+                                onError "#{writeErr} writing while zipping #{item}"
+                                done item
+                            else
+                                onComplete "#{gz} gzipped successfully"
+                                done gz
 
 wrap = ( item, done ) ->
     unless config.prefix or config.suffix
         done item
 
-    console.log "Wrapping " + item
+    onStep "Wrapping #{item}"
     fs.readFile item, "utf8", ( readErr, file ) ->
         if readErr
-            yell( "wrapper read" )
+            onError "#{readErr} reading while wrapping #{item}"
             done item
         else
             if config.prefix
@@ -191,11 +265,9 @@ wrap = ( item, done ) ->
                 file = file + "\r\n" + config.suffix
             fs.writeFile item, file, ( writeErr ) ->
                 if writeErr
-                    yell "wrapper write"
+                    onError "#{writeErr} writing while wrapping #{item}"
                     done item
                 else
-                    console.log item + " successfully wrapped!".green
+                    onComplete " #{item} successfully wrapped!"
                     done item
 
-yell = (x) ->
-    console.log  x + " FAILED! I'M SCREAMING, I'M SCREAMING, I'M SCREAMING!".red
