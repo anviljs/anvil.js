@@ -7,6 +7,16 @@ pro = require( "uglify-js" ).uglify
 jslint = require( "readyjslint" ).JSLINT
 gzipper = require "gzip"
 _ = require "underscore"
+coffeeScript = require "coffee-script"
+
+
+exports.run = ->
+    onStep "Checking for config..."
+    path.exists "./build.json", ( exists ) ->
+        if exists
+            loadConfig()
+        else
+            onError "No build file available."
 
 config =
 {
@@ -28,7 +38,7 @@ onComplete = (x) ->
 onError = (x) ->
     console.log "!!! Error: #{x} !!!".red
 
-forFilesIn = ( path, onFile, onComplete ) ->
+forFilesIn = ( dir, onFile, onComplete ) ->
     count = 0
     results = []
     done = ( result ) ->
@@ -37,12 +47,15 @@ forFilesIn = ( path, onFile, onComplete ) ->
             results.push result
         if count == 0
             onComplete( results )
-    fs.readdir path, ( err, files ) ->
+    fs.readdir dir, ( err, list ) ->
         if err
             onError "#{err} occurred trying to read the path #{path}"
         else
+            qualified = ( { full: path.join( dir, x ), file: x } for x in list )
+            list = ( { file: x.file, stat: fs.statSync x.full } for x in qualified )
+            files = _.pluck ( _.select list, ( x ) -> x.stat.isFile() ), "file"
             count = files.length
-            onFile path, file, done for file in files
+            onFile dir, file, done for file in files
 
 forAll = ( list, onItem, onComplete ) ->
     if not list
@@ -57,12 +70,16 @@ forAll = ( list, onItem, onComplete ) ->
             onComplete( results )
     onItem item, done for item in list
 
-onStep "Checking for config..."
-path.exists "./build.json", ( exists ) ->
-    if exists
-        loadConfig()
-    else
-        onError "No build file available."
+ensurePath = (target, callback) ->
+    path.exists target, ( exists ) ->
+        unless exists
+            mkdir target, 0755, ( err ) ->
+                if err
+                    onError "Could not create #{target}. #{err}"
+                else
+                    callback()
+        else
+            callback()
 
 loadConfig = () ->
     onStep "Loading config..."
@@ -71,21 +88,17 @@ loadConfig = () ->
             onError "Could not read build.json file."
         else
             config = JSON.parse( result )
+            config.tmp = path.join config.source, "tmp"
             if config.extensions
                 ext.gzip = config.extensions.gzip || ext.gzip
                 ext.uglify = config.extensions.uglify || ext.uglify
-            path.exists config.output, ( exists ) ->
-                unless exists
-                    mkdir config.output, 0755, ( mkdirErr ) ->
-                        if mkdirErr
-                            onError "Output directory could not be created."
-                        else
-                            process()
-                else
-                    process()
+
+            ensurePath config.output, () ->
+                ensurePath config.tmp, () -> process()
 
 process = () ->
     forFilesIn config.source, parseSource, (combineList) ->
+        onEvent "#{combineList.length} files parsed."
         transformer = ( x, y ) -> createTransforms x, combineList, y
         forAll combineList, transformer, (withTransforms) ->
             analyzed = rebuildList withTransforms
@@ -98,25 +111,40 @@ process = () ->
                             forAll uggered, gzip, (gzipped) ->
                                 onComplete "Output: " + gzipped.toString()
 
+compileCoffee = ( sourcePath, file ) ->
+    jsFile = file.replace ".coffee", ".js"
+    coffeeFile = path.join sourcePath, file
+    onEvent " Compiling #{coffeeFile}"
+    coffee = fs.readFileSync coffeeFile, "utf8"
+    js = coffeeScript.compile coffee
+    fs.writeFileSync ( path.join config.tmp, jsFile ), js, "utf8"
+    jsFile
+
 parseSource = ( sourcePath, file, parsed ) ->
     filePath = path.join sourcePath, file
-    fs.readFile filePath, "utf8", ( err, result ) ->
-        if err
-            onError ("{#err} trying to parse #{sourcePath}/#{file}" )
-        else
-            onEvent "Parsing #{filePath}"
-            imports = result.match new RegExp "[//]import[(][\"].*[\"][);]", "g"
-            count = imports?.length
-            onEvent "   found #{count or= 0} imports"
-            if imports
-                files = ( (target.match ///[\"].*[\"]///)[0] for target in imports)
-                files = (x.replace(///[\"]///g,'') for x in files)
-                onEvent "   - #{x}" for x in files
-                parsed { fullPath: filePath, file: file, path: sourcePath, includes: files, combined: false }
+    onEvent "Parsing #{filePath}"
+    if (file.substr file.length - 6) == "coffee"
+        file = compileCoffee sourcePath, file
+        parseSource config.tmp, file, parsed
+    else
+        fs.readFile filePath, "utf8", ( err, result ) ->
+            if err
+                onError ("#{err} trying to parse #{filePath}" )
             else
-                parsed null
+                imports = result.match new RegExp "[//]import[(][\"].*[\"][);]", "g"
+                count = imports?.length
+                onEvent "   found #{count or= 0} imports"
+                if imports
+                    files = ( (target.match ///[\"].*[\"]///)[0] for target in imports)
+                    files = (x.replace(///[\"]///g,'') for x in files)
+                    onEvent "   - #{x}" for x in files
+                    parsed { fullPath: filePath, file: file, path: sourcePath, includes: files, combined: false }
+                else
+                    parsed { fullPath: filePath, file: file, path: sourcePath, includes: [], combined: false }
 
 createTransforms = ( item, list, done ) ->
+    if item.includes.length == 0
+        done item
     forAll item.includes,
             (x, onTx) -> buildTransforms( x, item, list, onTx ),
             (transforms) ->
@@ -155,14 +183,13 @@ findUses = ( item, list ) ->
 combine = ( item, list, done ) ->
     if item.combined
         return item.combined
-    unless done
-        onError " AW SHIT! YOU DONE PASSED EMPTY DONE UP IN DIS #{item.file}!"
     onStep "Combining #{item.fullPath} and its includes"
     precombineIncludes item.includes, list, done
     try
-        file = fs.readFileSync item.fullPath, "utf8"
         output = path.join config.output, item.file
-        file = tx( file ) for tx in item.transforms
+        file = fs.readFileSync item.fullPath, "utf8"
+        if item.transforms
+            file = tx( file ) for tx in item.transforms
         try
             fs.writeFileSync output, file
             onEvent "  writing #{output}"
@@ -178,7 +205,14 @@ precombineIncludes = ( includes, list, done ) ->
     items = _.select list, ( x ) -> _.any includes, ( y ) -> y == x and not x.combined
     combine x, list, done for x in items
 
+deleteFile = ( dir, file, done ) ->
+    fs.unlink path.join( dir, file ), (err) ->
+        unless err
+            done undefined
+
 removeIntermediates = ( list ) ->
+    forFilesIn config.tmp, deleteFile, () ->
+        fs.rmdir config.tmp
     intermediate = _.pluck _.select( list, ( y ) -> y.used > 0 ), "file"
     output = _.select( list, ( y ) -> y.used == 0 )
     fs.unlink x for x in intermediate
@@ -197,7 +231,8 @@ lint = ( item, done ) ->
                 result = jslint file, {}
                 unless result
                     onError "LINT FAILED ON #{item}"
-                    onEvent "   line #{x.line}, pos #{x.character} - #{x.reason}".red for x in jslint.errors
+                    errors = _.select( jslint.errors, ( e ) -> e )
+                    onEvent "   line #{x.line}, pos #{x.character} - #{x.reason}".red for x in errors
                 else
                     onComplete "Lint for #{item} passed!"
                 done item

@@ -1,18 +1,25 @@
 {
     "name": "anvil.js",
-    "description": "Uselessly simple javascript build utility",
+    "description": "Simple javascript build utility",
     "version": "0.1.0",
-    "authors": ["Alex Robson"],
-    "keywords": ["build"],
-    "main": "./anvil.js",
+    "authors": ["Alex Robson <@A_Robson>"],
+    "keywords": ["build","compile","static"],
+    "main": "./lib/anvil.js",
     "homepage": "http://arobson.github.com/anvil",
     "repository": {
         "type": "git",
-        "url": "http://github.com/arobson/anvil.git"
+        "url": "http://github.com/arobson/anvil.js.git"
     },
-    "engines" : { "node" : ">=0.4.0" },
+    "directories": { "lib": "./lib" },
+    "engines" : { "node": ">=0.4.0" },
     "dependencies": {
-        "uglify-js": ">=1.0.7"
+        "colors": ">=0.5.0",
+        "gzip": ">=0.1.0",
+        "readyjslint": ">=0.0.4",
+        "mkdirp": ">=0.0.7",
+        "uglify-js": ">=1.0.7",
+        "underscore": ">1.1.7",
+        "coffee-script": "1.1.2"
     },
     "preferGlobal": true
 }

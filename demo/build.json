@@ -2,9 +2,6 @@
     "source": "src",
     "modules": "node_modules",
     "output": "build",
-    "packages": [
-        { "name": "underscore" }
-    ],
     "uglify": {},
     "gzip": {},
     "lint": {},
