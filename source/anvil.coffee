@@ -18,6 +18,8 @@ ext =
     gzip: "gz"
     uglify: "min"
 
+buildTarget = ( global.process.argv[2] or= "build" ) + ".json"
+
 importRegex = new RegExp "([/].|[#])import[( ][\"].*[\"][ )][;]?([*/]{2})?", "g"
 
 ###import "io.coffee" ###
@@ -39,7 +41,7 @@ forAll = ( list, onItem, onComplete ) ->
 
 loadConfig = () ->
     onStep "Loading config..."
-    readFile "./build.json",  ( x ) ->
+    readFile "./" + buildTarget,  ( x ) ->
         config = JSON.parse( x )
         config.tmp = path.join config.source, "tmp"
         if config.extensions

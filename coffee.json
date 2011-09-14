@@ -1,5 +1,5 @@
 {
     "source": "source",
     "output": "lib",
-    "lint": {}
+    "justCoffee": {}
 }

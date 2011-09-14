@@ -21,10 +21,10 @@ If all's well, you should get some console output and the build directory should
 ## How to combine source files
 
 Anvil allows you to combine source files by using a commented command
-###Javascript*
+**Javascript**
     //import("dependency.js");
 
-###Coffeescript
+**Coffeescript**
     ###import "dependency.js" ###
 
 When you use Anvil to compile your project, it will traverse all the files in your source directory and combine them so that your top level files are what get output. **Warning** Currently, Anvil is not clever enough to detect circular import statements and it will break the world if you do this.
@@ -56,12 +56,37 @@ suffix appends the following string to your output files.
 
 There's also another option called justCoffee that will cause anvil to maintain all output in coffeescript instead of compiling it to js.
 
+## Multiple Targets
+
+Instead of making your build.json files messy with multiple targets, you can have multiple .json files for each target and name them according to the platform. You then specify the target as a command line argument.
+
+### Example
+You have two build files. The default build.json and a coffee.json:
+
+**build.json**
+
+    {
+        "source": "source",
+        "output": "build",
+        "lint": {}
+    }
+
+**coffee.json**
+
+    {
+        "source": "source",
+        "output": "build",
+        "justCoffee": {}
+    }
+
+To target the coffee build just type:
+
+    anvil coffee
+
 ## To Do
 
-* Finish package for npm upload
 * Add ability to run based on convention w/o build files
 * Provide advanced uglify configuration options
 * Provide advanced JSLint configuration options
-* Allow for multiple build "targets" ( simple client side vs. CommonJs )
 * Add continuous build behavior
 * Add test integration options
