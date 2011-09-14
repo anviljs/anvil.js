@@ -22,4 +22,7 @@
         "coffee-script": "1.1.2"
     },
     "preferGlobal": true
+    "bin": {
+        "anvil": "./bin/anvil"
+    }
 }
