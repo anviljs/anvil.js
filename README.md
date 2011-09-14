@@ -24,8 +24,10 @@ Anvil allows you to
         "uglify": {},
         "gzip": {},
         "extensions": { "uglify": "min", "gzip": "gz" },
-        "prefix": "(function(context) {",
-        "suffix": "})(this);"
+        "wrap": {
+            "prefix": "(function(context) {",
+            "suffix": "})(this);"
+        }
     }
 
 Source is where Anvil expects *all* your code. Don't get fancy or Anvil can't help you.

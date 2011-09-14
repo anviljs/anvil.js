@@ -5,6 +5,8 @@
     "uglify": {},
     "gzip": {},
     "lint": {},
-    "prefix": "(function(context) {",
-    "suffix": "})(this);"
+    "wrap": {
+        "prefix": "(function(context) {",
+        "suffix": "})(this);"
+    }
  }
