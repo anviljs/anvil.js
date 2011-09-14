@@ -18,7 +18,7 @@
         "readyjslint": ">=0.0.4",
         "mkdirp": ">=0.0.7",
         "uglify-js": ">=1.0.7",
-        "underscore": ">1.1.7",
+        "underscore": ">=1.1.7",
         "coffee-script": "1.1.2"
     },
     "preferGlobal": true
