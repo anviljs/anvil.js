@@ -1,0 +1,27 @@
+info it worked if it ends with ok
+verbose cli [ 'node',
+verbose cli   '/git/node/nvm/v0.4.10/bin/npm',
+verbose cli   'publish',
+verbose cli   '--force' ]
+info using npm@1.0.23
+info using node@v0.4.10
+verbose config file /Users/arobson/.npmrc
+verbose config file /git/node/nvm/v0.4.10/etc/npmrc
+verbose publish [ '.' ]
+verbose cache add [ '.', undefined ]
+verbose parsed url { pathname: '.', href: '.' }
+ERR! Could not install: .
+ERR! Failed to parse json
+ERR! Unexpected string
+ERR! File: package.json
+ERR! JSON.parse Failed to parse package.json data.
+ERR! JSON.parse package.json must be actual JSON, not just JavaScript.
+ERR! JSON.parse This is not a bug in npm.
+ERR! JSON.parse Tell the package author to fix their package.json file.
+ERR! 
+ERR! System Darwin 10.8.0
+ERR! command "node" "/git/node/nvm/v0.4.10/bin/npm" "publish" "--force"
+ERR! cwd /git/js/anvil.js
+ERR! node -v v0.4.10
+ERR! npm -v 1.0.23
+verbose exit [ 1, true ]
