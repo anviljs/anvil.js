@@ -39,9 +39,9 @@ uglify = createTransformStep "uglify",
 
 gzip = createTransformStep "gzip",
     ( x ) ->
-        gzipper x
+        gzipper( x )
     ,
-    ( x ) -> x.replace(".js","." + ext.uglify + ".js")
+    ( x ) -> x.replace(".js","." + ext.gzip + ".js")
 
 wrap = createTransformStep "wrap",
     ( x ) ->
