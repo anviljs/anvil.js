@@ -1,5 +1,5 @@
 {
     "source": "src",
-    "output": "lib",
+    "output": "tmp",
     "lint": {}
 }

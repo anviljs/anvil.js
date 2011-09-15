@@ -29,26 +29,26 @@ lint = createStep "lint", ( item, file, done ) ->
     done item
 
 uglify = createTransformStep "uglify",
-    ( x ) ->
+    ( x, done ) ->
         ast = jsp.parse x
         ast = pro.ast_mangle ast
         ast = pro.ast_squeeze ast
-        pro.gen_code ast
+        done pro.gen_code ast
     ,
     ( x ) -> x.replace(".js","." + ext.uglify + ".js")
 
 gzip = createTransformStep "gzip",
-    ( x ) ->
-        gzipper( x )
+    ( x, done ) ->
+        gzipper x, ( err, result ) -> done result
     ,
     ( x ) -> x.replace(".js","." + ext.gzip + ".js")
 
 wrap = createTransformStep "wrap",
-    ( x ) ->
+    ( x, done ) ->
         if config.wrap.prefix
             x = config.wrap.prefix + "\r\n" + x
         if config.wrap.suffix
             x = x + "\r\n" + config.wrap.suffix
-        x
+        done x
     ,
     ( x ) -> x

@@ -65,8 +65,8 @@ transformFile = ( filePath, transform, outputPath, done ) ->
     readFile(
         filePath,
         (x) ->
-            content = transform x
-            writeFile outputPath, content, done
+            transform x, ( content ) ->
+              writeFile outputPath, content, done
     )
 
 transformFileSync = ( filePath, transform, outputPath, done ) ->

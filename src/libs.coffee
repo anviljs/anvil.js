@@ -7,5 +7,6 @@ path = require "path"
 jsp = require( "uglify-js" ).parser
 pro = require( "uglify-js" ).uglify
 jslint = require( "readyjslint" ).JSLINT
-gzipper = require( "zlib-sync" ).gzipcompress
+#gzipper = require( "zlib-sync" ).gzipcompress
+gzipper = require( "gzip" )
 coffeeScript = require "coffee-script"
