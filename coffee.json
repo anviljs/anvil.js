@@ -1,5 +1,5 @@
 {
-    "source": "source",
+    "source": "src",
     "output": "lib",
     "justCoffee": {}
 }

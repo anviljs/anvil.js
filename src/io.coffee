@@ -1,3 +1,16 @@
+forAll = ( list, onItem, onComplete ) ->
+    if not list
+        onComplete []
+    count = list.length
+    results = []
+    done = ( result ) ->
+        count = count - 1
+        if result
+            results.push result
+        if count == 0
+            onComplete( results )
+    onItem item, done for item in list
+
 forFilesIn = ( dir, onFile, onComplete ) ->
     count = 0
     results = []

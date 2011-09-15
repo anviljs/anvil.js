@@ -1,54 +1,11 @@
-###import "libs.coffee" ###
-
-###import "log.coffee" ###
-
 exports.run = ->
-    onStep "Checking for config..."
-    path.exists "./build.json", ( exists ) ->
-        if exists
-            loadConfig()
-        else
-            onError "No build file available."
-
-config =
-{
-}
-
-ext =
-    gzip: "gz"
-    uglify: "min"
-
-buildTarget = ( global.process.argv[2] or= "build" ) + ".json"
-
-importRegex = new RegExp "([/].|[#])import[( ][\"].*[\"][ )][;]?([*/]{2})?", "g"
-
-###import "io.coffee" ###
-
-###import "steps.coffee" ###
-
-forAll = ( list, onItem, onComplete ) ->
-    if not list
-        onComplete []
-    count = list.length
-    results = []
-    done = ( result ) ->
-        count = count - 1
-        if result
-            results.push result
-        if count == 0
-            onComplete( results )
-    onItem item, done for item in list
-
-loadConfig = () ->
-    onStep "Loading config..."
-    readFile "./" + buildTarget,  ( x ) ->
-        config = JSON.parse( x )
-        config.tmp = path.join config.source, "tmp"
-        if config.extensions
-            ext.gzip = config.extensions.gzip || ext.gzip
-            ext.uglify = config.extensions.uglify || ext.uglify
-        ensurePath config.output, () ->
-            ensurePath config.tmp, () -> process()
+    args = global.process.argv
+    if args[2] == "template"
+        output = args[3] or= "build.json"
+        writeConfig output
+    else
+        onStep "Checking for config..."
+        path.exists "./build.json", ( exists ) -> prepConfig( exists )
 
 process = () ->
     forFilesIn config.source, parseSource, (combineList) ->

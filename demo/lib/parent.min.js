@@ -1,0 +1,1 @@
+var Test1=function(){this.sayHi=function(){console.log("Hi.")}},Test2=function(){this.sayHi=function(){console.log("Hi.")}},test1=new Test1;test1.sayHi();var test2=new Test2;test2.sayHi()
