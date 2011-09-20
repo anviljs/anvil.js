@@ -1,26 +1,26 @@
 exports.run = ->
-    args = global.process.argv
-    if args[2] == "template"
-        output = args[3] or= "build.json"
-        writeConfig output
-    else
-        onStep "Checking for config..."
-        path.exists "./build.json", ( exists ) -> prepConfig( exists )
+    configure()
 
 process = () ->
-    forFilesIn config.source, parseSource, (combineList) ->
-        onEvent "#{combineList.length} files parsed."
-        transformer = ( x, y ) -> createTransforms x, combineList, y
-        forAll combineList, transformer, (withTransforms) ->
-            analyzed = rebuildList withTransforms
-            combiner = ( x, y ) -> combine( x, analyzed, y )
-            forAll analyzed, combiner, (combined) ->
-                buildList = removeIntermediates combined
-                forAll _.pluck( buildList, "file" ), wrap, (wrapped) ->
-                    forAll wrapped, lint, (passed) ->
-                        forAll passed, uglify, (uggered) ->
-                            forAll uggered, gzip, (gzipped) ->
-                                onComplete "Output: " + gzipped.toString()
+    unless inProcess
+        inProcess = true
+        forFilesIn config.source, parseSource, (combineList) ->
+            onEvent "#{combineList.length} files parsed."
+            transformer = ( x, y ) -> createTransforms x, combineList, y
+            forAll combineList, transformer, (withTransforms) ->
+                analyzed = rebuildList withTransforms
+                combiner = ( x, y ) -> combine( x, analyzed, y )
+                forAll analyzed, combiner, (combined) ->
+                    buildList = removeIntermediates combined
+                    forAll _.pluck( buildList, "file" ), wrap, (wrapped) ->
+                        forAll wrapped, lint, (passed) ->
+                            forAll passed, uglify, (uggered) ->
+                                forAll uggered, gzip, (gzipped) ->
+                                    onComplete "Output: " + gzipped.toString()
+                                    inProcess = false
+                                    if continuous
+                                        console.log "Continuous is true!"
+                                        createWatch()
 
 compileCoffee = ( sourcePath, file ) ->
     jsFile = file.replace ".coffee", ".js"

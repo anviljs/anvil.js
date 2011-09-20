@@ -9,3 +9,5 @@
 ###import "steps.coffee" ###
 
 ###import "main.coffee" ###
+
+###import "continuous.coffee" ###

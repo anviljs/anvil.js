@@ -1,7 +1,7 @@
 {
     "name": "anvil.js",
     "description": "Static javascript / coffeescript build utility",
-    "version": "0.2.3",
+    "version": "0.3.0",
     "authors": ["Alex Robson <@A_Robson>"],
     "keywords": ["build","compile","static"],
     "main": "./lib/anvil.js",
@@ -19,7 +19,13 @@
         "mkdirp": ">=0.0.7",
         "uglify-js": ">=1.0.7",
         "underscore": ">=1.1.7",
-        "coffee-script": "1.1.2"
+        "coffee-script": "1.1.2",
+        "qunit": "0.1.3",
+        "express": ">=2.4.6",
+        "express-resource": ">=0.2.2",
+        "DOMBuilder": ">=2.1.0",
+        "watch": "0.3.2",
+        "argparser": "0.0.9"
     },
     "preferGlobal": true,
     "bin": {
