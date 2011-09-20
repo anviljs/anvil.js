@@ -64,7 +64,7 @@ configure = () ->
           startHost()
 
         onStep "Checking for config..."
-        path.exists "./build.json", ( exists ) -> prepConfig( exists, buildFile )
+        path.exists buildFile, ( exists ) -> prepConfig( exists, buildFile )
 
 prepConfig = ( exists, file ) ->
     unless exists
