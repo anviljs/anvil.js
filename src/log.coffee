@@ -1,8 +1,10 @@
 onEvent = (x) ->
-    console.log "   #{x}"
+    unless quiet
+        console.log "   #{x}"
 
 onStep = (x) ->
-    console.log "#{x}".blue
+    unless quiet
+        console.log "#{x}".blue
 
 onComplete = (x) ->
     console.log "#{x}".green

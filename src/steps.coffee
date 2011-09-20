@@ -23,7 +23,7 @@ lint = createStep "lint", ( item, file, done ) ->
     unless result
         onError "LINT FAILED ON #{item}"
         errors = _.select( jslint.errors, ( e ) -> e )
-        onEvent "   line #{x.line}, pos #{x.character} - #{x.reason}".red for x in errors
+        console.log "   line #{x.line}, pos #{x.character} - #{x.reason}".red for x in errors
     else
         onComplete "#{item} passed lint!"
     done item

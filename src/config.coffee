@@ -13,6 +13,7 @@ conventionConfig =
 
 continuous = test = false
 inProcess = false
+quiet = false
 
 ext =
     gzip: "gz"
@@ -38,28 +39,32 @@ configure = () ->
             ensurePath scaffold + "/ext", ->
               ensurePath scaffold + "/spec", ->
                 writeConfig scaffold + "/build.json"
-      node.exit(0)
+                global.process.exit(0)
+    else
+        # Get build file or use default
+        buildOpt = parser.getOptions("b")
+        buildFile = if buildOpt then buildOpt else "build.json"
 
-    # Get build file or use default
-    buildOpt = parser.getOptions("b")
-    buildFile = if buildOpt then buildOpt else "build.json"
+        # Get build template
+        buildTemplate = parser.getOptions("t","template")
+        if buildTemplate
+            output = if buildTemplate == true then "build.json" else buildTemplate
+            writeConfig output
+            global.process.exit(0)
 
-    # Get build template
-    buildTemplate = parser.getOptions("t","template")
-    if buildTemplate
-        output = if buildTemplate == true then "build.json" else buildTemplate
-        writeConfig output
+        # Run as CI server?
+        continuous = parser.getOptions("ci")
 
-    # Run as CI server?
-    continuous = parser.getOptions("ci")
+        #Quiet mode
+        quiet = parser.getOptions("q")
 
-    # Host tests?
-    test = parser.getOptions("p","pavlov")
-    if test
-      startHost()
+        # Host tests?
+        test = parser.getOptions("p","pavlov")
+        if test
+          startHost()
 
-    onStep "Checking for config..."
-    path.exists "./build.json", ( exists ) -> prepConfig( exists, buildFile )
+        onStep "Checking for config..."
+        path.exists "./build.json", ( exists ) -> prepConfig( exists, buildFile )
 
 prepConfig = ( exists, file ) ->
     unless exists
@@ -82,7 +87,7 @@ loadConvention = () ->
     process()
 
 writeConfig = ( name ) ->
-    writeFile name, JSON.stringify( conventionConfig, null,"\t" ), ( x ) ->
+    writeFileSync name, JSON.stringify( conventionConfig, null, "\t" ), ( x ) ->
         onComplete "#{name} created successfully!"
 
 importRegex = new RegExp "([/].|[#])import[( ][\"].*[\"][ )][;]?([*/]{2})?", "g"

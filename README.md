@@ -119,6 +119,12 @@ Anvil will generate a pavlov test page for your output and host it in express at
 
     anvil -p
 
+## Too chatty?
+
+You can tell anvil to run in quiet mode (it will still print errors (red) and step completions (green) )
+
+    anvil -q
+
 ## Demo
 
 If you have the source, check out the demo directory. It's intended to play around and test different features out. If you've installed anvil from npm, all you have to do is type:

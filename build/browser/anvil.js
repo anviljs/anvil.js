@@ -254,38 +254,37 @@ configure = function() {
   scaffold = parser.getOptions("n");
   if (scaffold) {
     console.log("Creating scaffolding for " + scaffold);
-    return ensurePath(scaffold, function() {
+    ensurePath(scaffold, function() {
       return ensurePath(scaffold + "/src", function() {
         return ensurePath(scaffold + "/lib", function() {
           return ensurePath(scaffold + "/ext", function() {
             return ensurePath(scaffold + "/spec", function() {
-              writeConfig(scaffold + "/build.json");
-              return global.process.exit(0);
+              return writeConfig(scaffold + "/build.json");
             });
           });
         });
       });
     });
-  } else {
-    buildOpt = parser.getOptions("b");
-    buildFile = buildOpt ? buildOpt : "build.json";
-    buildTemplate = parser.getOptions("t", "template");
-    if (buildTemplate) {
-      output = buildTemplate === true ? "build.json" : buildTemplate;
-      writeConfig(output);
-      global.process.exit(0);
-    }
-    continuous = parser.getOptions("ci");
-    quiet = parser.getOptions("q");
-    test = parser.getOptions("p", "pavlov");
-    if (test) {
-      startHost();
-    }
-    onStep("Checking for config...");
-    return path.exists("./build.json", function(exists) {
-      return prepConfig(exists, buildFile);
-    });
+    global.process.exit(0);
   }
+  buildOpt = parser.getOptions("b");
+  buildFile = buildOpt ? buildOpt : "build.json";
+  buildTemplate = parser.getOptions("t", "template");
+  if (buildTemplate) {
+    output = buildTemplate === true ? "build.json" : buildTemplate;
+    writeConfig(output);
+    global.process.exit(0);
+  }
+  continuous = parser.getOptions("ci");
+  quiet = parser.getOptions("q");
+  test = parser.getOptions("p", "pavlov");
+  if (test) {
+    startHost();
+  }
+  onStep("Checking for config...");
+  return path.exists("./build.json", function(exists) {
+    return prepConfig(exists, buildFile);
+  });
 };
 prepConfig = function(exists, file) {
   if (!exists) {
@@ -311,7 +310,7 @@ loadConvention = function() {
   return process();
 };
 writeConfig = function(name) {
-  return writeFileSync(name, JSON.stringify(conventionConfig, null, "\t"), function(x) {
+  return writeFile(name, JSON.stringify(conventionConfig, null, "\t"), function(x) {
     return onComplete("" + name + " created successfully!");
   });
 };
