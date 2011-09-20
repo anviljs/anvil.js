@@ -11,7 +11,7 @@ ArgParser = require "argparser"
 express = require "express"
 resource = require "express-resource"
 builder = require "DOMBuilder"
-watcher = require "watch"
+dive = require "dive"
 
 jsp = require( "uglify-js" ).parser
 pro = require( "uglify-js" ).uglify

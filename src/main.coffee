@@ -4,30 +4,49 @@ exports.run = ->
 process = () ->
     unless inProcess
         inProcess = true
-        forFilesIn config.source, parseSource, (combineList) ->
-            onEvent "#{combineList.length} files parsed."
-            transformer = ( x, y ) -> createTransforms x, combineList, y
-            forAll combineList, transformer, (withTransforms) ->
-                analyzed = rebuildList withTransforms
-                combiner = ( x, y ) -> combine( x, analyzed, y )
-                forAll analyzed, combiner, (combined) ->
-                    buildList = removeIntermediates combined
-                    forAll _.pluck( buildList, "file" ), wrap, (wrapped) ->
-                        forAll wrapped, lint, (passed) ->
-                            forAll passed, uglify, (uggered) ->
-                                forAll uggered, gzip, (gzipped) ->
-                                    onComplete "Output: " + gzipped.toString()
-                                    inProcess = false
-                                    if continuous
-                                        console.log "Continuous is true!"
-                                        createWatch()
+        try
+          ensurePaths -> crawlFiles()
+        catch ex
+          inProcess = false
+          onError "The build failed failingly. Like a failure :@"
+    else
+      onError "There is already a build in process"
+
+crawlFiles = () ->
+  forFilesIn config.source, parseSource, (combineList) ->
+      onEvent "#{combineList.length} files parsed."
+      transformer = ( x, y ) -> createTransforms x, combineList, y
+      forAll combineList, transformer, transform
+  inProcess = false
+
+transform = (withTransforms) ->
+  analyzed = rebuildList withTransforms
+  combiner = ( x, y ) -> combine( x, analyzed, y )
+  forAll analyzed, combiner, pack
+  
+pack = (combined) ->
+  buildList = removeIntermediates combined
+  forAll _.pluck( buildList, "file" ), wrap, (wrapped) ->
+      forAll wrapped, lint, (passed) ->
+          forAll passed, uglify, (uggered) ->
+              forAll uggered, gzip, (gzipped) ->
+                  onComplete "Output: " + gzipped.toString()
+                  inProcess = false
+                  if test
+                    createPage()
+                  if continuous
+                    createWatch()
 
 compileCoffee = ( sourcePath, file ) ->
     jsFile = file.replace ".coffee", ".js"
     coffeeFile = path.join sourcePath, file
     transformFileSync(
         coffeeFile,
-        ( x ) -> coffeeScript.compile x, { bare: true }
+        ( x ) ->
+          try
+            coffeeScript.compile x, { bare: true }
+          catch error
+            inProcess = false
         [ config.tmp, jsFile ],
         ( x ) -> x == x
     )
@@ -37,8 +56,11 @@ parseSource = ( sourcePath, file, parsed ) ->
     filePath = path.join sourcePath, file
     onEvent "Parsing #{filePath}"
     if (file.substr file.length - 6) == "coffee" and not config.justCoffee
-        file = compileCoffee sourcePath, file
-        parseSource config.tmp, file, parsed
+        try
+          file = compileCoffee sourcePath, file
+          parseSource config.tmp, file, parsed
+        catch ex
+          inProcess = false
     else
         readFile filePath, ( content ) ->
             imports = content.match importRegex

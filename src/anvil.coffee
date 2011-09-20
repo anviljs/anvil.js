@@ -8,6 +8,8 @@
 
 ###import "steps.coffee" ###
 
+###import "host.coffee" ###
+
 ###import "main.coffee" ###
 
 ###import "continuous.coffee" ###

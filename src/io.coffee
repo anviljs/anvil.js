@@ -24,6 +24,9 @@ forFilesIn = ( dir, onFile, onComplete ) ->
         if err
             onError "#{err} occurred trying to read the path #{path}"
         else
+            list = _.select list, ( x ) ->
+              ext = path.extname x
+              ext == ".coffee" or ext == ".js"
             qualified = ( { full: path.join( dir, x ), file: x } for x in list )
             list = ( { file: x.file, stat: fs.statSync x.full } for x in qualified )
             files = _.pluck ( _.select list, ( x ) -> x.stat.isFile() ), "file"
@@ -95,15 +98,15 @@ readFileSync = ( filePath, onFile ) ->
 writeFile = ( filePath, content, done ) ->
     file = buildPath filePath
     fs.writeFile file, content, "utf8", ( err ) ->
-        if err
-            onError "Error #{err}: writing #{file}"
-        else
-            done file
+      if err
+          onError "Error #{err}: writing #{file}"
+      else
+          done file
 
 writeFileSync = ( filePath, content, done ) ->
     file = buildPath filePath
     try
-        fs.writeFileSync file, content, "utf8"
-        done file
+      fs.writeFileSync file, content, "utf8"
+      done file
     catch err
-        onError "Error #{err}: writing #{file} (sync)"
+      onError "Error #{err}: writing #{file} (sync)"

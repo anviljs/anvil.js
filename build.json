@@ -1,5 +1,7 @@
 {
-    "source": "src",
-    "output": "lib",
-    "lint": {}
+	"source": "src",
+	"output": "lib",
+	"spec": "spec",
+	"ext": "ext",
+	"lint": {}
 }

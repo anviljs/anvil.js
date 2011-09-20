@@ -3,29 +3,42 @@ config =
 }
 
 conventionConfig =
-{
-    "source": "src",
-    "output": "lib",
-    "lint": {},
-    "uglify": {},
-    "gzip": {},
-}
+    "source": "src"
+    "output": "lib"
+    "spec": "spec"
+    "ext": "ext"
+    "lint": {}
+    "uglify": {}
+    "gzip": {}
 
-continuous = false
+continuous = test = false
 inProcess = false
 
 ext =
     gzip: "gz"
     uglify: "min"
 
-ensurePaths = () ->
+ensurePaths = (callback) ->
     config.tmp = path.join config.source, "tmp"
     ensurePath config.output, () ->
-        ensurePath config.tmp, () -> process()
+        ensurePath config.tmp, -> callback()
 
 configure = () ->
-    parser = new ArgParser().parse();
-    parser.addValueOptions(["t","b"])
+    parser = new ArgParser();
+    parser.addValueOptions(["t","b","n"])
+    parser.parse()
+
+    # Generate scaffold for new project?
+    scaffold = parser.getOptions("n")
+    if scaffold
+      console.log "Creating scaffolding for " + scaffold
+      ensurePath scaffold, ->
+        ensurePath scaffold + "/src", ->
+          ensurePath scaffold + "/lib", ->
+            ensurePath scaffold + "/ext", ->
+              ensurePath scaffold + "/spec", ->
+                writeConfig scaffold + "/build.json"
+      node.exit(0)
 
     # Get build file or use default
     buildOpt = parser.getOptions("b")
@@ -39,7 +52,12 @@ configure = () ->
 
     # Run as CI server?
     continuous = parser.getOptions("ci")
-    
+
+    # Host tests?
+    test = parser.getOptions("p","pavlov")
+    if test
+      startHost()
+
     onStep "Checking for config..."
     path.exists "./build.json", ( exists ) -> prepConfig( exists, buildFile )
 
@@ -56,12 +74,12 @@ loadConfig = ( file ) ->
         if config.extensions
             ext.gzip = config.extensions.gzip || ext.gzip
             ext.uglify = config.extensions.uglify || ext.uglify
-        ensurePaths()
+        process()
 
 loadConvention = () ->
     onStep "Loading convention..."
     config = conventionConfig
-    ensurePaths()
+    process()
 
 writeConfig = ( name ) ->
     writeFile name, JSON.stringify( conventionConfig, null,"\t" ), ( x ) ->

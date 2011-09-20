@@ -1,19 +1,17 @@
 createWatch = () ->
-    continuous = false
-    watcher.watchTree config.source,
-        [
-            "ignoreDotFiles"
-        ],
-        (f, c, p ) ->
-            if p == null and c == null
-                onEvent "Watching source directory for changes..."
-            else if f.match(///tmp///)
-                onEvent "Ignoring changes to tmp files"
-            else if inProcess
-                onEvent "Ignoring changes during processing"
-            else
-                onEvent "Change in source, #{f}, detected. Rebuilding..."
-                process()
-    ci = new emitter()
-    ci.once("quit", -> "Alas, I have been killt!")
-    
+  continuous = false
+  onChange = triggerProcess
+  dive config.source, { recursive: false, all: false }, ( err, file ) ->
+    unless err
+      fs.watchFile file, { persistent: true }, ( c, p ) ->
+        onEvent "Change in #{file} detected. Rebuilding..."
+        callback = onChange
+        onChange = -> #do nothing
+        callback()
+
+triggerProcess = () ->
+  dive config.source, { recursive: false, all: false }, ( err, file ) ->
+    unless err
+      fs.unwatchFile file
+  createPage()
+  process()
