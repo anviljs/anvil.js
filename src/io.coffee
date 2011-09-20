@@ -31,6 +31,8 @@ forFilesIn = ( dir, onFile, onComplete ) ->
             list = ( { file: x.file, stat: fs.statSync x.full } for x in qualified )
             files = _.pluck ( _.select list, ( x ) -> x.stat.isFile() ), "file"
             count = files.length
+            if count == 0
+                onComplete([])
             onFile dir, file, done for file in files
 
 ensurePath = (target, callback) ->
