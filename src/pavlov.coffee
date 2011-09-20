@@ -80,7 +80,15 @@ startHost = () ->
 
     app = express.createServer()
     app.use express.bodyParser()
+    app.use app.router
 
     app.use "/", express.static( path.resolve(".") )
+
+    app.get "*.coffee", (req, res) ->
+        console.log "Coffee file requested!"
+        res.header 'Content-Type', 'application/javascript'
+        source = fs.readFileSync "." + req.url, "utf8"
+        coffee = coffeeScript.compile source, { bare: true }
+        res.send coffee
 
     app.listen 1580

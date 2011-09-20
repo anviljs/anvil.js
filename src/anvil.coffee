@@ -8,7 +8,7 @@
 
 ###import "steps.coffee" ###
 
-###import "host.coffee" ###
+###import "pavlov.coffee" ###
 
 ###import "main.coffee" ###
 
