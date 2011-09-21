@@ -10,6 +10,8 @@
 
 ###import "pavlov.coffee" ###
 
+###import "page.coffee" ###
+
 ###import "main.coffee" ###
 
 ###import "continuous.coffee" ###

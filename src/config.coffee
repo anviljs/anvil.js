@@ -15,6 +15,8 @@ continuous = test = false
 inProcess = false
 quiet = false
 
+version = "0.5.0"
+
 ext =
     gzip: "gz"
     uglify: "min"
@@ -26,12 +28,17 @@ ensurePaths = (callback) ->
 
 configure = () ->
     parser = new ArgParser();
-    parser.addValueOptions(["t","b","n"])
+    parser.addValueOptions(["t","b","n","html"])
     parser.parse()
 
     # Generate scaffold for new project?
     scaffold = parser.getOptions("n")
-    if scaffold
+    htmlPage = parser.getOptions("html")
+    showVersion = parser.getOptions("v","version")
+    if showVersion
+        console.log "Anvil.js " + version
+        global.process.exit(0)
+    else if scaffold
       console.log "Creating scaffolding for " + scaffold
       ensurePath scaffold, ->
         ensurePath scaffold + "/src", ->
@@ -40,6 +47,10 @@ configure = () ->
               ensurePath scaffold + "/spec", ->
                 writeConfig scaffold + "/build.json"
                 global.process.exit(0)
+    else if htmlPage
+        # Create html template?
+            generator = new HtmlGenerator()
+            generator.createPageTemplate htmlPage
     else
         # Get build file or use default
         buildOpt = parser.getOptions("b")
@@ -61,7 +72,12 @@ configure = () ->
         # Host tests?
         test = parser.getOptions("p","pavlov")
         if test
-          startHost()
+          hostPavlov()
+
+        # Host pages?
+        host = parser.getOptions("h")
+        if host
+            hostStatic()
 
         onStep "Checking for config..."
         path.exists buildFile, ( exists ) -> prepConfig( exists, buildFile )

@@ -14,7 +14,8 @@ createPage = () ->
             path.join "..", extPath, x
         libs = fs.readdirSync libPath
         libs = _.select libs, (x) ->
-            not x.match ///[.]gz[.]///
+            not x.match ///[.]gz[.]/// and not x.match ///[.]min[.]///
+
         libs = _.map libs, (x) ->
             path.join "..", libPath, x
         list = externals.concat( libs ).concat( spec )
@@ -72,7 +73,7 @@ buildScripts = ( html, list ) ->
       src: x
     )
 
-startHost = () ->
+hostPavlov = () ->
     sourceBase = path.normalize path.join __dirname, "..", "ext"
 
     unless path.existsSync "./pavlov"
