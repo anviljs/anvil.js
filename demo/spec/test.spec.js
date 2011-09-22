@@ -4,5 +4,9 @@ QUnit.specify("demo.js", function() {
         {
             assert(true).equals(true);
         });
+        it("should show something {{ SPECIAL }} on the page", function()
+        {
+            assert(true).equals(true);
+        });
     });
 });
