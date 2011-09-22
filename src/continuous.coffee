@@ -1,7 +1,7 @@
 createWatch = () ->
   continuous = false
   onChange = triggerProcess
-  diver = (dir) ->
+  divedir = (dir) ->
     dive dir, { recursive: false, all: false }, ( err, file ) ->
       unless err
         fs.watchFile file, { persistent: true }, ( c, p ) ->
@@ -9,7 +9,7 @@ createWatch = () ->
           callback = onChange
           onChange = -> #do nothing
           callback()
-  diver dir for dir in ['src', 'spec', 'ext']
+  divedir dir for dir in [config.source, config.spec, config.ext]
 
 triggerProcess = () ->
   dive config.source, { recursive: false, all: false }, ( err, file ) ->
@@ -17,4 +17,3 @@ triggerProcess = () ->
       fs.unwatchFile file
   createPage()
   process()
-  console.log "process was triggered " + new Date()

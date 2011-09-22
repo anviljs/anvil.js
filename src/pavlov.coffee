@@ -1,23 +1,26 @@
-ClientNotifier = ->
+class ClientNotifier
   clients = []
-  @addClient = (socket) ->
-    console.log("a Socket connected")
+
+  init: (app) ->
+    io = require('socket.io').listen(app)
+    io.set 'log level', 1
+    io.sockets.on 'connection', @addClient
+
+  addClient: (socket) ->
     clients.push socket
     socket.on "end", ->
       i = clients.indexOf(socket)
       clients.splice i, 1
 
-  @notifyClients = ->
-    onEvent "Notifying Pavlov Browser Clients"
+  notifyClients: ->
+    onEvent "Notifying Browser Test Runner Clients"
     i = 0
 
     while i < clients.length
       clients[i].emit "runTests", {}
       i++
 
-  this
-
-clientNotifier = new ClientNotifier()
+clientNotifier = new ClientNotifier
 
 createPage = () ->
 
@@ -57,7 +60,7 @@ createPage = () ->
 
         writeFileSync "index.html", page.toString(), ->
           onEvent "Pavlov test page generated"
-          clientNotifier.notifyClients()
+          clientNotifier.notifyClients() 
 
 buildHead = (html, list) ->
   pavlovDir = "pavlov"
@@ -115,9 +118,7 @@ hostPavlov = () ->
     app.use express.bodyParser()
     app.use app.router
 
-    io = require('socket.io').listen(app)
-    io.set 'log level', 1
-    io.sockets.on('connection', clientNotifier.addClient );
+    clientNotifier.init app
 
     app.use "/", express.static( path.resolve(".") )
 
