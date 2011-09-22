@@ -9,7 +9,7 @@ createWatch = () ->
           callback = onChange
           onChange = -> #do nothing
           callback()
-  diver dir for dir in ['source', 'spec', 'ext']
+  diver dir for dir in ['src', 'spec', 'ext']
 
 triggerProcess = () ->
   dive config.source, { recursive: false, all: false }, ( err, file ) ->

@@ -1,5 +1,5 @@
 //import("intermediate.js");
-var test1 = new Test1();
+context.test1 = new Test1();
 test1.sayHi();
-var test2 = new Test2();
+context.test2 = new Test2();
 test2.sayHi();

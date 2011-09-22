@@ -1,16 +1,17 @@
 ClientNotifier = ->
   clients = []
   @addClient = (socket) ->
+    console.log("a Socket connected")
     clients.push socket
     socket.on "end", ->
       i = clients.indexOf(socket)
       clients.splice i, 1
 
   @notifyClients = ->
-    console.log "**************Notifying Clients*****************"
+    onEvent "Notifying Pavlov Browser Clients"
     i = 0
 
-    while i <= clients.length
+    while i < clients.length
       clients[i].emit "runTests", {}
       i++
 
@@ -56,7 +57,7 @@ createPage = () ->
 
         writeFileSync "index.html", page.toString(), ->
           onEvent "Pavlov test page generated"
-          clientNotifier.notifyClients
+          clientNotifier.notifyClients()
 
 buildHead = (html, list) ->
   pavlovDir = "pavlov"
