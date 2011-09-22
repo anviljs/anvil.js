@@ -1,3 +1,27 @@
+class ClientNotifier
+  clients = []
+
+  init: (app) ->
+    io = require('socket.io').listen(app)
+    io.set 'log level', 1
+    io.sockets.on 'connection', @addClient
+
+  addClient: (socket) ->
+    clients.push socket
+    socket.on "end", ->
+      i = clients.indexOf(socket)
+      clients.splice i, 1
+
+  notifyClients: ->
+    onEvent "Notifying Browser Test Runner Clients"
+    i = 0
+
+    while i < clients.length
+      clients[i].emit "runTests", {}
+      i++
+
+clientNotifier = new ClientNotifier
+
 createPage = () ->
 
     specPath = config.spec or= "./spec"
@@ -36,6 +60,7 @@ createPage = () ->
 
         writeFileSync "index.html", page.toString(), ->
           onEvent "Pavlov test page generated"
+          clientNotifier.notifyClients() 
 
 buildHead = (html, list) ->
   pavlovDir = "pavlov"
@@ -43,6 +68,8 @@ buildHead = (html, list) ->
   jQueryJS = pavlovDir + "/jquery-1.6.4.min.js"
   qunitJS = pavlovDir + "/qunit.js"
   pavlovJS = pavlovDir + "/pavlov.js"
+  socketIo = "/socket.io/socket.io.js"
+  scktHook = pavlovDir + "/socketHook.js"
 
   html.HEAD(
     html.LINK(
@@ -63,6 +90,14 @@ buildHead = (html, list) ->
       type: "text/javascript"
       src: pavlovJS
     ),
+    html.SCRIPT(
+      type: "text/javascript"
+      src: socketIo
+    ),
+    html.SCRIPT(
+      type: "text/javascript"
+      src: scktHook
+    ),
     buildScripts html, list
   )
 
@@ -82,6 +117,8 @@ hostPavlov = () ->
     app = express.createServer()
     app.use express.bodyParser()
     app.use app.router
+
+    clientNotifier.init app
 
     app.use "/", express.static( path.resolve(".") )
 

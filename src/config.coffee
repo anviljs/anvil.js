@@ -1,6 +1,4 @@
-config =
-{
-}
+config = { }
 
 conventionConfig =
     "source": "src"
