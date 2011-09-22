@@ -8,9 +8,9 @@ QUnit.specify("demo.js", function() {
         {
             assert(true).equals(true);
         });
-        it("should appreciate the fact that 1 === 1", function()
+        it("should appreciate the fact that 11 === 11", function()
         {
-            assert(1).equals(1);
+            assert(11).equals(11);
         });
     });
     describe("Test2 stuff", function() {
