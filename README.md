@@ -16,7 +16,11 @@ Here's the current feature list:
 * Uglify resulting file(s)
 * Gzip resulting file(s)
 * Run in a CI mode where anvil will re-compile the project on source file changes
-* Dynamically create a pavlov test host page and host it at localhost:1580
+* Dynamically generate a pavlov test page
+    * Hosted on localhost:1580
+    * Auto-refresh of the test page on code changes (thanks to @ifandelse
+* Host integration pages at 3080
+* Create integration page stubs including all external dependencies and build output
 
 ## Installation
 
@@ -113,11 +117,39 @@ Anvil will watch your source directory for changes and rebuild the project in th
 
     anvil --ci
 
-## Pavlov Test Host
+## Hosting
 
-Anvil will generate a pavlov test page for your output and host it in express at port :1580. All scripts in the lib and ext folders will be included in this test page. The pavlov, qunit and jquery resources are symlinked into your root directory so that express will load these files correctly.
+Anvil provides local hosting for pavlov test specification and integration tests via express.
+
+### External Dependencies
+
+External dependencies get included in pavlov host pages and integration pages. The default directory these are stored in is "ext"
+
+### Fun With Coffee
+
+External dependencies, lib files and specs can all be written in coffee script provided the files have a .coffee file extension. Anvil will translate these on-the-fly and serve the js to the browser.
+
+### Pavlov Hosting
+
+Anvil will generate a pavlov test page for your output and host it in express at port 1580. All scripts in the lib, ext and spec folders will be included in this test page. The pavlov, qunit and jquery resources are symlinked into your root directory so that express will load these files correctly.
+
+Thanks to a contribution from @ifandelse, if you're using the CI feature, the test page will automatically refresh itself after each successful build.
 
     anvil -p
+
+### Integration Hosting
+
+Anvil can also host files from the lib, ext, and html folders at port 3080. Unlike the pavlov host, there is no default page so the URL has to be page specific.
+
+    anvil -h
+
+### Generating Stub Integration Files
+
+I am incredibly lazy. The thought of typing a bunch of script tags makes me tired. Therefore, anvil will do this for you.
+
+    anvil --html integration
+
+Would create an integration.html file with script tags for all files found in lib and ext named integration.html
 
 ## Too chatty?
 
