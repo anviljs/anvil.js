@@ -89,10 +89,13 @@ If you don't specify your own build file, anvil assumes you intend to use a buil
 ## Combining source files
 
 Anvil allows you to combine source files by using a commented command
+
 **Javascript**
+
     //import("dependency.js");
 
 **Coffeescript**
+
     ###import "dependency.js" ###
 
 When you use Anvil to compile your project, it will traverse all the files in your source directory and combine them so that your top level files are what get output. **Warning** Currently, Anvil is not clever enough to detect circular import statements and it will break the world if you do this.
