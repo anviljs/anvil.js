@@ -22,11 +22,11 @@ class ClientNotifier
 
 clientNotifier = new ClientNotifier
 
-createPage = () ->
+createPageFor = (targetSource) ->
 
     specPath = config.spec or= "./spec"
     extPath = config.ext or= "./ext"
-    libPath = config.output or= "./lib"
+    libPath = targetSource or= config.output or= "./lib"
 
     ensurePath specPath, ->
       ensurePath extPath, ->
@@ -60,7 +60,7 @@ createPage = () ->
 
         writeFileSync "index.html", page.toString(), ->
           onEvent "Pavlov test page generated"
-          clientNotifier.notifyClients() 
+          clientNotifier.notifyClients()
 
 buildHead = (html, list) ->
   pavlovDir = "pavlov"
@@ -111,8 +111,12 @@ buildScripts = ( html, list ) ->
 hostPavlov = () ->
     sourceBase = path.normalize path.join __dirname, "..", "ext"
 
-    unless path.existsSync "./pavlov"
-      fs.symlinkSync sourceBase, "./pavlov"
+    pavlovPath = path.join global.process.cwd(), "pavlov"
+    try
+      fs.unlinkSync pavlovPath
+    catch error
+    finally
+      fs.symlinkSync sourceBase, pavlovPath
 
     app = express.createServer()
     app.use express.bodyParser()

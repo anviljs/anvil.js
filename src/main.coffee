@@ -33,7 +33,7 @@ pack = (combined) ->
                   onComplete "Output: " + gzipped.toString()
                   inProcess = false
                   if test
-                    createPage()
+                    createPageFor()
                   if continuous
                     createWatch()
 
