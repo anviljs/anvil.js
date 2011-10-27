@@ -140,6 +140,10 @@ Thanks to a contribution from @ifandelse, if you're using the CI feature, the te
 
     anvil -p
 
+If you've written your specs and source files correctly, you can also provide a 's' switch to tell the test runner to test against the source directory instead of the output directory.
+
+    anvil -p -s
+
 ### Integration Hosting
 
 Anvil can also host files from the lib, ext, and html folders at port 3080. Unlike the pavlov host, there is no default page so the URL has to be page specific.
