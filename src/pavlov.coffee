@@ -26,7 +26,7 @@ createPageFor = (targetSource) ->
 
     specPath = config.spec or= "./spec"
     extPath = config.ext or= "./ext"
-    libPath = targetSource or= config.output or= "./lib"
+    libPath = config.testTarget
 
     ensurePath specPath, ->
       ensurePath extPath, ->

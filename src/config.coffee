@@ -54,51 +54,62 @@ configure = () ->
         buildOpt = parser.getOptions("b")
         buildFile = if buildOpt then buildOpt else "build.json"
 
-        # Get build template
-        buildTemplate = parser.getOptions("t","template")
-        if buildTemplate
-            output = if buildTemplate == true then "build.json" else buildTemplate
-            writeConfig output
-            global.process.exit(0)
-
-        # Run as CI server?
-        continuous = parser.getOptions("ci")
-
-        #Quiet mode
-        quiet = parser.getOptions("q")
-
-        # Host tests?
-        test = parser.getOptions("p","pavlov")
-        if test
-          hostPavlov()
-
-        # Host pages?
-        host = parser.getOptions("h")
-        if host
-            hostStatic()
-
         onStep "Checking for config..."
-        path.exists buildFile, ( exists ) -> prepConfig( exists, buildFile )
+        path.exists buildFile, ( exists ) ->
+          prepConfig( exists, buildFile, () ->
 
-prepConfig = ( exists, file ) ->
+            onEvent JSON.stringify config
+
+            # Get build template
+            buildTemplate = parser.getOptions("t","template")
+            if buildTemplate
+                output = if buildTemplate == true then "build.json" else buildTemplate
+                writeConfig output
+                global.process.exit(0)
+
+            # Run as CI server?
+            continuous = parser.getOptions("ci")
+
+            #Quiet mode
+            quiet = parser.getOptions("q")
+
+            # Host tests?
+            test = parser.getOptions("p","pavlov")
+            config.testTarget = config.output or= "lib"
+            if test
+              if parser.getOptions("s")
+                config.testTarget = config.source or= "src"
+              hostPavlov()
+
+            # Host pages?
+            host = parser.getOptions("h")
+            if host
+                hostStatic()
+
+            process()
+          )
+
+
+
+prepConfig = ( exists, file, complete ) ->
     unless exists
-        loadConvention()
+        loadConvention( complete )
     else
-        loadConfig( file )
+        loadConfig( file, complete )
 
-loadConfig = ( file ) ->
+loadConfig = ( file, complete ) ->
     onStep "Loading config..."
     readFile "./" + file,  ( x ) ->
         config = JSON.parse( x )
         if config.extensions
             ext.gzip = config.extensions.gzip || ext.gzip
             ext.uglify = config.extensions.uglify || ext.uglify
-        process()
+        complete()
 
-loadConvention = () ->
+loadConvention = ( complete ) ->
     onStep "Loading convention..."
     config = conventionConfig
-    process()
+    complete()
 
 writeConfig = ( name ) ->
     writeFileSync name, JSON.stringify( conventionConfig, null, "\t" ), ( x ) ->
