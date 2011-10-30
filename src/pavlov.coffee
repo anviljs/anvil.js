@@ -22,7 +22,7 @@ class ClientNotifier
 
 clientNotifier = new ClientNotifier
 
-createPageFor = (targetSource) ->
+createPage = () ->
 
     specPath = config.spec or= "./spec"
     extPath = config.ext or= "./ext"
