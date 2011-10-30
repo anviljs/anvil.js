@@ -1,7 +1,7 @@
 {
     "name": "anvil.js",
     "description": "Static javascript / coffeescript build utility",
-    "version": "0.5.2",
+    "version": "0.5.4",
     "authors": ["Alex Robson <@A_Robson>"],
     "keywords": ["build","compile","static"],
     "main": "./lib/anvil.js",

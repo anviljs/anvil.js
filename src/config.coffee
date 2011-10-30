@@ -13,7 +13,7 @@ continuous = test = false
 inProcess = false
 quiet = false
 
-version = "0.5.2"
+version = "0.5.4"
 
 ext =
     gzip: "gz"
