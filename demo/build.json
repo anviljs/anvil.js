@@ -1,7 +1,7 @@
 {
     "source": "src",
     "modules": "node_modules",
-    "output": "libery",
+    "output": "lib",
     "uglify": {},
     "gzip": {},
     "lint": {},
