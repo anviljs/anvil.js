@@ -61,8 +61,6 @@ configure = () ->
         path.exists buildFile, ( exists ) ->
           prepConfig( exists, buildFile, () ->
 
-            onEvent JSON.stringify config
-
             # Get build template
             buildTemplate = parser.getOptions("t","template")
             if buildTemplate
@@ -115,11 +113,19 @@ loadConfig = ( file, complete ) ->
             config.wrapper.suffix = readFileSync config.wrapper['suffix-file'], 'utf-8'
 
         if config.finalize
-          console.log "Found finalize section..."
           if config.finalize['header-file']
             config.finalize.header = fs.readFileSync config.finalize['header-file'], 'utf-8'
           if config.finalize['footer-file']
             config.finalize.footer = fs.readFileSync config.finalize['footer-file'], 'utf-8'
+
+        if config.name
+          if typeof config.name == "string"
+            config.getName = (x) -> config.name
+          if typeof config.name == "object"
+            config.getName = (x) -> config.name[x] || config.name
+          config.rename = true
+
+
 
         complete()
 

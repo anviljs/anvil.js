@@ -13,10 +13,29 @@ createTransformStep = ( step, transform, rename ) ->
             done item
         else
             onStep "Step - #{step}: #{item}"
-            output = rename item
+            erase = false
+            output = rename item, () -> erase = true
             transformFile item, transform, output, ( x ) ->
                 onComplete "Step - #{step} successful for #{item}"
-                done x
+                if erase
+                  fs.unlink item, () -> done x
+                else
+                  done x
+
+renameFile = createTransformStep "rename",
+  ( x, done ) ->
+    done x
+  ,
+  ( x, erase ) ->
+    name = require('path').basename x
+    newName = config.getName name
+    path = x
+    unless name == newName
+      path = x.replace( name, newName )
+      onEvent "... renaming #{x} to #{path}"
+      erase()
+      #fs.renameSync x, path
+    path
 
 lint = createStep "lint", ( item, file, done ) ->
     result = jslint file, {}
@@ -56,7 +75,6 @@ wrap = createTransformStep "wrap",
 finalize = createTransformStep "finalize",
     ( x, done ) ->
       if config.finalize.header
-        console.log "Adding header #{config.finalize.header}"
         x = config.finalize.header + "\r\n" + x
       if config.finalize.footer
         x = x + config.finalize.footer + "\r\n"

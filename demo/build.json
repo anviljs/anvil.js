@@ -1,4 +1,9 @@
 {
+    "name":
+    {
+        "parent.js": "JIMMY-C.js",
+        "secondary.js": "IgnoreMe.js"
+    },
     "source": "src",
     "modules": "node_modules",
     "output": "lib",
