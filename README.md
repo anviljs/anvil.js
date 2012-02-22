@@ -11,6 +11,8 @@ Here's the current feature list:
 * Create simple directory structure for new projects
 * Create build.json files
 * Combine multiple js or coffee files
+* Supports multiple, distinct output files
+* Customized file names for output
 * Compile coffee files into js (can be turned off to maintain coffee output)
 * Lint resulting file(s)
 * Uglify resulting file(s)
@@ -57,7 +59,8 @@ There isn't a wrapper by convention.
         "finalize:" {
             "header|header-file": "this is some unprocessed text or a file name",
             "footer|footer-file": "this is some unprocessed text or a file name"
-        }
+        },
+        "name": "custom-name.js"
     }
 
 * source is where Anvil expects *all* your code. Don't get fancy or Anvil can't help you :(
@@ -76,6 +79,11 @@ There isn't a wrapper by convention.
     * footer appends the following string to the final output ONLY.
     * If header-file or footer-file is provided, the file will be read and the contents used
     * this section was added to support adding boiler plate text headers to minified/gzipped output
+
+* name
+    * for projects with a single file output, this will replace the name of the output file
+    * for projects with multiple file outputs, you can provide a lookup hash to over-write
+        each specific file name
 
 There's also another option called justCoffee that will cause anvil to maintain all output in coffeescript instead of compiling it to js.
 
@@ -126,6 +134,19 @@ To create a build file, you can just type the following:
     anvil -t <buildfile>
 
 and it will create the build file for you. If you don't include the file name, anvil will create a build.json (possibly overwriting your existing one, be careful!)
+
+## Custom Naming
+
+For projects with a single file output, you can provide a name property which will override the default name of the file:
+
+    "name": "my-custom-name.js"
+
+For projects where there are multiple files in the output, you must provide a hash object that will tell anvil how to rename each specific file. For example, if you have a build producing 'one.js' and 'two.js' you would need to provide a hash object that would tell anvil how to name each:
+
+    "name": {
+        "one.js" : "main.js",
+        "two.js" : "plugin.js"
+    }
 
 ## Continuous Integration
 
@@ -178,7 +199,8 @@ I am incredibly lazy. The thought of typing a bunch of script tags makes me tire
 
     anvil --html integration
 
-Would create an integration.html file with script tags for all files found in lib and ext named integration.html
+Would create an integration.html file with script tags for all files found in lib and ext named integration.html. You need
+to provide the full path to the file you want it to create (minus the .html extension) and the path must already exist.
 
 ## Too chatty?
 

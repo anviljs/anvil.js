@@ -1,32 +1,30 @@
 
 class HtmlGenerator
     createPageTemplate: ( name ) ->
-        htmlPath = config.static = "./html"
         extPath = config.ext or= "./ext"
         libPath = config.output or= "./lib"
-        output = path.join( htmlPath, name + ".html" )
+        output = name + ".html"
 
         ensurePath extPath, ->
-            ensurePath htmlPath, ->
-                externals = fs.readdirSync extPath
-                externals = _.map externals, (x) ->
-                    path.join "..", extPath, x
-                libs = fs.readdirSync libPath
-                libs = _.select libs, (x) ->
-                    not x.match ///[.]gz[.]/// and not x.match ///[.]min[.]///
-                libs = _.map libs, (x) ->
-                    path.join "..", libPath, x
-                list = externals.concat( libs )
+            externals = fs.readdirSync extPath
+            externals = _.map externals, (x) ->
+                path.join "..", extPath, x
+            libs = fs.readdirSync libPath
+            libs = _.select libs, (x) ->
+                not x.match ///[.]gz[.]/// and not x.match ///[.]min[.]///
+            libs = _.map libs, (x) ->
+                path.join "..", libPath, x
+            list = externals.concat( libs )
 
-                html = builder.html
-                page = html.HTML(
-                  html.HEAD buildScripts html, list
-                    html.BODY( )
-                )
+            html = builder.html
+            page = html.HTML(
+              html.HEAD buildScripts html, list
+                html.BODY( )
+            )
 
-                writeFileSync output, page.toString(), ->
-                  onEvent name + " page created in " + htmlPath
-                  global.process.exit(0)
+            writeFileSync output, page.toString(), ->
+              onEvent "HTML template #{output} created"
+              global.process.exit(0)
 
     buildScripts = ( html, list ) ->
       _.map list, (x) ->
@@ -46,7 +44,6 @@ hostStatic = () ->
     app.use "/lib", express.static( path.resolve(libPath) )
     app.use "/ext", express.static( path.resolve(extPath) )
 
-    console.log "HURPINTODAWURL!!!!\n"
     host(app, config.hosts[key], key) for key in _(config.hosts).keys()
 
     app.get "*.coffee", (req, res) ->

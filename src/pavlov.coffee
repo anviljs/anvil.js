@@ -1,24 +1,24 @@
 class ClientNotifier
-  clients = []
+clients = []
 
-  init: (app) ->
-    io = require('socket.io').listen(app)
-    io.set 'log level', 1
-    io.sockets.on 'connection', @addClient
+init: (app) ->
+  io = require('socket.io').listen(app)
+  io.set 'log level', 1
+  io.sockets.on 'connection', @addClient
 
-  addClient: (socket) ->
-    clients.push socket
-    socket.on "end", ->
-      i = clients.indexOf(socket)
-      clients.splice i, 1
+addClient: (socket) ->
+  clients.push socket
+  socket.on "end", ->
+    i = clients.indexOf(socket)
+    clients.splice i, 1
 
-  notifyClients: ->
-    onEvent "Notifying Browser Test Runner Clients"
-    i = 0
+notifyClients: ->
+  onEvent "Notifying Browser Test Runner Clients"
+  i = 0
 
-    while i < clients.length
-      clients[i].emit "runTests", {}
-      i++
+  while i < clients.length
+    clients[i].emit "runTests", {}
+    i++
 
 clientNotifier = new ClientNotifier
 
