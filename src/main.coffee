@@ -23,19 +23,20 @@ transform = (withTransforms) ->
   analyzed = rebuildList withTransforms
   combiner = ( x, y ) -> combine( x, analyzed, y )
   forAll analyzed, combiner, pack
-  
+
 pack = (combined) ->
   buildList = removeIntermediates combined
   forAll _.pluck( buildList, "file" ), wrap, (wrapped) ->
       forAll wrapped, lint, (passed) ->
           forAll passed, uglify, (uggered) ->
               forAll uggered, gzip, (gzipped) ->
-                  onComplete "Output: " + gzipped.toString()
-                  inProcess = false
-                  if test
-                    createPage()
-                  if continuous
-                    createWatch()
+                  forAll gzipped, finalize, (finalized) ->
+                    onComplete "Output: " + finalized.toString()
+                    inProcess = false
+                    if test
+                      createPage()
+                    if continuous
+                      createWatch()
 
 compileCoffee = ( sourcePath, file ) ->
     jsFile = file.replace ".coffee", ".js"

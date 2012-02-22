@@ -20,6 +20,8 @@ Here's the current feature list:
     * Hosted on localhost:1580
     * Auto-refresh of the test page on code changes (thanks to @ifandelse
 * Host integration pages at 3080
+    * Defaults to hosting ./html at / in the uri
+    * Now configurable and can host multiple directories at specified URIs
 * Create integration page stubs including all external dependencies and build output
 
 ## Installation
@@ -49,8 +51,12 @@ There isn't a wrapper by convention.
         "gzip": {},
         "extensions": { "uglify": "min", "gzip": "gz" },
         "wrap": {
-            "prefix": "(function(context) {",
-            "suffix": "})(this);"
+            "prefix|prefix-file": "(function(context) {",
+            "suffix|suffix-file": "})(this);"
+        },
+        "finalize:" {
+            "header|header-file": "this is some unprocessed text or a file name",
+            "footer|footer-file": "this is some unprocessed text or a file name"
         }
     }
 
@@ -63,6 +69,13 @@ There isn't a wrapper by convention.
 * wrap
     * prefix prepends the following string to your output files.
     * suffix appends the following string to your output files.
+    * If prefix-file or suffix-file is provided instead, the file will be read and the contents used
+
+* finalize
+    * header prepends the following string to the final output ONLY.
+    * footer appends the following string to the final output ONLY.
+    * If header-file or footer-file is provided, the file will be read and the contents used
+    * this section was added to support adding boiler plate text headers to minified/gzipped output
 
 There's also another option called justCoffee that will cause anvil to maintain all output in coffeescript instead of compiling it to js.
 
@@ -146,9 +159,18 @@ If you've written your specs and source files correctly, you can also provide a 
 
 ### Integration Hosting
 
-Anvil can also host files from the lib, ext, and html folders at port 3080. Unlike the pavlov host, there is no default page so the URL has to be page specific.
+Anvil can also host files from the lib, ext, and other folders at port 3080. Unlike the pavlov host, there is no default page so the URL has to be page specific.
 
     anvil -h
+
+The hosts key in the build.json file is where you can control what each folder will be hosted at in the relative url.
+
+    "hosts": {
+        "/example1" : "./examples/example1",
+        "/example2" : "./examples/example2"
+    }
+
+The block above would host the folder ./example/example1 at http://localhost:3080/example1 and folder ./example/example2 at http://localhost:3080/example2
 
 ### Generating Stub Integration Files
 

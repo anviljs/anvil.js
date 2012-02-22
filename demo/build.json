@@ -3,10 +3,13 @@
     "modules": "node_modules",
     "output": "lib",
     "uglify": {},
-    "gzip": {},
     "lint": {},
     "wrap": {
         "prefix": "(function(context) {",
         "suffix": "})(this);"
+    },
+    "finalize": {
+        "header-file": "./header.txt",
+        "footer-file": "./footer.txt"
     }
  }

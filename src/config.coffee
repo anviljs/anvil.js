@@ -8,6 +8,9 @@ conventionConfig =
     "lint": {}
     "uglify": {}
     "gzip": {}
+    "hosts": {
+      "/": "html"
+    }
 
 continuous = test = false
 inProcess = false
@@ -104,6 +107,20 @@ loadConfig = ( file, complete ) ->
         if config.extensions
             ext.gzip = config.extensions.gzip || ext.gzip
             ext.uglify = config.extensions.uglify || ext.uglify
+
+        if config.wrapper
+          if config.wrapper['prefix-file']
+            config.wrapper.prefix = readFileSync config.wrapper['prefix-file'], 'utf-8'
+          if config.wrapper['suffix-file']
+            config.wrapper.suffix = readFileSync config.wrapper['suffix-file'], 'utf-8'
+
+        if config.finalize
+          console.log "Found finalize section..."
+          if config.finalize['header-file']
+            config.finalize.header = fs.readFileSync config.finalize['header-file'], 'utf-8'
+          if config.finalize['footer-file']
+            config.finalize.footer = fs.readFileSync config.finalize['footer-file'], 'utf-8'
+
         complete()
 
 loadConvention = ( complete ) ->

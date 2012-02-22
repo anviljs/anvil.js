@@ -36,7 +36,6 @@ class HtmlGenerator
         )
 
 hostStatic = () ->
-    htmlPath = config.static = "./html"
     extPath = config.ext or= "./ext"
     libPath = config.output or= "./lib"
 
@@ -44,9 +43,11 @@ hostStatic = () ->
     app.use express.bodyParser()
     app.use app.router
 
-    app.use "/", express.static( path.resolve(htmlPath) )
     app.use "/lib", express.static( path.resolve(libPath) )
     app.use "/ext", express.static( path.resolve(extPath) )
+
+    console.log "HURPINTODAWURL!!!!\n"
+    host(app, config.hosts[key], key) for key in _(config.hosts).keys()
 
     app.get "*.coffee", (req, res) ->
         res.header 'Content-Type', 'application/javascript'
@@ -55,3 +56,7 @@ hostStatic = () ->
         res.send coffee
 
     app.listen 3080
+
+host = (app, dir, uri) ->
+  onComplete "Hosting #{dir} at #{uri}"
+  app.use uri, express.static( path.resolve(dir))

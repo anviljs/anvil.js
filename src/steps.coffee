@@ -52,3 +52,14 @@ wrap = createTransformStep "wrap",
         done x
     ,
     ( x ) -> x
+
+finalize = createTransformStep "finalize",
+    ( x, done ) ->
+      if config.finalize.header
+        console.log "Adding header #{config.finalize.header}"
+        x = config.finalize.header + "\r\n" + x
+      if config.finalize.footer
+        x = x + config.finalize.footer + "\r\n"
+      done x
+    ,
+    ( x ) -> x
