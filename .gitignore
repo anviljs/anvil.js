@@ -3,3 +3,4 @@ test/node_modules/
 .idea/
 pavlov/
 index.html
+.DS_Store
