@@ -54,3 +54,24 @@ gzipper = require( "gzip" )
 # Unfancy JavaScript -- 
 # See http://coffeescript.org/ for more info
 coffeeScript = require "coffee-script"
+
+# LESS Compiler --
+# See http://lesscss.org
+less = require( "less" )
+
+# STYLUS Compiler --
+# See http://learnboost.github.com/stylus/
+stylus = require( "stylus" )
+
+# HAML Compiler --
+# See http://haml-lang.com/
+haml = require( "haml" )
+
+# Markdown Compiler --
+# See http://github.com/chjj/marked
+marked = require( "marked" )
+marked.setOptions { sanitize: false }
+
+# CSS Minifier --
+# See https://github.com/jbleuzen/node-cssmin
+cssminifier = require( "cssmin" )

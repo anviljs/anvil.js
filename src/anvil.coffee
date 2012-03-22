@@ -2,16 +2,16 @@
 
 ###import "log.coffee" ###
 
-###import "io.coffee" ###
-
 ###import "config.coffee" ###
 
-###import "steps.coffee" ###
+###import "scheduler.coffee" ###
 
-###import "pavlov.coffee" ###
+###import "file.coffee" ###
 
-###import "page.coffee" ###
+###import "compile.coffee" ###
+
+###import "combiner.coffee" ###
 
 ###import "main.coffee" ###
 
-###import "continuous.coffee" ###
+###import "cli.coffee" ###
