@@ -3,7 +3,7 @@ path = require "path"
 
 class FileMock
 	constructor: ( @name ) ->
-		@delay = 10
+		@delay = 0
 		@available = true
 
 	delete: ( onComplete ) ->
@@ -15,7 +15,7 @@ class FileMock
 
 	read: ( onContent ) ->
 		self = this
-		if @available
+		if 1 == 1
 			@available = false
 			setTimeout () ->
 				onContent self.content
@@ -33,6 +33,7 @@ class FileMock
 				, self.delay
 			)
 		else
+			console.log "Shit"
 			throw new Error "Cannot write file #{ @name }"
 
 	
@@ -77,14 +78,15 @@ class FSMock
 		else
 			return @paths[ pathSpec ]
 
-	transform = ( filePath, transform, outputPath, onComplete ) ->
+	transform: ( filePath, transform, outputPath, onComplete ) ->
 		self = this
 		filePath = this.buildPath filePath
 		outputPath = this.buildPath outputPath
 		this.read( filePath,
 			( content ) ->
-				transform content, ( newContent ) ->
-					self.write outputPath, newContent, onComplete
+				transform content, ( newContent, err ) ->
+					self.write outputPath, newContent, () ->
+						onComplete( err )
 		)
 
 	read: ( filePath, onContent ) ->
@@ -103,5 +105,9 @@ class FSMock
 			file = new FileMock filePath
 			@files[ filePath ] = file
 		file.write content, onComplete
+
+	reset: () ->
+		@files = {}
+		@paths = {}	
 
 exports.fsProvider = FSMock

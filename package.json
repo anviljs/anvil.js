@@ -1,0 +1,42 @@
+{
+    "name": "anvil.js",
+    "description": "CI, Testing and Packaging for libraries and sites",
+    "version": "0.8.0",
+    "authors": ["Alex Robson <@A_Robson>"],
+    "keywords": ["build","compile","static"],
+    "main": "./lib/anvil.js",
+    "homepage": "http://anvil-js.org",
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/arobson/anvil.js.git"
+    },
+    "directories": { "lib": "./lib" },
+    "engines" : { "node": ">=0.6.0" },
+    "dependencies": {
+        "colors": ">=0.5.0",
+        "gzip": ">=0.1.0",
+        "readyjslint": ">=0.0.4",
+        "mkdirp": ">=0.0.7",
+        "uglify-js": ">=1.0.7",
+        "underscore": ">=1.1.7",
+        "coffee-script": "1.1.2",
+        "express": ">=2.4.6",
+        "express-resource": ">=0.2.2",
+        "DOMBuilder": "2.0.1",
+        "dive": "0.0.3",
+        "argparser": "0.0.9",
+        "socket.io": ">=0.8.4",
+        "stylus": ">=0.24.0",
+        "cssmin": ">=0.3.1",
+        "less": ">=1.3.0",
+        "marked": ">=0.2.3",
+        "haml": ">=0.4.2",
+        "coffeekup": ">=0.3.1",
+        "scss": ">=0.2.4",
+        "sass": ">=0.5.0"
+    },
+    "preferGlobal": true,
+    "bin": {
+        "anvil": "./bin/anvil"
+    }
+}

@@ -10,7 +10,7 @@ In the end, I think the philosophy is simple: build web and node projects the wa
 
 Here's the current feature list:
 
-* 'Compile' CoffeeScript, Stylus, LESS, HAML, Markdown and CoffeeCup
+* 'Compile' CoffeeScript, Stylus, LESS, HAML, Markdown and CoffeeKup
 * Combine resource files into output files via import syntax (varies by language and file type)
 * Compress JS and CSS resources (maybe images one day)
 * Continously perform these steps in the background as files change
@@ -196,7 +196,7 @@ or
 
     anvil --host
 
-Coffee, Stylus, LESS, Mardown, HAML and CoffeeCup are all converted at request time if they are requested.
+Coffee, Stylus, LESS, Mardown, HAML and CoffeeKup are all converted at request time if they are requested.
 
 The hosts key in the build.json file is where you can control what each folder will be hosted at in the relative url.
 

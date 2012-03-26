@@ -60,8 +60,9 @@ class FSProvider
 		)
 
 
-	pathExists: ( path ) ->
-		path.existsSync path
+	pathExists: ( pathSpec ) ->
+		pathSpec = this.buildPath pathSpec
+		path.existsSync pathSpec
 
 	# ## read ##
 	# Reads a file from _filePath_ and calls _onFile_ callback with contents (Asynchronously)
@@ -73,7 +74,7 @@ class FSProvider
 		fs.readFile filePath, "utf8", ( err, content ) ->
 		if err
 			log.onError "Could not read #{ filePath } : #{ err }"
-			process.exit 1
+			onContent "", err
 		else
 			onContent content
 
@@ -90,7 +91,7 @@ class FSProvider
 			fs.readFileSync filePath, "utf8"
 		catch err
 			log.onError "Could not read #{ filePath } : #{ err }"
-			process.exit 1
+			err
 
 	# ## transformFile ##
 	# Given input file _filePath_, perform _transform_ upon it then write the transformed content
@@ -100,15 +101,18 @@ class FSProvider
 	# * _transform {Function}_: transform to perform on the file
 	# * _outputPath {String}_: pathspec of output file
 	# * _onComplete {Function}_: called when all operations are complete
-	transform = ( filePath, transform, outputPath, onComplete ) ->
+	transform: ( filePath, transform, outputPath, onComplete ) ->
 		self = this
 		filePath = @buildPath filePath
 		outputPath = @buildPath outputPath
 	    this.read(
 	        filePath,
 	        ( content ) ->
-	            transform content, ( newContent ) ->
-	              self.write outputPath, newContent, onComplete
+	            transform content, ( newContent, error ) ->
+	            	if not error
+	              		self.write outputPath, newContent, onComplete
+              		else
+              			onComplete error
 	    )
 
     # ## write ##
@@ -122,6 +126,7 @@ class FSProvider
 		fs.writeFile filePath, content, "utf8", ( err ) ->
 			if err
 				log.onError "Could not write #{ filePath } : #{ err }"
+				onComplete err
 			else
 				onComplete()
 

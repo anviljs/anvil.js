@@ -1,6 +1,6 @@
 class Anvil
 
-	constructor: ( @fp, @config, @compiler, @combiner, @log, @scheduler ) ->
+	constructor: ( @config, @fp, @compiler, @combiner, @scheduler, @log ) ->
 		config = @config
 		@filesBuilt = {}
 		@scheduler = new ForkJoiner()
@@ -30,25 +30,24 @@ class Anvil
 		compiler = @compiler
 		findPatterns = [ ///[\<][!][-]{2}.?import[( ]['\"].*['\"][ )].?[-]{2}[\>]///g ]
 		replacePatterns = [ ///[\<][!][-]{2}.?import[( ]['\"]replace['\"][ )].?[-]{2}[\>]///g ]
-		combiner = new Combiner( @fp, scheduler, findPatterns, replacePatterns )
+		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
 
 		prepFiles "markup", ( list ) ->
-			scheduler.forAll list, compiler.compile, () ->
+			scheduler.parallel list, compiler.compile, () ->
 				combiner.combine list, () ->
 					self.stepComplete "markup"
 			
-
 
 	buildSource: () ->
 		self = this
 		scheduler = @scheduler
 		compiler = @compiler
-		findPatterns = [ ///[\<][!][-]{2}.?import[( ]['\"].*['\"][ )].?[-]{2}[\>]///g ]
-		replacePatterns = [ ///[\<][!][-]{2}.?import[( ]['\"]replace['\"][ )].?[-]{2}[\>]///g ]
-		combiner = new Combiner( @fp, scheduler, findPatterns, replacePatterns )
+		findPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?///g ]
+		replacePatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?///g ]
+		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
 
 		prepFiles "source", ( list ) ->
-			scheduler.forAll list, compiler.compile, () ->
+			scheduler.parallel list, compiler.compile, () ->
 				combiner.combine list, () ->
 					self.stepComplete "source"
 
@@ -57,12 +56,12 @@ class Anvil
 		self = this
 		scheduler = @scheduler
 		compiler = @compiler
-		findPatterns = [ ///[\<][!][-]{2}.?import[( ]['\"].*['\"][ )].?[-]{2}[\>]///g ]
-		replacePatterns = [ ///[\<][!][-]{2}.?import[( ]['\"]replace['\"][ )].?[-]{2}[\>]///g ]
-		combiner = new Combiner( @fp, scheduler, findPatterns, replacePatterns )
+		findPatterns = [ ///@import[( ].?[\"'].*[.]css[\"'].?[ )]?///g ]
+		replacePatterns = [ ///@import[( ].?[\"']replace[\"'].?[ )]?///g ]
+		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
 
 		prepFiles "style", ( list ) ->
-			scheduler.forAll list, compiler.compile, () ->
+			scheduler.parallel list, compiler.compile, () ->
 				combiner.combine list, () ->
 					self.stepComplete "style"
 
@@ -92,8 +91,10 @@ class Anvil
 						}
 			onComplete list
 
+
 	report: () ->
 		onComplete "Hey, it's done, bro-ham"
+
 
 	stepComplete: ( step ) ->
 		@steps[ step ] = true
