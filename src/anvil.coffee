@@ -8,6 +8,8 @@
 
 ###import "steps.coffee" ###
 
+###import "gendocs.coffee" ###
+
 ###import "pavlov.coffee" ###
 
 ###import "page.coffee" ###
