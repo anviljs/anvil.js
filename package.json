@@ -25,7 +25,9 @@
         "DOMBuilder": "2.0.1",
         "dive": "0.0.3",
         "argparser": "0.0.9",
-        "socket.io": ">=0.8.4"
+        "socket.io": ">=0.8.4",
+        "ape": ">=0.3.6",
+        "docco": "https://github.com/andtan/flocco/tarball/master" 
     },
     "preferGlobal": true,
     "bin": {
