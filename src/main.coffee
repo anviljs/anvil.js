@@ -3,8 +3,6 @@ class Anvil
 	constructor: ( @config, @fp, @compiler, @combiner, @scheduler, @log ) ->
 		config = @config
 		@filesBuilt = {}
-		@scheduler = new ForkJoiner()
-		@compiler = new Compiler @fp
 		# mini FSM - basically we don't want to start building markup until
 		# everything else is done since markup can import other built resources
 		@steps = 
@@ -28,11 +26,11 @@ class Anvil
 		self = this
 		scheduler = @scheduler
 		compiler = @compiler
-		findPatterns = [ ///[\<][!][-]{2}.?import[( ]['\"].*['\"][ )].?[-]{2}[\>]///g ]
-		replacePatterns = [ ///[\<][!][-]{2}.?import[( ]['\"]replace['\"][ )].?[-]{2}[\>]///g ]
+		findPatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
+		replacePatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
 		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
 
-		prepFiles "markup", ( list ) ->
+		@prepFiles "markup", ( list ) ->
 			scheduler.parallel list, compiler.compile, () ->
 				combiner.combine list, () ->
 					self.stepComplete "markup"
@@ -46,7 +44,7 @@ class Anvil
 		replacePatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?///g ]
 		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
 
-		prepFiles "source", ( list ) ->
+		@prepFiles "source", ( list ) ->
 			scheduler.parallel list, compiler.compile, () ->
 				combiner.combine list, () ->
 					self.stepComplete "source"
@@ -56,11 +54,11 @@ class Anvil
 		self = this
 		scheduler = @scheduler
 		compiler = @compiler
-		findPatterns = [ ///@import[( ].?[\"'].*[.]css[\"'].?[ )]?///g ]
-		replacePatterns = [ ///@import[( ].?[\"']replace[\"'].?[ )]?///g ]
+		findPatterns = [ ///@import[(]?.?[\"'].*[.]css[\"'].?[)]?///g ]
+		replacePatterns = [ ///@import[(]?.?[\"']replace[\"'].?[)]?///g ]
 		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
 
-		prepFiles "style", ( list ) ->
+		@prepFiles "style", ( list ) ->
 			scheduler.parallel list, compiler.compile, () ->
 				combiner.combine list, () ->
 					self.stepComplete "style"
@@ -74,8 +72,10 @@ class Anvil
 		working = @config.working
 		path = @config[ type ]
 		output = @config.output[ type ]
-
-		@fp.getFiles @config.markup, ( files ) ->
+		log = @log
+		log.onEvent "prepfiles"
+		@fp.getFiles path, ( files ) ->
+			log.onEvent "Scanning #{ files.length } #{ type } files ..."
 			list = for file in files
 						name = path.basename file
 						{
@@ -93,12 +93,14 @@ class Anvil
 
 
 	report: () ->
+		# tests
+		# re-start watchers
 		onComplete "Hey, it's done, bro-ham"
 
 
 	stepComplete: ( step ) ->
 		@steps[ step ] = true
-			if @steps.markupReady()
-				@buildMarkup()
-			if @steps.allDone()
-				@report()
+		if @steps.markupReady()
+			@buildMarkup()
+		if @steps.allDone()
+			@report()

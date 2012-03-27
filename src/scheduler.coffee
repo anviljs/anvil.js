@@ -27,18 +27,24 @@ class Scheduler
 	pipeline: ( item, workers, onComplete ) ->
 		# Fail fast if list is empty
 		if item == undefined or not workers or workers.length == 0
-			onComplete {}
+			onComplete item || {}
 
-		count = workers.length
-		result = item
+		iterate = ( done ) ->
+			worker = workers.shift()
+			worker item, done
+		done = ->
+
 		done = ( product ) ->
-			count = count - 1
-			result = product
-			# Is iteration complete?
-			if count == 0
+			item = product
+			# Any workers remaining?
+			if workers.length == 0
 				# Call _onComplete_!
-				onComplete( result )
-		# Iteration occurs here
-		( worker result, done ) for worker in workers
+				onComplete( product )
+			else
+				iterate done
 
-exports.scheduler = new Scheduler()
+		iterate done
+
+scheduler = new Scheduler()
+
+exports.scheduler = scheduler

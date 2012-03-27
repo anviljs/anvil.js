@@ -10,14 +10,14 @@ require "should"
 
 fp = new FP()
 
-htmlFindPatterns = [ ///[\<][!][-]{2}.?import[( ]['\"].*['\"][ )].?[-]{2}[\>]///g ]
-htmlReplacePatterns = [ ///[\<][!][-]{2}.?import[( ]['\"]replace['\"][ )].?[-]{2}[\>]///g ]
+htmlFindPatterns = [ 	///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
+htmlReplacePatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
 
 sourceFindPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?///g ]
 sourceReplacePatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?///g ]
 
-cssFindPatterns = [ ///@import[( ].?[\"'].*[.]css[\"'].?[ )]?///g ]
-cssReplacePatterns = [ ///@import[( ].?[\"']replace[\"'].?[ )]?///g ]
+cssFindPatterns = [ ///@import[(]?.?[\"'].*[.]css[\"'].?[)]?///g ]
+cssReplacePatterns = [ ///@import[(]?.?[\"']replace[\"'].?[)]?///g ]
 
 stripSpace = ( content ) -> content.replace ///\s///g, ""
 compareOutput = ( one, two ) ->  ( stripSpace one ).should.equal ( stripSpace two )
@@ -164,7 +164,7 @@ oneCss = createFile "style", "one.css", "tmp", cssOneTxt
 twoCss = createFile "style", "two.css", "tmp", cssTwoTxt
 ignored = createFile "style", "ignored.less", "tmp", ignoredTxt
 
-htmlFile = createFile "markup", "one.html", "tmp"
+htmlFile = createFile "markup", "one.html", "tmp", htmlText
 
 all = [ oneCoffee, twoCoffee, threeCoffee, fourJs, fiveJs, sixJs, oneCss, twoCss, ignored, htmlFile ]
 
@@ -292,3 +292,37 @@ describe "when combining css files", ->
 			compareOutput content, cssFinalTxt
 			done()
 
+
+describe "when getting imports for html", ->
+
+	combine = new Combiner fp, scheduler, htmlFindPatterns, htmlReplacePatterns
+	htmlFiles = [ htmlFile ]
+	findImport = ( file, done ) ->
+		combine.findImports file, all, done
+
+	before ( done ) ->
+		scheduler.parallel htmlFiles, findImport, () -> done()
+
+	it "one.html should have 3 import", () ->
+		htmlFile.imports.length.should.equal 3
+
+	it "one.html should import one.css", () ->
+		htmlFile.imports[2].name.should.equal "one.css"
+
+	it "one.html should import three.coffee", () ->
+		htmlFile.imports[0].name.should.equal "three.coffee"
+
+	it "one.html should import six.js", () ->
+		htmlFile.imports[1].name.should.equal "six.js"
+
+describe "when combining html with other resources", ->
+	combine = new Combiner fp, scheduler, htmlFindPatterns, htmlReplacePatterns
+	htmlFiles = [ htmlFile ]
+
+	before ( done ) ->
+		combine.combineFile htmlFile, () -> done()
+
+	it "should combine files correctly", ( done ) ->
+		fp.read [ htmlFile.workingPath, htmlFile.name ], ( content ) ->
+			compareOutput content, htmlFinalText
+			done()

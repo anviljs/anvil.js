@@ -17,6 +17,7 @@ class StylePipeline
 			( ) ->
 				file.name = newFile
 				onComplete()
+		)
 
 class SourcePipeline
 
@@ -44,6 +45,7 @@ class SourcePipeline
 			( ) ->
 				file.name = newFile
 				onComplete()
+		)
 
 	finalize: ( file, onComplete ) ->
 		self = this

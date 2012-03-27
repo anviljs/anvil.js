@@ -1,0 +1,9 @@
+{
+	"source": "src",
+	"output": "lib",
+	"spec": "spec",
+	"ext": "ext",
+	"hosts": {
+		"/": "html"
+	}
+}

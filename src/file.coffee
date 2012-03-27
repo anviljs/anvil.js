@@ -34,28 +34,31 @@ class FSProvider
 	# ### Args:
 	# * _pathSpec {String}_: path string or array
 	# * _onComplete {Function}_: called if path exists or is successfully created
-	ensurePath = ( pathSpec, onComplete ) ->
+	ensurePath: ( pathSpec, onComplete ) ->
 		pathSpec = @buildPath pathSpec
-	    path.exists pathSpec, ( exists ) ->
-	        unless exists
-	            # No _target_ yet. Let's make it!
-	            mkdir pathSpec, "0755", ( err ) ->
-	                # Couldn't make the path. Report and abort!
-	                if err
-	                    log.onError "Could not create #{pathSpec}. #{err}"
-	                else
-	                    callback()
-	        else
-	            callback()
+		path.exists pathSpec, ( exists ) ->
+			unless exists
+				# No _target_ yet. Let's make it!
+				mkdir pathSpec, "0755", ( err ) ->
+					# Couldn't make the path. Report and abort!
+					if err
+						log.onError "Could not create #{pathSpec}. #{err}"
+					else
+						onComplete()
+			else
+				onComplete()
 
 
 	getFiles: ( filePath, onFiles ) ->
 		filePath = @buildPath filePath
 		files = []
+		console.log "diving #{ filePath }"
 		dive( 
 			filePath, 
 			{ recursive: true },
-			( err, file ) -> if not err then files.push file
+			( err, file ) -> 
+				if not err 
+					files.push file
 			, () -> onFiles files
 		)
 
@@ -72,11 +75,11 @@ class FSProvider
 	read: ( filePath, onContent ) ->
 		filePath = @buildPath filePath
 		fs.readFile filePath, "utf8", ( err, content ) ->
-		if err
-			log.onError "Could not read #{ filePath } : #{ err }"
-			onContent "", err
-		else
-			onContent content
+			if err
+				log.onError "Could not read #{ filePath } : #{ err }"
+				onContent "", err
+			else
+				onContent content
 
 	# ## readSync ##
 	# Reads a file from _filePath_ ... synchronously ... SHAME! SHAAAAAAME! (ok, not really)
@@ -105,17 +108,17 @@ class FSProvider
 		self = this
 		filePath = @buildPath filePath
 		outputPath = @buildPath outputPath
-	    this.read(
-	        filePath,
-	        ( content ) ->
-	            transform content, ( newContent, error ) ->
-	            	if not error
-	              		self.write outputPath, newContent, onComplete
-              		else
-              			onComplete error
-	    )
+		this.read(
+			filePath,
+			( content ) ->
+				transform content, ( newContent, error ) ->
+					if not error
+						self.write outputPath, newContent, onComplete
+					else
+						onComplete error
+		)
 
-    # ## write ##
+	# ## write ##
 	# Writes _content_ to file at _filePath_ calling _done_ after writing is complete (Asynchronously)
 	# ### Args:
 	# * _filePath {String}_: pathspec of file to write
@@ -130,5 +133,8 @@ class FSProvider
 			else
 				onComplete()
 
-export.fsProvider = new FSProvider()
+
+fp = new FSProvider()
+
+exports.fsProvider = fp
 

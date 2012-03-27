@@ -77,7 +77,8 @@ class Combiner
 			# find the matching file metadata for the import
 			for imported in imports
 				importName = ( imported.match ///['\"].*['\"]/// )[ 0 ].replace(///['\"]///g, "" )
-				importedFile = _.find( list, ( i ) -> i.name == importName )
+				importedFile = _.find( list, ( i ) -> 
+					i.name == importName )
 				file.imports.push importedFile
 			onComplete()
 
@@ -104,15 +105,21 @@ class Combiner
 			pipe = @scheduler.pipeline
 			fp = @fp
 			if file.imports.length > 0
+				# creates a closure around a specific import to prevent
+				# access to a changing variable
+				steps = for imported in file.imports
+						self.getStep imported
 				fp.read [ file.workingPath, file.name ], ( main ) ->
-					steps = for imported in file.imports
-						( text, onDone ) -> self.replace text, imported, onDone
 					pipe main, steps, ( result ) ->
 						fp.write [ file.workingPath, file.name ], result, () -> onComplete()
 			else
 				onComplete()
 		else
 			onComplete()
+
+	getStep: ( i ) -> 
+		self = this
+		( text, onDone ) -> self.replace text, i, onDone
 
 	# ## replace ##
 	# create a replacement regex that will take the _imported_ content and replace the
@@ -123,15 +130,17 @@ class Combiner
 	# * _onComplete {Function}_: callback to invoke on completion
 	replace: ( content, imported, onComplete ) ->
 		patterns = @replacePatterns
+		pipe = @scheduler.pipeline
 		source = imported.name
 		working = imported.workingPath
 		@fp.read [ working, source ], ( newContent ) ->
-			for pattern in patterns
-				stringified = pattern.toString().replace ///replace///, source
-				stringified = stringified.substring( 1, stringified.length - 2 )
-				console.log " replace pattern: #{ stringified }"
-				fullPattern = new RegExp stringified, "g"
-				content = content.replace fullPattern, newContent
-			onComplete content
+			steps = for pattern in patterns
+				( current, done ) ->
+					stringified = pattern.toString().replace ///replace///, source
+					stringified = stringified.substring( 1, stringified.length - 2 )
+					fullPattern = new RegExp stringified, "g"
+					done( current.replace fullPattern, newContent )
+			pipe content, steps, ( result ) ->
+				onComplete result
 
 exports.combiner = Combiner

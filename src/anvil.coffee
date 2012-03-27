@@ -12,6 +12,8 @@
 
 ###import "combiner.coffee" ###
 
+###import "pipeline.coffee" ###
+
 ###import "main.coffee" ###
 
 ###import "cli.coffee" ###
