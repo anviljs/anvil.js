@@ -27,7 +27,7 @@
         "argparser": "0.0.9",
         "socket.io": ">=0.8.4",
         "ape": ">=0.3.6",
-        "docco": ">=0.3.0" 
+        "docco": "https://github.com/andtan/flocco/tarball/master" 
     },
     "preferGlobal": true,
     "bin": {
