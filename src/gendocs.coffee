@@ -47,13 +47,14 @@ generate_docs_for_file = (dir, file, done) ->
 	file_path = path.join(dir, file)
 	conf = config.gendocs
 	path.exists(file_path, (exists) -> 
-		if exists
+		if exists and file_path.match(/(\.js|\.coffee)$/) and not (file_path.match /\.min\./)
 			fs.readFile(file_path, (err, file_contents) -> 
 				onStep 'Generating docs for ' + file_path
 				generate_docs_from_string file_contents.toString(), file, done
 			)
 		else
-			onError file_path, 'does not exist!'
+			unless exists
+				onError file_path, 'does not exist!'
 	)
 
 # ## get_doc_generator_method ##
