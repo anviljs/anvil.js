@@ -39,18 +39,3 @@ builder = require "DOMBuilder"
 # A tool to walk through directory trees and apply an action to every file -- 
 # See http://github.com/pvorb/node-dive for more info
 dive = require "dive"
-
-# Uglify: JavaScript parser and compressor/beautifier toolkit -- 
-# See https://github.com/mishoo/UglifyJS for more info
-jsp = require( "uglify-js" ).parser
-pro = require( "uglify-js" ).uglify
-
-# A Node-compatible port of Douglas Crockford's JSLint -- 
-jslint = require( "readyjslint" ).JSLINT
-
-# Gzip for Node -- 
-gzipper = require( "gzip" )
-
-# CSS Minifier --
-# See https://github.com/jbleuzen/node-cssmin
-cssminifier = require( "cssmin" )

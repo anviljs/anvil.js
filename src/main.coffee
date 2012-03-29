@@ -1,10 +1,11 @@
 class Anvil
 
-	constructor: ( @config, @fp, @compiler, @combiner, @scheduler, @log ) ->
+	constructor: ( @config, @fp, @compiler, @combiner, @scheduler, @postProcessor, @log ) ->
 		config = @config
 		@filesBuilt = {}
 		# mini FSM - basically we don't want to start building markup until
 		# everything else is done since markup can import other built resources
+		@postProcesses
 		@steps = 
 			source: false
 			style: false
@@ -45,12 +46,15 @@ class Anvil
 		scheduler = @scheduler
 		compiler = @compiler
 		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
+		postProcessor = @postProcessor
+
 		self.prepFiles type, ( list ) ->
 			self.moveFiles list, () ->
 				combiner.combineList list, () ->
 					scheduler.parallel list, compiler.compile, () ->
-						self.finalOutput list, () ->
-							self.stepComplete type
+						postProcessor.process list, ( list ) ->
+							self.finalOutput list, () ->
+								self.stepComplete type
 
 
 	fileBuilt: ( file ) ->
@@ -102,6 +106,7 @@ class Anvil
 	report: () ->
 		# tests
 		# re-start watchers
+
 		@log.onComplete "Hey, it's done, bro-ham"
 
 

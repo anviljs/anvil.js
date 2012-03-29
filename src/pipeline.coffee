@@ -1,3 +1,18 @@
+# Uglify: JavaScript parser and compressor/beautifier toolkit -- 
+# See https://github.com/mishoo/UglifyJS for more info
+jsp = require( "uglify-js" ).parser
+pro = require( "uglify-js" ).uglify
+
+# A Node-compatible port of Douglas Crockford's JSLint -- 
+jslint = require( "readyjslint" ).JSLINT
+
+# Gzip for Node -- 
+gzipper = require( "gzip" )
+
+# CSS Minifier --
+# See https://github.com/jbleuzen/node-cssmin
+cssminifier = require( "cssmin" )
+
 class StylePipeline
 
 	constructor: ( @config, @fp, @minifier, @scheduler, @log ) ->
@@ -27,11 +42,9 @@ class SourcePipeline
 	process: ( files, onComplete ) ->
 		self = this
 		minified = _.map( files, ( x ) -> _.clone x )
-		
-
 		@scheduler.parallel files, @finalize, () -> 
-			self.scheduler.parallel files, self.minify, () -> 
-				self.scheduler.parallel files, self.finalize, () -> onComplete()
+			self.scheduler.parallel minified, self.minify, () -> 
+				self.scheduler.parallel minified, self.finalize, () -> onComplete( files.concat minified )
 
 	minify: ( file, onComplete ) ->
 		self = this
@@ -82,3 +95,24 @@ class MarkupPipeline
 class ImagePipeline
 
 	constructor: () ->
+
+class PostProcessor
+
+	@constructor: ( @config, @fp, @scheduler, @log ) ->
+
+		uglify = ( source, callback ) ->
+			try
+				ast = jsp.parse x
+				ast = pro.ast_mangle ast
+				ast = pro.ast_squeeze ast
+				callback undefined, pro.gen_code ast
+			catch err
+				callback err, ""
+
+		@style = new StylePipeline @config, @fp, cssmin, @scheduler, @log
+		@source = new SourcePipeline @config, @fp, uglify, @scheduler, @log
+		@markup = {
+			process: ( files, onComplete ) -> onComplete files
+		}
+
+exports.postProcessor = PostProcessor
