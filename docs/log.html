@@ -1,0 +1,46 @@
+<!DOCTYPE html><head><style type="text/css">pre code{display:block;padding:.5em;color:black;background:#f8f8ff}pre .comment,pre .template_comment,pre .diff .header,pre .javadoc{color:#998;font-style:italic}pre .keyword,pre .css .rule .keyword,pre .winutils,pre .javascript .title,pre .lisp .title,pre .subst{color:black;font-weight:bold}pre .number,pre .hexcolor{color:#40a070}pre .string,pre .tag .value,pre .phpdoc,pre .tex .formula{color:#d14}pre .title,pre .id{color:#900;font-weight:bold}pre .javascript .title,pre .lisp .title,pre .subst{font-weight:normal}pre .class .title,pre .haskell .label,pre .tex .command{color:#458;font-weight:bold}pre .tag,pre .tag .title,pre .rules .property,pre .django .tag .keyword{color:navy;font-weight:normal}pre .attribute,pre .variable,pre .instancevar,pre .lisp .body{color:teal}pre .regexp{color:#009926}pre .class{color:#458;font-weight:bold}pre .symbol,pre .ruby .symbol .string,pre .ruby .symbol .keyword,pre .ruby .symbol .keymethods,pre .lisp .keyword,pre .tex .special,pre .input_number{color:#990073}pre .builtin,pre .built_in,pre .lisp .title{color:#0086b3}pre .preprocessor,pre .pi,pre .doctype,pre .shebang,pre .cdata{color:#999;font-weight:bold}pre .deletion{background:#fdd}pre .addition{background:#dfd}pre .diff .change{background:#0086b3}pre .chunk{color:#aaa}pre .tex .formula{opacity:.5}#docs {margin:auto}.block {clear:both}.comment {padding: 0 10px;width:50%;background:snow}.code {width:49%;background:#f8f8ff}td {vertical-align:top}table {width:90%; border-collapse:collapse}
+</style></head><body><table id="docs"><tr class="block"><td class="comment"><h2>onEvent</h2>
+
+<p>Logs events in default console color</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>x {String}</em>: message to log</li>
+</ul></td><td class="code"><pre><code>onEvent = <span class="params">(x)</span> <span class="function">-></span>
+    <span class="keyword">unless</span> quiet
+        console.log <span class="string">"   <span class="subst">#{x}</span>"</span>
+
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>onStep</h2>
+
+<p>Logs steps in blue</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>x {String}</em>: message to log</li>
+</ul></td><td class="code"><pre><code>onStep = <span class="params">(x)</span> <span class="function">-></span>
+    <span class="keyword">unless</span> quiet
+        console.log <span class="string">"<span class="subst">#{x}</span>"</span>.blue
+
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>onComplete</h2>
+
+<p>Logs successful process completions in green</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>x {String}</em>: message to log</li>
+</ul></td><td class="code"><pre><code>onComp<span class="reserved">let</span>e = <span class="params">(x)</span> <span class="function">-></span>
+    console.log <span class="string">"<span class="subst">#{x}</span>"</span>.green
+
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>onError</h2>
+
+<p>Logs errors in red</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>x {String}</em>: message to log</li>
+</ul></td><td class="code"><pre><code>onError = <span class="params">(x)</span> <span class="function">-></span>
+    console.log <span class="string">"!!! Error: <span class="subst">#{x}</span> !!!"</span>.red</code></pre></td></tr></table></body>

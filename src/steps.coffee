@@ -102,9 +102,9 @@ gzip = createTransformStep "gzip",
 wrap = createTransformStep "wrap",
     ( x, done ) ->
         if config.wrap.prefix
-            x = config.wrap.prefix + "\r\n" + x
+            x = config.wrap.prefix + "\n" + x
         if config.wrap.suffix
-            x = x + "\r\n" + config.wrap.suffix
+            x = x + "\n" + config.wrap.suffix
         done x
     ,
     # No rename. Just return the original
@@ -116,9 +116,9 @@ wrap = createTransformStep "wrap",
 finalize = createTransformStep "finalize",
     ( x, done ) ->
       if config.finalize.header
-        x = config.finalize.header + "\r\n" + x
+        x = "#{ config.finalize.header }\n#{ x }"
       if config.finalize.footer
-        x = x + config.finalize.footer + "\r\n"
+        x = x + "\n#{ config.finalize.footer }\n"
       done x
     ,
     # No rename. Just return the original

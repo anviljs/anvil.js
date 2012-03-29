@@ -49,7 +49,7 @@ generate_docs_for_file = (dir, file, done) ->
 	path.exists(file_path, (exists) -> 
 		if exists
 			fs.readFile(file_path, (err, file_contents) -> 
-				onStep 'Generating docs for', file_path
+				onStep 'Generating docs for ' + file_path
 				generate_docs_from_string file_contents.toString(), file, done
 			)
 		else

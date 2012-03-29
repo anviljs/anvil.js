@@ -1,0 +1,67 @@
+<!DOCTYPE html><head><style type="text/css">pre code{display:block;padding:.5em;color:black;background:#f8f8ff}pre .comment,pre .template_comment,pre .diff .header,pre .javadoc{color:#998;font-style:italic}pre .keyword,pre .css .rule .keyword,pre .winutils,pre .javascript .title,pre .lisp .title,pre .subst{color:black;font-weight:bold}pre .number,pre .hexcolor{color:#40a070}pre .string,pre .tag .value,pre .phpdoc,pre .tex .formula{color:#d14}pre .title,pre .id{color:#900;font-weight:bold}pre .javascript .title,pre .lisp .title,pre .subst{font-weight:normal}pre .class .title,pre .haskell .label,pre .tex .command{color:#458;font-weight:bold}pre .tag,pre .tag .title,pre .rules .property,pre .django .tag .keyword{color:navy;font-weight:normal}pre .attribute,pre .variable,pre .instancevar,pre .lisp .body{color:teal}pre .regexp{color:#009926}pre .class{color:#458;font-weight:bold}pre .symbol,pre .ruby .symbol .string,pre .ruby .symbol .keyword,pre .ruby .symbol .keymethods,pre .lisp .keyword,pre .tex .special,pre .input_number{color:#990073}pre .builtin,pre .built_in,pre .lisp .title{color:#0086b3}pre .preprocessor,pre .pi,pre .doctype,pre .shebang,pre .cdata{color:#999;font-weight:bold}pre .deletion{background:#fdd}pre .addition{background:#dfd}pre .diff .change{background:#0086b3}pre .chunk{color:#aaa}pre .tex .formula{opacity:.5}#docs {margin:auto}.block {clear:both}.comment {padding: 0 10px;width:50%;background:snow}.code {width:49%;background:#f8f8ff}td {vertical-align:top}table {width:90%; border-collapse:collapse}
+</style></head><body><table id="docs"><tr class="block"><td class="comment"><h2>HtmlGenerator</h2>
+
+<p>Class to create an HTML page with all external dependencies + Anvil output files<br />included.</p></td><td class="code"><pre><code><span class="keyword">class</span> HtmlGenerator</code></pre></td></tr><tr class="block"><td class="comment"><h2>createPageTemplate</h2>
+
+<p>Builds the page</p>
+
+<h3>Args:</h3>
+
+<p><em>name {String}</em>: the filename (before the .html extension)</p></td><td class="code"><pre><code>    createPageTemplate: <span class="params">( name )</span> <span class="function">-></span>
+        extPath = config.ext <span class="keyword">or</span>= <span class="string">"./ext"</span>
+        libPath = config.output <span class="keyword">or</span>= <span class="string">"./lib"</span>
+        output = name + <span class="string">".html"</span>
+</code></pre></td></tr><tr class="block"><td class="comment"><p>Make sure extPath exists first.</p></td><td class="code"><pre><code>        ensurePath extPath, <span class="function">-></span></code></pre></td></tr><tr class="block"><td class="comment"><p>retrieve externals</p></td><td class="code"><pre><code>            externals = fs.readdirSync extPath</code></pre></td></tr><tr class="block"><td class="comment"><p>pre-pend relative path to externals to external JS libs</p></td><td class="code"><pre><code>            externals = _.map externals, <span class="params">(x)</span> <span class="function">-></span>
+                path.join <span class="string">".."</span>, extPath, x</code></pre></td></tr><tr class="block"><td class="comment"><p>retrieve output files</p></td><td class="code"><pre><code>            libs = fs.readdirSync libPath</code></pre></td></tr><tr class="block"><td class="comment"><p>filter out extra versions of output files</p></td><td class="code"><pre><code>            libs = _.select libs, <span class="params">(x)</span> <span class="function">-></span>
+                <span class="keyword">not</span> x.match ///[.]gz[.]/// <span class="keyword">and</span> <span class="keyword">not</span> x.match ///[.]min[.]///</code></pre></td></tr><tr class="block"><td class="comment"><p>pre-pend relative path to output files</p></td><td class="code"><pre><code>            libs = _.map libs, <span class="params">(x)</span> <span class="function">-></span>
+                path.join <span class="string">".."</span>, libPath, x</code></pre></td></tr><tr class="block"><td class="comment"><p>combine externals and output files</p></td><td class="code"><pre><code>            list = externals.concat<span class="params">( libs )</span>
+</code></pre></td></tr><tr class="block"><td class="comment"><p>builder = DOMBuilder (see libs.coffee)</p></td><td class="code"><pre><code>            html = builder.html</code></pre></td></tr><tr class="block"><td class="comment"><p>build simple HTML page with all externals and output files included</p></td><td class="code"><pre><code>            page = html.HTML<span class="params">(
+              html.HEAD buildScripts html, list
+                html.BODY( )</span>
+            )
+
+            writeFileSync output, page.toString<span class="params">()</span>, <span class="function">-></span>
+              onEvent <span class="string">"HTML template <span class="subst">#{output}</span> created"</span>
+              global.process.exit<span class="params">(<span class="number">0</span>)</span>
+
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>buildScripts</h2>
+
+<p>Given a DOMBuilder object and a list of script file paths, add script tags<br />for the paths to the object.</p>
+
+<h3>Args:</h3>
+
+<p><em>html {Object}</em>: the DOMBuilder.html object to append script tags to<br /><em>list {Array}</em>: the list of script file paths</p></td><td class="code"><pre><code>    buildScripts = <span class="params">( html, list )</span> <span class="function">-></span>
+      _.map list, <span class="params">(x)</span> <span class="function">-></span>
+        html.SCRIPT<span class="params">(
+          type: <span class="string">"text/javascript"</span>
+          src: x
+        )</span>
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>hostStatic</h2>
+
+<p>Creates an express app to serve the static resources at port 3080</p></td><td class="code"><pre><code>hostStatic = <span class="params">()</span> <span class="function">-></span>
+    extPath = config.ext <span class="keyword">or</span>= <span class="string">"./ext"</span>
+    libPath = config.output <span class="keyword">or</span>= <span class="string">"./lib"</span>
+
+    app = express.createServer<span class="params">()</span>
+    app.use express.bodyParser<span class="params">()</span>
+    app.use app.router
+</code></pre></td></tr><tr class="block"><td class="comment"><p>Serve resources from lib and ext directories</p></td><td class="code"><pre><code>    app.use <span class="string">"/lib"</span>, express.static<span class="params">( path.resolve(libPath)</span> )
+    app.use <span class="string">"/ext"</span>, express.static<span class="params">( path.resolve(extPath)</span> )
+
+    host<span class="params">(app, config.hosts[key], key)</span> <span class="keyword">for</span> key <span class="keyword">in</span> _<span class="params">(config.hosts)</span>.keys<span class="params">()</span>
+</code></pre></td></tr><tr class="block"><td class="comment"><p>If the resource is a CoffeeScript file, compile and serve as Javascript</p></td><td class="code"><pre><code>    app.get <span class="string">"*.coffee"</span>, <span class="params">(req, res)</span> <span class="function">-></span>
+        res.header <span class="string">'Content-Type'</span>, <span class="string">'application/javascript'</span>
+        source = fs.readFileSync <span class="string">"."</span> + req.url, <span class="string">"utf8"</span>
+        coffee = coffeeScript.compile source, { bare: <span class="literal">true</span> }
+        res.send coffee
+
+    app.listen <span class="number">3080</span>
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>host</h2>
+
+<p>Sets up routes for integration and example/demo pages (hosts key in build.json)<br />For example: { hosts: { "/demo" : "./examples/main_demo" } }</p>
+
+<h3>Args:</h3>
+
+<p><em>app {Object}</em>: the express app to add routes to<br /><em>dir {String}</em>: pathspec of the directory to serve<br /><em>uri {String}</em>: the URI that will serve the directory.</p></td><td class="code"><pre><code>host = <span class="params">(app, dir, uri)</span> <span class="function">-></span>
+  onComp<span class="reserved">let</span>e <span class="string">"Hosting <span class="subst">#{dir}</span> at <span class="subst">#{uri}</span>"</span>
+  app.use uri, express.static<span class="params">( path.resolve(dir)</span>)</code></pre></td></tr></table></body>

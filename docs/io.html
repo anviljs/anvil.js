@@ -1,0 +1,204 @@
+<!DOCTYPE html><head><style type="text/css">pre code{display:block;padding:.5em;color:black;background:#f8f8ff}pre .comment,pre .template_comment,pre .diff .header,pre .javadoc{color:#998;font-style:italic}pre .keyword,pre .css .rule .keyword,pre .winutils,pre .javascript .title,pre .lisp .title,pre .subst{color:black;font-weight:bold}pre .number,pre .hexcolor{color:#40a070}pre .string,pre .tag .value,pre .phpdoc,pre .tex .formula{color:#d14}pre .title,pre .id{color:#900;font-weight:bold}pre .javascript .title,pre .lisp .title,pre .subst{font-weight:normal}pre .class .title,pre .haskell .label,pre .tex .command{color:#458;font-weight:bold}pre .tag,pre .tag .title,pre .rules .property,pre .django .tag .keyword{color:navy;font-weight:normal}pre .attribute,pre .variable,pre .instancevar,pre .lisp .body{color:teal}pre .regexp{color:#009926}pre .class{color:#458;font-weight:bold}pre .symbol,pre .ruby .symbol .string,pre .ruby .symbol .keyword,pre .ruby .symbol .keymethods,pre .lisp .keyword,pre .tex .special,pre .input_number{color:#990073}pre .builtin,pre .built_in,pre .lisp .title{color:#0086b3}pre .preprocessor,pre .pi,pre .doctype,pre .shebang,pre .cdata{color:#999;font-weight:bold}pre .deletion{background:#fdd}pre .addition{background:#dfd}pre .diff .change{background:#0086b3}pre .chunk{color:#aaa}pre .tex .formula{opacity:.5}#docs {margin:auto}.block {clear:both}.comment {padding: 0 10px;width:50%;background:snow}.code {width:49%;background:#f8f8ff}td {vertical-align:top}table {width:90%; border-collapse:collapse}
+</style></head><body><table id="docs"><tr class="block"><td class="comment"><h2>forAll</h2>
+
+<p>Iterate <em>list</em> calling <em>onItem</em> callback with the list item and <em>done</em> as args<br />When done (ie, <em>count == 0</em>) call <em>onComplete</em> with the results</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>list {Array}</em>: a list of items to operate on</li>
+<li><em>onItem {Function}</em>: the operation to perform on each item</li>
+<li><em>onComplete {Function}</em>: callback called when all items have been operated on</li>
+</ul></td><td class="code"><pre><code>forAll = <span class="params">( list, onItem, onComplete )</span> <span class="function">-></span></code></pre></td></tr><tr class="block"><td class="comment"><p>Fail fast if list is empty</p></td><td class="code"><pre><code>    <span class="keyword">if</span> <span class="keyword">not</span> list
+        onComp<span class="reserved">let</span>e []
+    count = list.length
+    results = []</code></pre></td></tr><tr class="block"><td class="comment"><p>Pushes <em>result</em> (if truthy) onto the <em>results</em> list and, if there are no more<br />items, calls <em>onComplete</em> with <em>results</em></p></td><td class="code"><pre><code>    done = <span class="params">( result )</span> <span class="function">-></span>
+
+        count = count - <span class="number">1</span></code></pre></td></tr><tr class="block"><td class="comment"><p>Is <em>result</em> truthy?</p></td><td class="code"><pre><code>        <span class="keyword">if</span> result</code></pre></td></tr><tr class="block"><td class="comment"><p>Append to <em>results</em>!</p></td><td class="code"><pre><code>            results.push result</code></pre></td></tr><tr class="block"><td class="comment"><p>Is iteration complete?</p></td><td class="code"><pre><code>        <span class="keyword">if</span> count == <span class="number">0</span></code></pre></td></tr><tr class="block"><td class="comment"><p>Call <em>onComplete</em>!</p></td><td class="code"><pre><code>            onComp<span class="reserved">let</span>e<span class="params">( results )</span></code></pre></td></tr><tr class="block"><td class="comment"><p>Iteration occurs here</p></td><td class="code"><pre><code>    onItem item, done <span class="keyword">for</span> item <span class="keyword">in</span> list
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>forFilesIn</h2>
+
+<p>Iterates files in <em>dir</em> calling <em>onFile</em> callback with each file and <em>done</em> as args<br />When done (ie, <em>count == 0</em>) call <em>onComplete</em> with the results</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>dir {String}</em>: pathspec of dir to retrieve the list of files from</li>
+<li><em>onFile {Function}</em>: the operation to perform on each file</li>
+<li><em>onComplete {Function}</em>: callback called when all files have been operated on</li>
+</ul></td><td class="code"><pre><code>forFilesIn = <span class="params">( dir, onFile, onComplete )</span> <span class="function">-></span>
+    count = <span class="number">0</span>
+    results = []</code></pre></td></tr><tr class="block"><td class="comment"><p>Pushes <em>result</em> (if truthy) onto the <em>results</em> list and, if there are no more<br />items, calls <em>onComplete</em> with <em>results</em></p></td><td class="code"><pre><code>    done = <span class="params">( result )</span> <span class="function">-></span>
+        count = count - <span class="number">1</span>
+        <span class="keyword">if</span> result
+            results.push result
+        <span class="keyword">if</span> count == <span class="number">0</span>
+            onComp<span class="reserved">let</span>e<span class="params">( results )</span></code></pre></td></tr><tr class="block"><td class="comment"><p>Load up <em>dir</em></p></td><td class="code"><pre><code>    fs.readdir dir, <span class="params">( err, list )</span> <span class="function">-></span>
+        <span class="keyword">if</span> err
+            onError <span class="string">"<span class="subst">#{err}</span> occurred trying to read the path <span class="subst">#{path}</span>"</span>
+        <span class="keyword">else</span></code></pre></td></tr><tr class="block"><td class="comment"><p>Get files that are .js/.coffee files</p></td><td class="code"><pre><code>            list = _.select list, <span class="params">( x )</span> <span class="function">-></span>
+              ext = path.extname x
+              ext == <span class="string">".coffee"</span> <span class="keyword">or</span> ext == <span class="string">".js"</span></code></pre></td></tr><tr class="block"><td class="comment"><p>Generate a list of { full: '/full/path/including/file.js', file: 'file.js'} objects</p></td><td class="code"><pre><code>            qualified = <span class="params">( { full: path.join( dir, x )</span>, file: x } <span class="keyword">for</span> x <span class="keyword">in</span> list )
+            list = <span class="params">( { file: x.file, stat: fs.statSync x.full } <span class="keyword">for</span> x <span class="keyword">in</span> qualified )</span>
+            files = _.pluck <span class="params">( _.select list, ( x )</span> <span class="function">-></span> x.stat.isFile<span class="params">()</span> ), <span class="string">"file"</span>
+            count = files.length
+            <span class="keyword">if</span> count == <span class="number">0</span>
+                onComp<span class="reserved">let</span>e<span class="params">([])</span>
+            onFile dir, file, done <span class="keyword">for</span> file <span class="keyword">in</span> files
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>ensurePath</h2>
+
+<p>Makes sure <em>target</em> path exists before calling <em>callback</em> by<br />calling <em>mkdir target...</em> if <em>target</em> does not initially exist</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>target {String}</em>: pathspec</li>
+<li><em>callback {Function}</em>: called if path exists or is successfully created</li>
+</ul></td><td class="code"><pre><code>ensurePath = <span class="params">(target, callback)</span> <span class="function">-></span>
+    path.exists target, <span class="params">( exists )</span> <span class="function">-></span>
+        <span class="keyword">unless</span> exists</code></pre></td></tr><tr class="block"><td class="comment"><p>No <em>target</em> yet. Let's make it!</p></td><td class="code"><pre><code>            mkdir target, <span class="string">"0755"</span>, <span class="params">( err )</span> <span class="function">-></span></code></pre></td></tr><tr class="block"><td class="comment"><p>Couldn't make the path. Report and abort!</p></td><td class="code"><pre><code>                <span class="keyword">if</span> err
+                    onError <span class="string">"Could not create <span class="subst">#{target}</span>. <span class="subst">#{err}</span>"</span>
+                <span class="keyword">else</span>
+                    callback<span class="params">()</span>
+        <span class="keyword">else</span>
+            callback<span class="params">()</span>
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>deleteFile</h2>
+
+<p>Deletes a file, given the file name (<em>file</em>) and its parent (<em>dir</em>)</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>dir {String}</em>: pathspec of parent dir</li>
+<li><em>file {String}</em>: file name</li>
+<li><em>done {Function}</em>: callback called if the file delete is successful</li>
+</ul></td><td class="code"><pre><code>de<span class="reserved">let</span>eFile = <span class="params">( dir, file, done )</span> <span class="function">-></span>
+    fs.unlink path.join<span class="params">( dir, file )</span>,
+        <span class="params">(err)</span> <span class="function">-></span>
+            <span class="keyword">unless</span> err <span class="keyword">then</span> done <span class="literal">null</span>
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>removeIntermediates</h2>
+
+<p>Clean up intermediate files</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>list {Array}</em>: list of files to cull intermediate files from</li>
+</ul></td><td class="code"><pre><code>removeIntermediates = <span class="params">( list )</span> <span class="function">-></span>
+    forFilesIn config.tmp, de<span class="reserved">let</span>eFile, <span class="params">()</span> <span class="function">-></span>
+        fs.rmdir config.tmp
+    intermediate = _.pluck _.select<span class="params">( list, ( y )</span> <span class="function">-></span> y.used > <span class="number">0</span> ), <span class="string">"file"</span>
+    output = _.select<span class="params">( list, ( y )</span> <span class="function">-></span> y.used == <span class="number">0</span> )
+    fs.unlink x <span class="keyword">for</span> x <span class="keyword">in</span> intermediate
+    output
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>buildPath</h2>
+
+<p>Given an array or string pathspec, return a string pathspec</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>spec {Array, String}</em>: pathspec of either an array of strings or a single string</li>
+</ul></td><td class="code"><pre><code>buildPath = <span class="params">( spec )</span> <span class="function">-></span>
+    file = spec
+    <span class="keyword">if</span> _<span class="params">(spec)</span>.isArray<span class="params">()</span>
+        join = path.join
+        file = join.apply<span class="params">( <span class="keyword">this</span>, spec )</span>
+    file
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>transformFile</h2>
+
+<p>Given input file <em>filePath</em>, perform <em>transform</em> upon it then write the transformed content<br />to <em>outputPath</em> and call <em>done</em>. (All operations performed asynchronously.)</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>filePath {String}</em>: pathspec of file to transform</li>
+<li><em>transform {Function}</em>: transform to perform on the file</li>
+<li><em>outputPath {String}</em>: pathspec of output file</li>
+<li><em>done {Function}</em>: called when all operations are complete</li>
+</ul></td><td class="code"><pre><code>transformFile = <span class="params">( filePath, transform, outputPath, done )</span> <span class="function">-></span>
+    readFile<span class="params">(
+        filePath,
+        (x)</span> <span class="function">-></span>
+            transform x, <span class="params">( content )</span> <span class="function">-></span>
+              writeFile outputPath, content, done
+    )
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>transformFileSync</h2>
+
+<p>Given input file <em>filePath</em>, perform <em>transform</em> upon it then write the transformed content<br />to <em>outputPath</em> and call <em>done</em>. (All operations performed synchronously.)</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>filePath {String}</em>: pathspec of file to transform</li>
+<li><em>transform {Function}</em>: transform to perform on the file</li>
+<li><em>outputPath {String}</em>: pathspec of output file</li>
+<li><em>done {Function}</em>: called when all operations are complete</li>
+</ul></td><td class="code"><pre><code>transformFileSync = <span class="params">( filePath, transform, outputPath, done )</span> <span class="function">-></span>
+    readFileSync<span class="params">(
+        filePath,
+        (file_contents)</span> <span class="function">-></span>
+            content = transform file_contents
+            writeFileSync outputPath, content, done
+    )
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>readFile</h2>
+
+<p>Reads a file from <em>filePath</em> and calls <em>onFile</em> callback with contents (Asynchronously)</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>filePath {String}</em>: pathspec of file to read and pass contents from</li>
+<li><em>onFile {Function}</em>: callback to pass file's contents to </li>
+</ul></td><td class="code"><pre><code>readFile = <span class="params">( filePath, onFile )</span> <span class="function">-></span></code></pre></td></tr><tr class="block"><td class="comment"><p>In case <em>filePath</em> is an Array of path parts, run it through <em>buildPath</em></p></td><td class="code"><pre><code>    file = buildPath filePath</code></pre></td></tr><tr class="block"><td class="comment"><p>Attempt to read the file's contents</p></td><td class="code"><pre><code>    fs.readFile file, <span class="string">"utf8"</span>, <span class="params">( err, content )</span> <span class="function">-></span>
+        <span class="keyword">if</span> err
+            onError <span class="string">"Error <span class="subst">#{err}</span>: reading <span class="subst">#{file}</span>."</span>
+        <span class="keyword">else</span></code></pre></td></tr><tr class="block"><td class="comment"><p>Call the <em>onFile</em> callback</p></td><td class="code"><pre><code>            onFile content
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>readFileSync</h2>
+
+<p>Reads a file from <em>filePath</em> and calls <em>onFile</em> callback with contents (Synchronously)</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>filePath {String}</em>: pathspec of file to read and pass contents from</li>
+<li><em>onFile {Function}</em>: callback to pass file's contents to </li>
+</ul></td><td class="code"><pre><code>readFileSync = <span class="params">( filePath, onFile )</span> <span class="function">-></span>
+    file = buildPath filePath
+    <span class="keyword">try</span>
+        onFile fs.readFileSync file, <span class="string">"utf8"</span>
+    <span class="keyword">catch</span> err
+        onError <span class="string">"Error <span class="subst">#{err}</span>: reading <span class="subst">#{file}</span>."</span>
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>writeFile</h2>
+
+<p>Writes <em>content</em> to file at <em>filePath</em> calling <em>done</em> after writing is complete (Asynchronously)</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>filePath {String}</em>: pathspec of file to write</li>
+<li><em>content {String}</em>: content to write to the file</li>
+<li><em>done {Function}</em>: called when all operations are complete</li>
+</ul></td><td class="code"><pre><code>writeFile = <span class="params">( filePath, content, done )</span> <span class="function">-></span>
+    file = buildPath filePath
+    fs.writeFile file, content, <span class="string">"utf8"</span>, <span class="params">( err )</span> <span class="function">-></span>
+      <span class="keyword">if</span> err
+          onError <span class="string">"Error <span class="subst">#{err}</span>: writing <span class="subst">#{file}</span>"</span>
+      <span class="keyword">else</span>
+          done file
+</code></pre></td></tr><tr class="block"><td class="comment"><h2>writeFileSync</h2>
+
+<p>Writes <em>content</em> to file at <em>filePath</em> calling <em>done</em> after writing is complete (Synchronously)</p>
+
+<h3>Args:</h3>
+
+<ul>
+<li><em>filePath {String}</em>: pathspec of file to write</li>
+<li><em>content {String}</em>: content to write to the file</li>
+<li><em>done {Function}</em>: called when all operations are complete</li>
+</ul></td><td class="code"><pre><code>writeFileSync = <span class="params">( filePath, content, done )</span> <span class="function">-></span>
+    file = buildPath filePath
+    <span class="keyword">try</span>
+      fs.writeFileSync file, content, <span class="string">"utf8"</span>
+      done file
+    <span class="keyword">catch</span> err
+      onError <span class="string">"Error <span class="subst">#{err}</span>: writing <span class="subst">#{file}</span> (sync)"</span></code></pre></td></tr></table></body>

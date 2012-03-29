@@ -1,7 +1,7 @@
 {
     "name": "anvil.js",
     "description": "Static javascript / coffeescript build utility",
-    "version": "0.6.5",
+    "version": "0.6.7",
     "authors": ["Alex Robson <@A_Robson>"],
     "keywords": ["build","compile","static"],
     "main": "./lib/anvil.js",
@@ -27,7 +27,7 @@
         "argparser": "0.0.9",
         "socket.io": ">=0.8.4",
         "ape": ">=0.3.6",
-        "docco": "https://github.com/andtan/flocco/tarball/master" 
+        "docco": ">=0.3.0" 
     },
     "preferGlobal": true,
     "bin": {
