@@ -4,6 +4,7 @@
 	"spec": "spec",
 	"ext": "ext",
 	"lint": {},
+	"gendocs": {},
     "hosts": {
         "/one": "./demo/html1",
         "/two": "./demo/html2"

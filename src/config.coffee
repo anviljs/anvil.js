@@ -10,6 +10,7 @@ conventionConfig =
     "lint": {}
     "uglify": {}
     "gzip": {}
+    "gendocs": {}
     "hosts": {
       "/": "html"
     }

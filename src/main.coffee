@@ -70,6 +70,7 @@ pack = ( combined)->
                     forAll gzipped, finalize, (finalized) ->
                       onComplete "Output: " + finalized.toString()
                       inProcess = false
+                      gendocs()
                       # If configured to test, regenerate test page.
                       if test
                         createPage()
