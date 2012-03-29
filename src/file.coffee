@@ -1,3 +1,6 @@
+fs = require "fs"
+_ = require "underscore"
+
 class FSProvider
 	
 	constructor: () ->
@@ -7,10 +10,13 @@ class FSProvider
 	# ### Args:
 	# * _pathSpec {Array, String}_: pathspec of either an array of strings or a single string
 	buildPath: ( pathSpec ) ->
-		fullPath = pathSpec
-		if _( pathSpec ).isArray()
-			fullPath = path.join.apply {}, pathSpec
-		fullPath
+		if not pathSpec 
+			""
+		else
+			fullPath = pathSpec
+			if _.isArray( pathSpec )
+				fullPath = path.join.apply {}, pathSpec
+			fullPath
 
 	# ## delete ##
 	# Deletes a file, given the file name (_file_) and its parent (_dir_)
@@ -50,9 +56,9 @@ class FSProvider
 
 
 	getFiles: ( filePath, onFiles ) ->
+		if not filePath then onFiles []
 		filePath = @buildPath filePath
 		files = []
-		console.log "diving #{ filePath }"
 		dive( 
 			filePath, 
 			{ recursive: true },
@@ -62,6 +68,17 @@ class FSProvider
 			, () -> onFiles files
 		)
 
+
+	move: ( from, to, done ) ->
+		from = this.buildPath from
+		to = this.buildPath to
+		readStream = undefined
+		writeStream = fs.createWriteStream( to )
+		( readStream = fs.createReadStream( from ) ).pipe( writeStream )
+		readStream.on 'end', () ->
+			if writeStream
+				writeStream.destroySoon()
+			done()
 
 	pathExists: ( pathSpec ) ->
 		pathSpec = this.buildPath pathSpec

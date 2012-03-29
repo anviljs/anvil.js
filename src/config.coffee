@@ -175,7 +175,7 @@ class Configuration
 	# * _onComplete {Function}_: what do do once we're sure that the paths exist
 	ensurePaths: ( onComplete, prefix ) ->
 		prefix = prefix or= ""
-		config.tmp = "./tmp"
+		config.working = config.working || "./tmp"
 		fp = @fp
 		if _.isObject config.output
 			paths = _.flatten config.output
@@ -184,14 +184,14 @@ class Configuration
 			paths.push config["markup"]
 			paths.push config["spec"]
 			paths.push config["ext"]
-			paths.push config["tmp"] 
+			paths.push config["working"] 
 			worker = ( p, done ) -> 
 				fp.ensurePath [ prefix, p ], done
 			@scheduler.parallel paths, worker, () -> onComplete()
 		else
 			# if output is a single path
 			fp.ensurePath config.output, () ->
-				fp.ensurePath config.tmp, () -> 
+				fp.ensurePath config.working, () -> 
 					onComplete()
 
 	# ## prepConfig ##

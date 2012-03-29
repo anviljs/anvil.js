@@ -26,7 +26,7 @@ defaultSiteConfig =
 	"hosts": {
 	  "/": "site"
 	}
-	"tmp": "./tmp"
+	"working": "./tmp"
 
 defaultLibConfig = 
 	"source": "src"
@@ -39,7 +39,7 @@ defaultLibConfig =
 	"hosts": {
 	  "/": "spec"
 	}
-	"tmp": "./tmp"
+	"working": "./tmp"
 
 class Anvil
 	constructor: () ->
@@ -91,7 +91,7 @@ describe "when using default build.json file", ->
 
 	it "should use the loaded file", ( complete ) ->
 		cp.configure ( config ) ->
-			build.tmp = "./tmp"
+			build.working = "./tmp"
 			_.isEqual( config, build ).should.be.ok
 			complete()
 

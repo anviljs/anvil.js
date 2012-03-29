@@ -12,9 +12,9 @@ class Anvil
 			hasSource: config.source
 			hasStyle: config.style
 			hasMarkup: config.markup
-			markupReady: () -> ( source or not hasSource ) and ( style or not hasStyle )
+			markupReady: () -> ( this.source or not this.hasSource ) and ( this.style or not this.hasStyle )
 			allDone: () -> 
-				( source or not hasSource ) and ( style or not hasStyle ) and ( markup or not hasMarkup )
+				( this.source or not this.hasSource ) and ( this.style or not this.hasStyle ) and ( this.markup or not this.hasMarkup )
 
 
 	build: () ->
@@ -23,58 +23,65 @@ class Anvil
 
 
 	buildMarkup: () ->
-		self = this
-		scheduler = @scheduler
-		compiler = @compiler
 		findPatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
 		replacePatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
-		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
-
-		@prepFiles "markup", ( list ) ->
-			scheduler.parallel list, compiler.compile, () ->
-				combiner.combine list, () ->
-					self.stepComplete "markup"
+		@processType( "markup", findPatterns, replacePatterns )
 			
 
 	buildSource: () ->
-		self = this
-		scheduler = @scheduler
-		compiler = @compiler
-		findPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?///g ]
-		replacePatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?///g ]
-		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
-
-		@prepFiles "source", ( list ) ->
-			scheduler.parallel list, compiler.compile, () ->
-				combiner.combine list, () ->
-					self.stepComplete "source"
+		findPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([/]{2}|[\#]{3})?///g ]
+		replacePatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?([/]{2}|[\#]{3})?///g ]
+		@processType( "source", findPatterns, replacePatterns )
 
 
 	buildStyle: () ->
+		findPatterns = [ ///@import[(]?.?[\"'].*[.]css[\"'].?[)]?///g ]
+		replacePatterns = [ ///@import[(]?.?[\"']replace[\"'].?[)]?///g ]
+		@processType( "style", findPatterns, replacePatterns )
+
+
+	processType: ( type, findPatterns, replacePatterns ) ->
 		self = this
 		scheduler = @scheduler
 		compiler = @compiler
-		findPatterns = [ ///@import[(]?.?[\"'].*[.]css[\"'].?[)]?///g ]
-		replacePatterns = [ ///@import[(]?.?[\"']replace[\"'].?[)]?///g ]
 		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
-
-		@prepFiles "style", ( list ) ->
-			scheduler.parallel list, compiler.compile, () ->
-				combiner.combine list, () ->
-					self.stepComplete "style"
+		self.prepFiles type, ( list ) ->
+			self.moveFiles list, () ->
+				combiner.combineList list, () ->
+					scheduler.parallel list, compiler.compile, () ->
+						self.finalOutput list, () ->
+							self.stepComplete type
 
 
 	fileBuilt: ( file ) ->
 		@filesBuilt[ file.fullPath ] = file
 
 
+	finalOutput: ( files, onComplete ) ->
+		fp = @fp
+		forAll = @scheduler.parallel
+		move = ( file, done ) ->
+			forAll( file.outputPaths, ( destination, moved ) ->
+				fp.move [ file.workingPath, file.name ], [ destination, file.name ], moved
+			, done )
+		final = _.filter( files, ( x ) -> x.dependents == 0 )
+		forAll final, move, onComplete
+
+
+	moveFiles: ( files, onComplete ) ->
+		fp = @fp
+		move = ( file, done ) -> 
+			fp.move file.fullPath, [ file.workingPath, file.name ], done
+		@scheduler.parallel files, move, onComplete
+
+
 	prepFiles: ( type, onComplete ) ->
 		working = @config.working
-		path = @config[ type ]
+		typePath = @config[ type ]
 		output = @config.output[ type ]
+		output = if _.isArray( output ) then output else [ output ]
 		log = @log
-		log.onEvent "prepfiles"
-		@fp.getFiles path, ( files ) ->
+		@fp.getFiles typePath, ( files ) ->
 			log.onEvent "Scanning #{ files.length } #{ type } files ..."
 			list = for file in files
 						name = path.basename file
@@ -86,7 +93,7 @@ class Anvil
 							name: name
 							originalName: name
 							outputPaths: output
-							relativePath: file.replace path, ""
+							relativePath: file.replace typePath, ""
 							workingPath: working
 						}
 			onComplete list
@@ -95,7 +102,7 @@ class Anvil
 	report: () ->
 		# tests
 		# re-start watchers
-		onComplete "Hey, it's done, bro-ham"
+		@log.onComplete "Hey, it's done, bro-ham"
 
 
 	stepComplete: ( step ) ->

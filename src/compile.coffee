@@ -28,9 +28,12 @@ marked.setOptions { sanitize: false }
 coffeeKup = require( "coffeekup" )
 
 
+_ = require "underscore"
+
 class Compiler
 
 	constructor: (@fp, @log) ->
+		_.bindAll( this )
 
 	# ## compile ##
 	# Compiles a file with the correct compiler
@@ -214,7 +217,6 @@ class Compiler
 					#	onContent( css, e ) 
 					#)
 				catch error
-					console.log error
 					log.onError "SCSS compiler exception on file: #{ file } \r\n\t #{ error }"
 					onContent "", error
 			, [ file.workingPath, newFile ],

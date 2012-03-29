@@ -1,6 +1,8 @@
 {
 	"source": "src",
-	"output": "lib",
+	"output": {
+		"source": [ "lib", "dbl" ] 
+	},
 	"spec": "spec",
 	"ext": "ext",
 	"hosts": {

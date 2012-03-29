@@ -3,7 +3,8 @@ class StylePipeline
 	constructor: ( @config, @fp, @minifier, @scheduler, @log ) ->
 
 	process: ( files, onComplete ) ->
-		@scheduler.parallel files, @minify, () -> onComplete
+		minified = _.map( files, ( x ) -> _.clone x )
+		@scheduler.parallel minified, @minify, () -> onComplete( files.concat minifed )
 
 	minify: ( file, onComplete ) ->
 		self = this
@@ -25,6 +26,9 @@ class SourcePipeline
 
 	process: ( files, onComplete ) ->
 		self = this
+		minified = _.map( files, ( x ) -> _.clone x )
+		
+
 		@scheduler.parallel files, @finalize, () -> 
 			self.scheduler.parallel files, self.minify, () -> 
 				self.scheduler.parallel files, self.finalize, () -> onComplete()

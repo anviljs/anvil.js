@@ -16,6 +16,7 @@ class FileMock
 	read: ( onContent ) ->
 		self = this
 		if 1 == 1
+		#if @available
 			@available = false
 			setTimeout () ->
 				onContent self.content
