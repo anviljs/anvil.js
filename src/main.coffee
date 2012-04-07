@@ -1,11 +1,11 @@
 class Anvil
 
-	constructor: ( @config, @fp, @compiler, @combiner, @scheduler, @postProcessor, @log ) ->
+	constructor: ( @config, @fp, @compiler, @combiner, @scheduler, @postProcessor, @log, @callback ) ->
 		config = @config
 		@filesBuilt = {}
+		@inProcess = false
 		# mini FSM - basically we don't want to start building markup until
 		# everything else is done since markup can import other built resources
-		@postProcesses
 		@steps = 
 			source: false
 			style: false
@@ -15,12 +15,17 @@ class Anvil
 			hasMarkup: config.markup
 			markupReady: () -> ( this.source or not this.hasSource ) and ( this.style or not this.hasStyle )
 			allDone: () -> 
-				( this.source or not this.hasSource ) and ( this.style or not this.hasStyle ) and ( this.markup or not this.hasMarkup )
+				status = ( this.source or not this.hasSource ) and ( this.style or not this.hasStyle ) and ( this.markup or not this.hasMarkup )
+				status
 
 
 	build: () ->
-		@buildSource()
-		@buildStyle()
+		if not @inProcess
+			@inProcess = true
+			@buildSource()
+			@buildStyle()
+		else
+			@log.onError "NOOOOOO"
 
 
 	buildMarkup: () ->
@@ -52,7 +57,8 @@ class Anvil
 			self.moveFiles list, () ->
 				combiner.combineList list, () ->
 					scheduler.parallel list, compiler.compile, () ->
-						postProcessor.process list, ( list ) ->
+						final = _.filter( list, ( x ) -> x.dependents == 0 )
+						postProcessor[ type ].process final, ( list ) ->
 							self.finalOutput list, () ->
 								self.stepComplete type
 
@@ -68,8 +74,7 @@ class Anvil
 			forAll( file.outputPaths, ( destination, moved ) ->
 				fp.move [ file.workingPath, file.name ], [ destination, file.name ], moved
 			, done )
-		final = _.filter( files, ( x ) -> x.dependents == 0 )
-		forAll final, move, onComplete
+		forAll files, move, onComplete
 
 
 	moveFiles: ( files, onComplete ) ->
@@ -103,16 +108,10 @@ class Anvil
 			onComplete list
 
 
-	report: () ->
-		# tests
-		# re-start watchers
-
-		@log.onComplete "Hey, it's done, bro-ham"
-
-
 	stepComplete: ( step ) ->
 		@steps[ step ] = true
-		if @steps.markupReady()
+		if step != "markup" and @steps.markupReady()
 			@buildMarkup()
-		if @steps.allDone()
-			@report()
+		if step == "markup" and @steps.allDone()
+			@inProcess = false
+			@callback()

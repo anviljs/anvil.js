@@ -1,10 +1,11 @@
+_ = require "underscore"
 class Scheduler
 
 	constructor: () ->
 
 	parallel: ( items, worker, onComplete ) ->
 		# Fail fast if list is empty
-		if not items or items == []
+		if not items or items.length == 0
 			onComplete []
 		count = items.length
 		results = []
@@ -44,6 +45,22 @@ class Scheduler
 				iterate done
 
 		iterate done
+
+	aggregate: ( calls, onComplete ) ->
+		results = {}
+		isDone = () -> 
+			_.chain( calls ).keys().all( ( x ) -> results[ x ] != undefined ).value()
+		
+		getCallback = ( name ) ->
+			( result ) ->
+				results[ name ] = result
+				if isDone()
+					onComplete results
+
+		_.each( calls, ( call, name ) ->
+			callback = getCallback name
+			call callback
+		)
 
 scheduler = new Scheduler()
 

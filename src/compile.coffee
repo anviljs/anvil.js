@@ -70,7 +70,7 @@ class Compiler
 					js = coffeeScript.compile content, { bare: true }
 					onContent js
 				catch error
-					log.onError "Coffee compiler exception on file: #{ file } \r\n\t #{ error }"
+					log.onError "Coffee compiler exception on file: #{ file.name } \r\n\t #{ error }"
 					onContent "", error
 			, [ file.workingPath, newFile ],
 			( err ) ->
@@ -97,7 +97,7 @@ class Compiler
 					html =( coffeeKup.compile content, {} )()
 					onContent html
 				catch error
-					log.onError "CoffeeKup compiler exception on file: #{ file } \r\n\t #{ error }"
+					log.onError "CoffeeKup compiler exception on file: #{ file.name } \r\n\t #{ error }"
 					onContent "", error
 			, [ file.workingPath, newFile ],
 			( err ) ->
@@ -123,7 +123,7 @@ class Compiler
 					html = haml.render content
 					onContent html
 				catch error
-					log.onError "Haml compiler exception on file: #{ file } \r\n\t #{ error }"
+					log.onError "Haml compiler exception on file: #{ file.name } \r\n\t #{ error }"
 					onContent "", error
 			, [ file.workingPath, newFile ],
 			() ->
@@ -145,7 +145,7 @@ class Compiler
 				try
 					less.render( x, {}, (e, css) -> onContent(css) )
 				catch error
-					log.onError "LESS compiler exception on file: #{ file } \r\n\t #{ error }"
+					log.onError "LESS compiler exception on file: #{ file.name } \r\n\t #{ error }"
 					onContent "", error
 			, [ file.workingPath, newFile ],
 			() ->
@@ -167,7 +167,7 @@ class Compiler
 				try
 					onContent( marked.parse( x ) )
 				catch error
-					log.onError "Markdown compiler exception on file: #{ file } \r\n\t #{ error }"
+					log.onError "Markdown compiler exception on file: #{ file.name } \r\n\t #{ error }"
 					onContent "", error
 			, [ file.workingPath, newFile ],
 			() ->
@@ -192,7 +192,7 @@ class Compiler
 					#	onContent( css, e ) 
 					#)
 				catch error
-					log.onError "SASS compiler exception on file: #{ file } \r\n\t #{ error }"
+					log.onError "SASS compiler exception on file: #{ file.name } \r\n\t #{ error }"
 					onContent "", error
 			, [ file.workingPath, newFile ],
 			( err ) ->
@@ -217,7 +217,7 @@ class Compiler
 					#	onContent( css, e ) 
 					#)
 				catch error
-					log.onError "SCSS compiler exception on file: #{ file } \r\n\t #{ error }"
+					log.onError "SCSS compiler exception on file: #{ file.name } \r\n\t #{ error }"
 					onContent "", error
 			, [ file.workingPath, newFile ],
 			( err ) ->
@@ -239,7 +239,7 @@ class Compiler
 				try
 					stylus.render( x, {}, (e, css) -> onContent( css, e ) )
 				catch error
-					log.onError "Stylus compiler exception on file: #{ file } \r\n\t #{ error }"
+					log.onError "Stylus compiler exception on file: #{ file.name } \r\n\t #{ error }"
 					onContent "", error
 			, [ file.workingPath, newFile ],
 			() ->

@@ -4,6 +4,7 @@ _ = require "underscore"
 class FSProvider
 	
 	constructor: () ->
+		@crawler = new FSCrawler scheduler
 
 	# ## buildPath ##
 	# Given an array or string pathspec, return a string pathspec
@@ -56,18 +57,12 @@ class FSProvider
 
 
 	getFiles: ( filePath, onFiles ) ->
-		if not filePath then onFiles []
-		filePath = @buildPath filePath
-		files = []
-		dive( 
-			filePath, 
-			{ recursive: true },
-			( err, file ) -> 
-				if not err 
-					files.push file
-			, () -> onFiles files
-		)
-
+		if not filePath 
+			onFiles []
+		else
+			filePath = @buildPath filePath
+			files = []
+			@crawler.crawl filePath, onFiles
 
 	move: ( from, to, done ) ->
 		from = this.buildPath from

@@ -2,9 +2,11 @@
 ###import "log.coffee" ###
 ###import "config.coffee" ###
 ###import "scheduler.coffee" ###
+###import "crawler.coffee" ###
 ###import "file.coffee" ###
 ###import "compile.coffee" ###
 ###import "combiner.coffee" ###
 ###import "pipeline.coffee" ###
 ###import "main.coffee" ###
+###import "continuous.coffee" ###
 ###import "cli.coffee" ###

@@ -52,6 +52,10 @@ describe "when building in lib without build file", ->
 
 	it "should provide default lib configuration", ( done ) ->
 		cp.configure ( config ) ->
+			defaultLibConfig.output = 
+				"style": "lib"
+				"source": "lib"
+				"markup": "lib"
 			_.isEqual( config, defaultLibConfig ).should.be.ok
 			done()
 
@@ -73,14 +77,19 @@ describe "when using default build.json file", ->
 
 	build = 
 		"source": "thisHereIsMuhSource"
-		"output": "lib"
+		"output": 
+			"style": "lib"
+			"source": "lib"
+			"markup": "lib"
 		"spec": "spec"
 		"ext": "ext"
 		"lint": {}
 		"uglify": {}
 		"gzip": {}
 		"hosts":
-			"/": "spec"
+			"/": "spec",
+		"finalize": {},
+		"wrap": {}
 			
 	before ( done ) ->
 		json = JSON.stringify build
@@ -234,9 +243,109 @@ describe "when requesting creation of HTML file", ->
 			config.genHtml.should.equal "new"
 			done()
 
+describe "when finalize has string header only", ->
+	fp = new FP()
+
+	build = 
+		"source": "thisHereIsMuhSource"
+		"output": 
+			"style": "lib"
+			"source": "lib"
+			"markup": "lib"
+		"spec": "spec"
+		"ext": "ext"
+		"lint": {}
+		"uglify": {}
+		"gzip": {}
+		"hosts":
+			"/": "spec"
+		"finalize": 
+			"header": "// this is a test header"
+			
+	expected =
+		"source": "thisHereIsMuhSource"
+		"output": 
+			"style": "lib"
+			"source": "lib"
+			"markup": "lib"
+		"spec": "spec"
+		"ext": "ext"
+		"lint": {}
+		"uglify": {}
+		"gzip": {}
+		"hosts":
+			"/": "spec"
+		"finalize": 
+			"source": 
+				"header": "// this is a test header"
+				"footer": ""
+		"working": "./tmp"
+
+	before ( done ) ->
+		json = JSON.stringify build
+		fp.write "./build.json", json, done
+
+	parser = new ArgParser( {} )
+	cp = new Configuration fp, parser, scheduler, log
+
+	it "should use the loaded file", ( complete ) ->
+		cp.configure ( config ) ->
+			build.working = "./tmp"
+			_.isEqual( config, expected ).should.be.ok
+			complete()
 
 
+describe "when finalize has a file header only", ->
+	fp = new FP()
 
+	build = 
+		"source": "thisHereIsMuhSource"
+		"output": 
+			"style": "lib"
+			"source": "lib"
+			"markup": "lib"
+		"spec": "spec"
+		"ext": "ext"
+		"lint": {}
+		"uglify": {}
+		"gzip": {}
+		"hosts":
+			"/": "spec"
+		"finalize": 
+			"header-file": "test.txt"
+			
+	expected =
+		"source": "thisHereIsMuhSource"
+		"output": 
+			"style": "lib"
+			"source": "lib"
+			"markup": "lib"
+		"spec": "spec"
+		"ext": "ext"
+		"lint": {}
+		"uglify": {}
+		"gzip": {}
+		"hosts":
+			"/": "spec"
+		"finalize": 
+			"source": 
+				"header": "// this is a test header"
+				"footer": ""
+		"working": "./tmp"
+
+	before ( done ) ->
+		json = JSON.stringify build
+		fp.write "./build.json", json, () ->
+			fp.write "test.txt", "// this is a test header", done
+
+	parser = new ArgParser( {} )
+	cp = new Configuration fp, parser, scheduler, log
+
+	it "should use the loaded file", ( complete ) ->
+		cp.configure ( config ) ->
+			build.working = "./tmp"
+			_.isEqual( config, expected ).should.be.ok
+			complete()
 
 
 

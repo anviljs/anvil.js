@@ -1,9 +1,11 @@
 {
 	"source": "src",
-	
 	"spec": "spec",
 	"ext": "ext",
 	"hosts": {
 		"/": "html"
+	},
+	"finalize": {
+		"header-file": "license.txt"
 	}
 }

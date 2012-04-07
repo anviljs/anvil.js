@@ -35,7 +35,3 @@ resource = require "express-resource"
 # Generates HTML via an API -- 
 # See https://github.com/insin/DOMBuilder for more info
 builder = require "DOMBuilder"
-
-# A tool to walk through directory trees and apply an action to every file -- 
-# See http://github.com/pvorb/node-dive for more info
-dive = require "dive"

@@ -59,3 +59,23 @@ describe "when running calls in parallel", ->
 		scheduler.parallel start, call, ( result ) ->
 			_.difference( result, expected ).length.should.equal 0
 			done()
+
+describe "when aggregating multiple calls", ->
+
+	calls =
+		one: ( done ) -> setTimeout () -> 
+								done 1
+							, 10
+		two: ( done ) -> setTimeout () -> 
+								done 2
+							, 5
+		three: ( done ) -> setTimeout () -> 
+								done 3
+							, 1
+
+	it "should complete with correctly constructed object", ( done ) ->
+		scheduler.aggregate calls, ( result ) ->
+			result.one.should.equal 1
+			result.two.should.equal 2
+			result.three.should.equal 3
+			done()

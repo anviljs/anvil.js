@@ -201,10 +201,12 @@ class Configuration
 	# * _file {String}_: config file name
 	# * _onComplete {Function}_: what to do after config is prepped
 	prepConfig: ( exists, file, onComplete ) ->
+		self = this
+		onDone = () -> self.normalizeConfig onComplete		
 		unless exists
-			@loadConvention( onComplete )
+			@loadConvention( onDone )
 		else
-			@loadConfig( file, onComplete )
+			@loadConfig( file, onDone )
 
 
 	# ## loadConfig ##
@@ -222,16 +224,8 @@ class Configuration
 				ext.gzip = config.extensions.gzip || ext.gzip
 				ext.uglify = config.extensions.uglify || ext.uglify
 
-			# Setup final output wrapper
-			if config.finalize
-				if config.finalize['header-file']
-					config.finalize.header = fp.readSync config.finalize['header-file'], 'utf-8'
-				if config.finalize['footer-file']
-					config.finalize.footer = fp.readSync config.finalize['footer-file'], 'utf-8'
-
 			# Carry on!
 			onComplete()
-
 
 	# ## loadConvention ##
 	# Sets up default config if no config file is found
@@ -243,6 +237,158 @@ class Configuration
 		config = conventionConfig
 		onComplete()
 
+	# ## normalizeConfig ##
+	# Tries to normalize differences in configuration formats
+	# between options and site vs. lib configurations
+	# #### Args:
+	# * _onComplete {Function}_: what to call when finished
+	normalizeConfig: ( onComplete ) ->
+		self = this
+		config.output = config.output || "lib"
+		if _.isString config.output
+			outputPath = config.output
+			config.output =
+				style: outputPath
+				source: outputPath
+				markup: outputPath
+
+		calls = []
+
+		# finalization?
+		finalize = config.finalize
+		if finalize 
+			calls.push ( done ) -> 
+				self.getFinalization finalize, ( result ) -> 
+					config.finalize = result
+					done()
+		# wrapping?
+		wrap = config.wrap
+		if wrap
+			calls.push ( done ) -> 
+				self.getWrap wrap, ( result ) -> 
+					config.wrap = result
+					done()
+
+		# any calls?
+		if calls.length > 0
+			@scheduler.parallel calls, 
+				( call, done ) -> 
+					call( done )
+				, () -> onComplete()
+		else
+			onComplete()
+
+
+	# ## getFinalization ##
+	# Build up a custom state machine to address how
+	# finalization should happen for this project
+	# ### Args:
+	# * _original {Object}_: the existing finalization block
+	getFinalization: ( original, onComplete ) ->
+		self = this
+		finalization = {}
+		result = {}
+		aggregation = {}
+		aggregate = @scheduler.aggregate
+		
+		# if there's no finalization
+		if not original or _.isEqual original, {}
+			onComplete finalization
+		# if there's only one section
+		else if original.header or 
+				original["header-file"] or 
+				original.footer or 
+				original["footer-file"]
+			# build out aggregation for resolving header and footer
+			@getContentBlock original, "header", aggregation
+			@getContentBlock original, "footer", aggregation
+			# make sure we don't try to aggregate on empty
+			if _.isEqual aggregation, {}
+				onComplete finalization
+			else
+				aggregate aggregation, ( constructed ) ->
+					finalization.source = constructed
+					onComplete finalization
+		# there are multiple sections
+		else
+			sources = {}
+			blocks = { 
+				"source": original[ "source" ], 
+				"style": original[ "style" ], 
+				"markup": original[ "markup" ] 
+			}
+			_.each( blocks, ( block, name ) -> 
+				subAggregate = {}
+				self.getContentBlock block, "header", subAggregate
+				self.getContentBlock block, "footer", subAggregate
+				sources[ name ] = ( done ) -> 
+					aggregate subAggregate, done
+			)
+			aggregate sources, onComplete
+
+	# ## getWrap ##
+	# Build up a custom state machine to address how
+	# wrapping should happen for this project
+	# ### Args:
+	# * _original {Object}_: the existing wrap block
+	getWrap: ( original, onComplete ) ->
+		self = this
+		wrap = {}
+		result = {}
+		aggregation = {}
+		aggregate = @scheduler.aggregate
+		# if there's no wrap
+		if not original or _.isEqual original, {}
+			onComplete wrap
+		# if there's only one section
+		else if original.prefix or 
+				original["prefix-file"] or 
+				original.suffix or 
+				original["suffix-file"]
+			# build out aggregation for resolving prefix and suffix
+			@getContentBlock original, "prefix", aggregation
+			@getContentBlock original, "suffix", aggregation
+			# make sure we don't try to aggregate on empty
+			if _.isEqual aggregation, {}
+				onComplete finalization
+			else
+				aggregate aggregation, ( constructed ) ->
+					wrap.source = constructed
+					onComplete finalization
+		# there are multiple sections
+		else
+			sources = {}
+			blocks = { 
+				"source": original[ "source" ], 
+				"style": original[ "style" ], 
+				"markup": original[ "markup" ] 
+			}
+			_.each( blocks, ( block, name ) -> 
+				subAggregate = {}
+				self.getContentBlock block, "prefix", subAggregate
+				self.getContentBlock block, "suffix", subAggregate
+				sources[ name ] = ( done ) -> aggregate subAggregate, done
+			)
+			aggregate sources, onComplete
+		
+	# ## getContentBlock ##
+	# Normalizes a wrapper or finalizer segment
+	# ### Args:
+	# * _property {string}: the property name to check for
+	# * _source {Object}_: the configuration block
+	# * _aggregation {Object}_: the fsm to build up
+	getContentBlock: ( source, property, aggregation ) ->
+		aggregation[ property ] = ( done ) -> done ""
+		fp = @fp
+		if source
+			propertyPath = source["#{ property }-file"]
+			propertyValue = source[ property ]
+			if propertyPath and @fp.pathExists propertyPath
+				aggregation[ property ] = ( done ) -> 
+					fp.read propertyPath, ( content ) ->
+						done content
+			else if propertyValue
+				aggregation[ property ] = ( done ) -> done propertyValue
 
 	# ## writeConfig ##
 	# Creates new default config file
