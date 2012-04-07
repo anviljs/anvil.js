@@ -10,4 +10,5 @@
 ###import "main.coffee" ###
 ###import "continuous.coffee" ###
 ###import "mocha.coffee" ###
+###import "host.coffee" ###
 ###import "cli.coffee" ###

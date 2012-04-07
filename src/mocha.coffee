@@ -43,6 +43,7 @@ class MochaRunner
 			forAll specs, @fp.getFiles, ( lists ) ->
 				files = _.flatten lists
 				for file in files
+					delete require.cache[ file ]
 					suite.emit 'pre-require', global, file
 					suite.emit 'require', require file, file
 					suite.emit 'post-require', global, file

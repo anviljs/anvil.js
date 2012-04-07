@@ -16,16 +16,22 @@ exports.run = ->
 			mochaRunner = new MochaRunner fp, scheduler, config, () ->
 				log.onComplete "tests complete"
 
+		if config.host
+			server = new Host fp, scheduler, compiler, config
+
 		postProcessor = new PostProcessor config, fp, scheduler, log 
 		anvil = new Anvil config, fp, compiler, Combiner, scheduler, postProcessor, log, () ->
 			log.onComplete "build done"
 			if mochaRunner
-				mochaRunner.run()
+				setTimeout( 
+					() -> mochaRunner.run(),
+					200
+				)
 
 			if ci
 				setTimeout( 
 					() -> ci.setup(),
-					100
+					200
 				)
 
 		fileChange = -> anvil.build()

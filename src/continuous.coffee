@@ -1,26 +1,28 @@
 class Continuous
 
 	constructor: ( @fp, @config, @onChange ) ->
-		@style = @config.style
-		@source = @config.source
-		@markup = @config.markup
+		@style = @normalize @config.style
+		@source = @normalize @config.source
+		@markup = @normalize @config.markup
+		@spec = @normalize @config.spec
 		@watchers = []
 		@watching = false
 		_.bindAll( this )
 		this
 
+	normalize: ( x ) -> if _.isArray x then x else [ x ]
+
 	setup: () ->
 		if not @watching
-			if @style
-				@fp.getFiles @style, @watchFiles
+			if @style then @watchPath p for p in @style
+			if @source then @watchPath p for p in @source
+			if @markup then @watchPath p for p in @markup
+			if @spec then @watchPath p for p in @spec
 
-			if @source
-				@fp.getFiles @source, @watchFiles
-
-			if @markup
-				@fp.getFiles @markup, @watchFiles
-					
 		@watching = true
+
+	watchPath: ( path ) ->
+		@fp.getFiles path, @watchFiles
 
 	watchFiles: ( files ) ->
 		for file in files

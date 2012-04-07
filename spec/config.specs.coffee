@@ -87,8 +87,8 @@ describe "when using default build.json file", ->
 		"uglify": {}
 		"gzip": {}
 		"hosts":
-			"/": "spec",
-		"finalize": {},
+			"/": "spec"
+		"finalize": {}
 		"wrap": {}
 			
 	before ( done ) ->
@@ -123,7 +123,6 @@ describe "when specifying CI", ->
 		cp.configure ( config ) ->
 			config.continuous.should.be.ok
 			done()
-
 
 describe "when specifying hosting", ->
 	fp = new FP()
@@ -293,7 +292,6 @@ describe "when finalize has string header only", ->
 			build.working = "./tmp"
 			_.isEqual( config, expected ).should.be.ok
 			complete()
-
 
 describe "when finalize has a file header only", ->
 	fp = new FP()
