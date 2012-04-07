@@ -5,6 +5,7 @@ class FSProvider
 	
 	constructor: () ->
 		@crawler = new FSCrawler scheduler
+		_.bindAll this
 
 	# ## buildPath ##
 	# Given an array or string pathspec, return a string pathspec

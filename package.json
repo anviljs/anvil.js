@@ -33,7 +33,8 @@
         "haml": ">=0.4.2",
         "coffeekup": ">=0.3.1",
         "scss": ">=0.2.4",
-        "sass": ">=0.5.0"
+        "sass": ">=0.5.0",
+        "growler": ">=0.0.1"
     },
     "preferGlobal": true,
     "bin": {

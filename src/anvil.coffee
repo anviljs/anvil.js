@@ -9,4 +9,5 @@
 ###import "pipeline.coffee" ###
 ###import "main.coffee" ###
 ###import "continuous.coffee" ###
+###import "mocha.coffee" ###
 ###import "cli.coffee" ###
