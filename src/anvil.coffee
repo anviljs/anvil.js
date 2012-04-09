@@ -10,5 +10,8 @@
 ###import "main.coffee" ###
 ###import "continuous.coffee" ###
 ###import "mocha.coffee" ###
+###import "qunit.coffee" ###
+###import "tester.coffee" ###
+###import "refresher.coffee" ###
 ###import "host.coffee" ###
 ###import "cli.coffee" ###

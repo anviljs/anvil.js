@@ -1,5 +1,6 @@
 /*-----------------------------------------------------------------------------
- *	Copyright (c) 2011-2012 Alex Robson
+ *	Anvil.JS v0.7.0
+ *  Copyright (c) 2011-2012 Alex Robson
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a 
  *	copy of this software and associated documentation files (the "Software"), 

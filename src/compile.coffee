@@ -10,10 +10,6 @@ less = require( "less" )
 # See http://learnboost.github.com/stylus/
 stylus = require( "stylus" )
 
-# SCSS Compiler --
-# See http://learnboost.github.com/stylus/
-scss = require( "scss" )
-
 # HAML Compiler --
 # See http://haml-lang.com/
 haml = require( "haml" )

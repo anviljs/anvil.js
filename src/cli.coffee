@@ -5,6 +5,7 @@ exports.run = ->
 	mochaRunner = undefined
 	ci = undefined
 	anvil = {}
+	socketServer = {}
 	fileChange = ->
 	configuration.configure ( config ) ->
 		
@@ -18,6 +19,7 @@ exports.run = ->
 
 		if config.host
 			server = new Host fp, scheduler, compiler, config
+			socketServer = new SocketServer server.app
 
 		postProcessor = new PostProcessor config, fp, scheduler, log 
 		anvil = new Anvil config, fp, compiler, Combiner, scheduler, postProcessor, log, () ->
@@ -31,6 +33,12 @@ exports.run = ->
 			if ci
 				setTimeout( 
 					() -> ci.setup(),
+					200
+				)
+
+			if socketServer.refreshClients
+				setTimeout(
+					() -> socketServer.refreshClients(),
 					200
 				)
 

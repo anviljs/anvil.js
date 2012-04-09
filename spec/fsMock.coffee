@@ -71,6 +71,7 @@ class FSMock
 				.filter( ( name ) ->
 					( name.indexOf filePath ) >= 0
 				).value()
+		onFiles files
 
 	pathExists: ( pathSpec ) -> 
 		pathSpec = this.buildPath pathSpec

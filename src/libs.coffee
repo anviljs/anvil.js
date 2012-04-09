@@ -28,10 +28,6 @@ ArgParser = require "argparser"
 # See http://expressjs.com for more info
 express = require "express"
 
-# Resourceful routing for express -- 
-# See https://github.com/visionmedia/express-resource for more info
-resource = require "express-resource"
-
 # Generates HTML via an API -- 
 # See https://github.com/insin/DOMBuilder for more info
 builder = require "DOMBuilder"

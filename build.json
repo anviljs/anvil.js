@@ -1,7 +1,8 @@
 {
 	"source": "src",
 	"spec": "spec",
-	"ext": "ext",
+	"ext": "test",
+	"uglify": {},
 	"hosts": {
 		"/": "html"
 	},

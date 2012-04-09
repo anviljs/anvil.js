@@ -37,6 +37,13 @@ libConfig =
 	  "/": "spec"
 	}
 
+defaultMocha =
+	growl: true
+	ignoreLeaks: true
+	reporter: "spec"
+	ui: "bdd"
+	colors: true
+
 continuous = test = inProcess = quiet = debug = false
 version = "0.8.0"
 
@@ -94,14 +101,8 @@ class Configuration
 		# Generate scaffold for new lib project?
 		libScaffold = @parser.getOptions "lib"
 
-		# Run tests?
-		mocha = @parser.getOptions "m", "mocha"
-
 		#Quiet mode
 		quiet = @parser.getOptions "q", "quiet"
-
-		# Host tests?
-		pavlov = @parser.getOptions "p", "pavlov"
 
 		# Show version info?
 		showVersion = @parser.getOptions "v", "version"
@@ -137,9 +138,6 @@ class Configuration
 			@log.onStep "Checking for config..."
 			exists = @fp.pathExists buildFile
 			@prepConfig exists, buildFile, () ->
-				if pavlov or mocha
-					config.testWith = if mocha then "mocha" else "pavlov"
-
 				if host
 					config.host = true
 
@@ -174,25 +172,34 @@ class Configuration
 	# ### Args:
 	# * _onComplete {Function}_: what do do once we're sure that the paths exist
 	ensurePaths: ( onComplete, prefix ) ->
+		self = this
 		prefix = prefix or= ""
 		config.working = config.working || "./tmp"
 		fp = @fp
+		paths = [
+			config[ "source" ]
+			config[ "style" ]
+			config[ "markup" ]
+			config[ "spec" ]
+			config[ "ext" ]
+			config[ "working" ] 
+		]
+		
+		# if the output is an object
 		if _.isObject config.output
-			paths = _.flatten config.output
-			paths.push config["source"]
-			paths.push config["style"]
-			paths.push config["markup"]
-			paths.push config["spec"]
-			paths.push config["ext"]
-			paths.push config["working"] 
-			worker = ( p, done ) -> 
-				fp.ensurePath [ prefix, p ], done
-			@scheduler.parallel paths, worker, () -> onComplete()
+			paths = paths.concat _.flatten config.output
 		else
 			# if output is a single path
-			fp.ensurePath config.output, () ->
-				fp.ensurePath config.working, () -> 
-					onComplete()
+			paths.push config.output
+
+		worker = ( p, done ) -> 
+			try 
+				fp.ensurePath [ prefix, p ], () ->
+					done()
+			catch err
+				done()
+
+		@scheduler.parallel paths, worker, () -> self.copyPrereqs onComplete
 
 	# ## prepConfig ##
 	# Fallback to default config, if specified config doesn't exist
@@ -244,6 +251,7 @@ class Configuration
 	# * _onComplete {Function}_: what to call when finished
 	normalizeConfig: ( onComplete ) ->
 		self = this
+		fp = @fp
 		config.output = config.output || "lib"
 		if _.isString config.output
 			outputPath = config.output
@@ -268,6 +276,30 @@ class Configuration
 				self.getWrap wrap, ( result ) -> 
 					config.wrap = result
 					done()
+
+		# specs without a specific runner?
+		spec = config.spec
+		if spec and not config.mocha and not config.qunit
+			calls.push ( done ) ->
+				fp.getFiles spec, ( files ) ->
+					if files.length == 0
+						done()
+					else
+						specFile = files[ 0 ]
+						if not specFile
+							done()
+						else
+							try
+								fp.read specFile, ( content ) ->
+									hasQUnit = ///QUnit///g.test content
+									if hasQUnit
+										config.qunit = {}
+									else
+										config.mocha = defaultMocha
+									done()
+							catch err
+								done()
+						
 
 		# any calls?
 		if calls.length > 0
@@ -389,6 +421,24 @@ class Configuration
 						done content
 			else if propertyValue
 				aggregation[ property ] = ( done ) -> done propertyValue
+
+	copyPrereqs: ( onComplete ) ->
+		fp = @fp
+		forAll = @scheduler.parallel
+		if config.ext
+			prereqPath = path.resolve __dirname, '../ext'
+			fp.getFiles prereqPath, ( files ) ->
+				console.log "Found #{ files.length } pre-reqs"
+				copy = ( file, done ) ->
+					fileName = path.basename( file )
+					if not fp.pathExists [ config.ext, fileName ]
+						fp.move file, [ config.ext, fileName ], done
+					else
+						done()
+				forAll files, copy, () -> 
+					onComplete()
+		else
+			onComplete()
 
 	# ## writeConfig ##
 	# Creates new default config file

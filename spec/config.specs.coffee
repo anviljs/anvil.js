@@ -134,25 +134,44 @@ describe "when specifying hosting", ->
 			config.host.should.be.ok
 			done()
 
-describe "when specifying pavlov test runner", ->
+describe "when detecting test type with qunit specs", ->
 	fp = new FP()
-	parser = new ArgParser { "pavlov": true }
+
+	build = 
+		"source": "thisHereIsMuhSource"
+		"output": 
+			"style": "lib"
+			"source": "lib"
+			"markup": "lib"
+		"spec": "spec"
+		"ext": "ext"
+		"lint": {}
+		"uglify": {}
+		"gzip": {}
+		"hosts":
+			"/": "spec"
+		"finalize": {}
+		"wrap": {}
+			
+	before ( done ) ->
+		json = JSON.stringify build
+		fp.write "./build.json", json, () ->
+			fp.write "spec/test.js", """
+			(function() {
+				QUnit.thing();
+				})();
+			""", () ->
+				console.log "qunit spec written"
+				done()
+
+	parser = new ArgParser( {} )
 	cp = new Configuration fp, parser, scheduler, log
 
-	it "should set testWith to pavlov", ( done ) ->
+	it "should specify qunit in resulting configuration", ( complete ) ->
 		cp.configure ( config ) ->
-			config.testWith.should.equal "pavlov"
-			done()
-
-describe "when specifying mocha test runner", ->
-	fp = new FP()
-	parser = new ArgParser { "mocha": true }
-	cp = new Configuration fp, parser, scheduler, log
-
-	it "should set testWith to mocha", ( done ) ->
-		cp.configure ( config ) ->
-			config.testWith.should.equal "mocha"
-			done()
+			console.log "got config #{ JSON.stringify config }"
+			config.qunit.should.be.ok
+			complete()
 
 describe "when lib scaffold is requested", ->
 	fp = new FP()

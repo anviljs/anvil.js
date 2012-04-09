@@ -163,12 +163,9 @@ class SourcePipeline
 		else
 			onComplete()
 
-
 class MarkupPipeline
 
 	constructor: () ->
-
-
 
 class ImagePipeline
 
