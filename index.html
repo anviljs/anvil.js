@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>Anvil.js by appendto</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Anvil.js</h1>
+        <h2>A continuous integration tool for javascript, css and html.</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/appendto/anvil.js/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/appendto/anvil.js/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/appendto/anvil.js" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>Anvil</h1>
+
+<p>Anvil started as a way to build a single javascript module from several source files. Build tools that require a lot of explicit/declarative instructions distract from getting work on the project done.</p>
+
+<p>Anvil is currently being rewritten as CI tool for JS, CSS and HTML.</p>
+
+<p><strong><em>Please note: this description is for the upcoming RC of Anvil and does not represent the version currently available via npm</em></strong></p>
+
+<h2>What Does It Do?</h2>
+
+<p>Here's the current feature list:</p>
+
+<ul>
+<li>Create simple directory structure for new projects</li>
+<li>Create build.json files</li>
+<li>Combine files through a comment-based import syntax</li>
+<li>Supports multiple, distinct output files</li>
+<li>Customized file names for output</li>
+<li>Compiles CoffeeScript, Stylus, LESS, Markdown and HAML into 'native' formats (JS, CSS, HTML)</li>
+<li>Post compile pipelines:
+
+<ul>
+<li>Minify, Lint, Wrappers, License Headers, Run Tests</li>
+</ul>
+</li>
+<li>CI mode where anvil will re-compile the project on source file changes</li>
+<li>Hosts multiple projects directories
+
+<ul>
+<li>Converts CoffeeScript, Stylus, LESS, Markdown and HAML on the fly</li>
+<li>Useful for running test suites in the browser</li>
+<li>Can refresh the page after each build</li>
+</ul>
+</li>
+</ul><h2>Installation</h2>
+
+<pre><code>npm install anvil.js -g
+</code></pre>
+
+<h2>By Convention</h2>
+
+<p>Without a build file, Anvil will make assumptions. Here's the list:</p>
+
+<ul>
+<li>All your source will be in ./src and get output to ./lib and ./site/js</li>
+<li>All your styles will be in ./style and get output to ./css and ./site/css</li>
+<li>All your markup will be in ./markup and get output to ./site</li>
+<li>All resources will be compiled to JS, CSS and HTML</li>
+<li>All JS and CSS will be minified</li>
+<li>If the project includes a markup or style folder, you're building a site, not a lib</li>
+</ul><h2>The Build File ( large example showing all options )</h2>
+
+<pre><code>{
+    "source": "src",
+    "style": "style",
+    "markup": "markup",
+    {
+        "source": [ "lib", "site/js" ],
+        "style": [ "css", "site/css" ],
+        "markup": "site/"
+    }
+    "lint": {},
+    "uglify": {},
+    "cssmin": {},
+    "extensions": { "uglify": "min" },
+    "finalize:" {
+        "header|header-file": "this is some unprocessed text or a file name",
+        "footer|footer-file": "this is some unprocessed text or a file name"
+    },
+    "hosts": {
+      "/": "site"
+    },
+    "name": "custom-name.js",
+    "testWith": "mocha|pavlov",
+    "continuous": true,
+    "host": true
+}
+</code></pre>
+
+<ul>
+<li>source is where Anvil expects <em>all</em> your code. Don't get fancy or Anvil can't help you :(</li>
+<li>output is where Anvil will write all the build output and temp files. This should NOT be the same as source.</li>
+<li>lint specifies that you want your output files run through JSLint before Uglify and Gzip occur.</li>
+<li><p>uglify specifies that you want your output uglified. </p></li>
+<li>
+<p>finalize</p>
+
+<ul>
+<li>header prepends the following string to the final output ONLY.</li>
+<li>footer appends the following string to the final output ONLY.</li>
+<li>If header-file or footer-file is provided, the file will be read and the contents used</li>
+<li>this section was added to support adding boiler plate text headers to minified/gzipped output</li>
+</ul>
+</li>
+<li>
+<p>name</p>
+
+<ul>
+<li>for projects with a single file output, this will replace the name of the output file</li>
+<li>for projects with multiple file outputs, you can provide a lookup hash to over-write
+each specific file name</li>
+</ul>
+</li>
+</ul><p>There's also another option called justCoffee that will cause anvil to maintain all output in coffeescript instead of compiling it to js.</p>
+
+<h2>Jumpstart New Projects</h2>
+
+<p>There are two ways to do this now - one for lib projects and one for sites.</p>
+
+<p>Anvil will build a set of standard project directories for you and even spit out a build.json file based on the conventional use.</p>
+
+<h3>Lib Projects</h3>
+
+<pre><code>anvil --lib &lt;projectName&gt;
+</code></pre>
+
+<p>Will produce a directory structure that looks like this:</p>
+
+<pre><code>-projectName
+    |-ext
+    |-src
+    |-lib
+    |-spec
+    build.json
+</code></pre>
+
+<h3>Site Projects</h3>
+
+<pre><code>anvil --site &lt;projectName&gt;
+</code></pre>
+
+<p>Will produce a directory structure that looks like this:</p>
+
+<pre><code>-projectName
+    |-ext
+    |-src
+    |-site
+        |-js
+        |-css
+    |-style
+    |-markup
+    |-lib
+    |-css
+    |-spec
+    build.json
+</code></pre>
+
+<h2>Building By Convention</h2>
+
+<p>If you don't specify your own build file, anvil assumes you intend to use a build.json file. If one isn't present, it will use its own conventions to build your project. If that's all you need, great! Chances are you'll want a build.json that's configured for your specific project. </p>
+
+<p>Now that there are two types of projects, Anvil infers the project type based on the folders in your project.</p>
+
+<h2>Combining source files</h2>
+
+<p>Anvil allows you to combine source files by using a commented import syntax:</p>
+
+<p><strong>Javascript</strong></p>
+
+<pre><code>//import("dependency.{ext}");
+</code></pre>
+
+<p><strong>Coffeescript</strong></p>
+
+<pre><code>###import "dependency.{ext}" ###
+</code></pre>
+
+<p><strong>Stylus, LESS, CSS</strong></p>
+
+<pre><code>/* import "dependency.{ext}" */
+</code></pre>
+
+<p>When you use Anvil to compile your project, it will traverse all the files in your source directory and combine them so that your top level files are what get output. <strong>Warning</strong> Currently, Anvil is not clever enough to detect circular dependencies created via import statements and it will <em>shatter your world</em> if you do this.</p>
+
+<h2>Building With Specific Build Files</h2>
+
+<p>To build with a specific build file type</p>
+
+<pre><code>anvil -b &lt;buildfile&gt;
+</code></pre>
+
+<h2>Creating New / Additional Build Files</h2>
+
+<p>To create a build file for lib projects, you can just type the following:</p>
+
+<pre><code>anvil --libfile &lt;buildfile&gt;
+</code></pre>
+
+<p>or for a site project</p>
+
+<pre><code>anvil --sitefile &lt;buildfile&gt;
+</code></pre>
+
+<p>and it will create the build file for you. If you don't include the file name, anvil will create a build.json (possibly overwriting your existing one, be careful!)</p>
+
+<h2>Custom Naming</h2>
+
+<p>For projects with a single file output, you can provide a name property which will override the default name of the file:</p>
+
+<pre><code>"name": "my-custom-name.js"
+</code></pre>
+
+<p>For projects where there are multiple files in the output, you must provide a hash object that will tell anvil how to rename each specific file. For example, if you have a build producing 'one.js' and 'two.js' you would need to provide a hash object that would tell anvil how to name each:</p>
+
+<pre><code>"name": {
+    "one.js" : "main.js",
+    "two.js" : "plugin.js"
+}
+</code></pre>
+
+<h2>Continuous Integration</h2>
+
+<p>Anvil will watch your source directory for changes and rebuild the project in the event any changes are saved to the files in the directory.</p>
+
+<pre><code>anvil --ci
+</code></pre>
+
+<p>Remember, if you intend to always run in this mode, you can put a "continuous": true in your build.json file.</p>
+
+<h2>Hosting</h2>
+
+<p>Anvil provides local hosting based on the "hosts" config block. Adding -h, --host argument or a "host": true block to your build.json file will cause Anvil to host your project's directories (according to configuration) at port 3080 via express.</p>
+
+<pre><code>anvil -h
+</code></pre>
+
+<p>or</p>
+
+<pre><code>anvil --host
+</code></pre>
+
+<p>Coffee, Stylus, LESS, Mardown, and HAML are all converted at request time if they are requested.</p>
+
+<p>The hosts key in the build.json file is where you can control what each folder will be hosted at in the relative url.</p>
+
+<pre><code>"hosts": {
+    "/example1" : "./examples/example1",
+    "/example2" : "./examples/example2"
+}
+</code></pre>
+
+<p>The block above would host the folder ./example/example1 at http://localhost:3080/example1 and folder ./example/example2 at http://localhost:3080/example2</p>
+
+<h3>Testing With Mocha</h3>
+
+<p>Mocha might be the best thing ever. You can tell Anvil to run your spec files with mocha from the command line or by including a mocha block in the build.json.</p>
+
+<pre><code>anvil --mocha
+</code></pre>
+
+<p>or by adding "testWith": "mocha" to your build.json file.</p>
+
+<h2>Too chatty?</h2>
+
+<p>You can tell anvil to run in quiet mode (it will still print errors (red) and step completions (green) )</p>
+
+<pre><code>anvil -q
+</code></pre>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
