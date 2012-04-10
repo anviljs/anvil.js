@@ -94,19 +94,20 @@ class SourcePipeline
 		self = this
 		forAll = @scheduler.parallel
 		forAll files, @wrap, () ->
-			minified = []
+			minify = []
 			if self.config.uglify
-				minified = _.map( files, ( x ) -> _.clone x )
+				minify = _.map( files, ( x ) -> _.clone x )
 			forAll files, self.finalize, () -> 
-				forAll minified, self.minify, () -> 
-					forAll minified, self.finalize, () -> 
-						onComplete( files.concat minified )
+				forAll minify, self.minify, () -> 
+					forAll minify, self.finalize, () -> 
+						onComplete( files.concat minify )
 
 	minify: ( file, onComplete ) ->
-		if @config.minify
+		if @config.uglify
 			self = this
 			ext = file.ext()
 			newFile = file.name.replace ext, ".min.js"
+			@log.onStep "Uglifying #{ newFile }"
 			@fp.transform( 
 				[ file.workingPath, file.name ],
 				( content, onTransform ) ->

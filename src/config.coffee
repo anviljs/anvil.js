@@ -65,13 +65,17 @@ extensionLookup =
 	".markdown": "markup"
 	".html": "markup"
 
-# ## configure ##
+# ## Configuration ##
 # Do all the things!
 # Calling anvil from the command line runs this.
 class Configuration 
 
 	constructor: ( @fp, @parser, @scheduler, @log ) ->
 
+	# ## configure ##
+	# this call will return a configuration object that will
+	# inform the rest of the process
+	# _onConfig {Function}_: the callback to invoke with a configuration object
 	configure: ( onConfig ) ->
 		self = this
 		
@@ -170,7 +174,7 @@ class Configuration
 	# ## ensurePaths ##
 	# Make sure that the output and temp directories exist then call _callback_
 	# ### Args:
-	# * _onComplete {Function}_: what do do once we're sure that the paths exist
+	# * _onComplete {Function}_: what to call when work is complete
 	ensurePaths: ( onComplete, prefix ) ->
 		self = this
 		prefix = prefix or= ""
@@ -248,7 +252,7 @@ class Configuration
 	# Tries to normalize differences in configuration formats
 	# between options and site vs. lib configurations
 	# #### Args:
-	# * _onComplete {Function}_: what to call when finished
+	# * _onComplete {Function}_: what to call when work is complete
 	normalizeConfig: ( onComplete ) ->
 		self = this
 		fp = @fp
@@ -299,7 +303,8 @@ class Configuration
 									done()
 							catch err
 								done()
-						
+		else if config.mocha
+			config.mocha = _.extend defaultMocha, config.mocha
 
 		# any calls?
 		if calls.length > 0
@@ -316,6 +321,7 @@ class Configuration
 	# finalization should happen for this project
 	# ### Args:
 	# * _original {Object}_: the existing finalization block
+	# * _onComplete {Function}_: what to call when work is complete
 	getFinalization: ( original, onComplete ) ->
 		self = this
 		finalization = {}
@@ -363,6 +369,7 @@ class Configuration
 	# wrapping should happen for this project
 	# ### Args:
 	# * _original {Object}_: the existing wrap block
+	# * _onComplete {Function}_: what to call when work is complete
 	getWrap: ( original, onComplete ) ->
 		self = this
 		wrap = {}
@@ -408,7 +415,7 @@ class Configuration
 	# ### Args:
 	# * _property {string}: the property name to check for
 	# * _source {Object}_: the configuration block
-	# * _aggregation {Object}_: the fsm to build up
+	# * _onComplete {Function}_: what to call when work is complete
 	getContentBlock: ( source, property, aggregation ) ->
 		aggregation[ property ] = ( done ) -> done ""
 		fp = @fp
@@ -422,13 +429,17 @@ class Configuration
 			else if propertyValue
 				aggregation[ property ] = ( done ) -> done propertyValue
 
+	# ## copyPrereqs ##
+	# Copy the prerequisites for QUnit, pavlov and anvilHook.js
+	# to the project's ext folder
+	# ### Args:
+	# * _onComplete {Function}_: what to call when work is complete
 	copyPrereqs: ( onComplete ) ->
 		fp = @fp
 		forAll = @scheduler.parallel
 		if config.ext
 			prereqPath = path.resolve __dirname, '../ext'
 			fp.getFiles prereqPath, ( files ) ->
-				console.log "Found #{ files.length } pre-reqs"
 				copy = ( file, done ) ->
 					fileName = path.basename( file )
 					if not fp.pathExists [ config.ext, fileName ]
@@ -444,6 +455,7 @@ class Configuration
 	# Creates new default config file
 	# ### Args:
 	# * _name {String}_: the config file name
+	# * _onComplete {Function}_: what to call when work is complete
 	writeConfig: ( type, name, onComplete ) ->
 		config = if type == "lib" then libConfig else siteConfig
 		log = @log

@@ -303,7 +303,7 @@ describe "when compiling valid coffeescript", ->
 
 	before ( done ) ->
 		fp.write "tmp/good.coffee", goodCoffee, () -> 
-			compiler.compile file, done
+			compiler.compile file, () -> done()
 
 	it "should create a JavaScript file", () ->
 		fp.pathExists [ file.workingPath, file.name ].should.be.ok
@@ -356,7 +356,7 @@ describe "when compiling valid coffeekup", ->
 
 	before ( done ) ->
 		fp.write "tmp/good.kup", goodKup, () -> 
-			compiler.compile file, done
+			compiler.compile file, () -> done()
 
 	it "should create a html file", () ->
 		fp.pathExists [ file.workingPath, file.name ].should.be.ok
@@ -409,7 +409,7 @@ describe "when compiling valid Haml", ->
 
 	before ( done ) ->
 		fp.write "tmp/good.haml", goodHaml, () -> 
-			compiler.compile file, done
+			compiler.compile file, () -> done()
 
 	it "should create a html file", () ->
 		fp.pathExists [ file.workingPath, file.name ].should.be.ok
@@ -462,7 +462,7 @@ describe "when compiling valid Markdown", ->
 
 	before ( done ) ->
 		fp.write "tmp/good.markdown", goodMarkdown, () -> 
-			compiler.compile file, done
+			compiler.compile file, () -> done()
 
 	it "should create a html file", () ->
 		fp.pathExists [ file.workingPath, file.name ].should.be.ok
@@ -483,7 +483,7 @@ describe "when compiling invalid Markdown", ->
 
 	before ( done ) ->
 		fp.write "tmp/bad.markdown", badMarkdown, () -> 
-			compiler.compile file, done
+			compiler.compile file, () -> done()
 
 	it "should produce hot garbage", ( done ) ->
 		fp.read [ file.workingPath, file.name ], ( content ) ->
@@ -507,7 +507,7 @@ describe "when compiling valid Less", ->
 
 	before ( done ) ->
 		fp.write "tmp/good.less", goodLess, () -> 
-			compiler.compile file, done
+			compiler.compile file, () -> done()
 
 	it "should create a css file", () ->
 		fp.pathExists [ file.workingPath, file.name ].should.be.ok
@@ -552,7 +552,7 @@ describe "when compiling valid Sass", ->
 
 	before ( done ) ->
 		fp.write "tmp/good.sass", goodSass, () -> 
-			compiler.compile file, done
+			compiler.compile file, () -> done()
 
 	it "should create a css file", () ->
 		fp.pathExists [ file.workingPath, file.name ].should.be.ok
@@ -600,7 +600,7 @@ describe "when compiling valid Scss", ->
 
 	before ( done ) ->
 		fp.write "tmp/good.scss", goodScss, () ->
-			compiler.compile file, done
+			compiler.compile file, () -> done()
 
 	it "should create a css file", () ->
 		fp.pathExists [ file.workingPath, file.name ].should.be.ok
@@ -648,7 +648,7 @@ describe "when compiling valid Stylus", ->
 
 	before ( done ) ->
 		fp.write "tmp/good.styl", goodStylus, () -> 
-			compiler.compile file, done
+			compiler.compile file, () -> done()
 
 	it "should create a css file", () ->
 		fp.pathExists [ file.workingPath, file.name ].should.be.ok

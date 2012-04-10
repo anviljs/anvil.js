@@ -49,7 +49,7 @@ class Compiler
 			( err ) ->
 				unless err
 					file.name = newFile
-					onComplete()
+					onComplete file
 				else
 					onComplete err
 		)

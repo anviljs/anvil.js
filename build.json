@@ -8,5 +8,8 @@
 	},
 	"finalize": {
 		"header-file": "license.txt"
+	},
+	"mocha": {
+		"reporter": "landing"
 	}
 }

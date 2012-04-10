@@ -23,7 +23,7 @@ class SocketServer
 
   removeClient: ( socket ) ->
     index = @clients.indexOf socket
-    @clients.splice, i, 1
+    @clients.splice i, 1
     log.onEvent "client connected"
 
   refreshClients: ->

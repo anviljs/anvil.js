@@ -161,7 +161,6 @@ describe "when detecting test type with qunit specs", ->
 				QUnit.thing();
 				})();
 			""", () ->
-				console.log "qunit spec written"
 				done()
 
 	parser = new ArgParser( {} )
@@ -169,7 +168,6 @@ describe "when detecting test type with qunit specs", ->
 
 	it "should specify qunit in resulting configuration", ( complete ) ->
 		cp.configure ( config ) ->
-			console.log "got config #{ JSON.stringify config }"
 			config.qunit.should.be.ok
 			complete()
 

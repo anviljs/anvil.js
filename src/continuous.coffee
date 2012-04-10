@@ -29,8 +29,6 @@ class Continuous
 			@watchers.push fs.watch file, @onEvent
 
 	onEvent: ( event, file ) ->
-		console.log " File System Event: #{ event } on #{ file }"
-
 		@watching = false
 		while @watchers.length > 0
 			@watchers.pop().close()

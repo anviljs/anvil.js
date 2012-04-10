@@ -24,8 +24,6 @@ class Anvil
 			@inProcess = true
 			@buildSource()
 			@buildStyle()
-		else
-			@log.onError "NOOOOOO"
 
 
 	buildMarkup: () ->
@@ -56,8 +54,8 @@ class Anvil
 		self.prepFiles type, ( list ) ->
 			self.moveFiles list, () ->
 				combiner.combineList list, () ->
-					scheduler.parallel list, compiler.compile, () ->
-						final = _.filter( list, ( x ) -> x.dependents == 0 )
+					scheduler.parallel list, compiler.compile, ( compiled ) ->
+						final = _.filter( compiled, ( x ) -> x.dependents == 0 )
 						postProcessor[ type ].process final, ( list ) ->
 							self.finalOutput list, () ->
 								self.stepComplete type

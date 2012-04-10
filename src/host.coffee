@@ -16,7 +16,6 @@ class Host
 		# only host exactly what they specify
 		if hosts
 			_.each( hosts, ( value, key ) ->
-				console.log "Hosting #{ value } at #{ key }"
 				app.use key, express.static( path.resolve value )
 			)
 		# otherwise, let's have some fun...
