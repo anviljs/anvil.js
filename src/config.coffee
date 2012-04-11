@@ -129,14 +129,17 @@ class Configuration
 				onConfig config
 		else if siteScaffold or libScaffold
 			# Generate all the directories and the config file
-			scaffold = siteScaffold or= libScaffold
+			console.log "#{ siteScaffold } / #{ libScaffold }"
 			type = if siteScaffold then 'site' else 'lib'
+			scaffold = siteScaffold or= libScaffold
+			config = if type == 'site' then siteConfig else libConfig
 			@log.onStep "Creating scaffolding for new #{ type } project"
-			@writeConfig type, scaffold + "/build.json", () ->
-				# Create all the directories
-				self.ensurePaths( () ->
-					onConfig config
-				, scaffold )
+			# Create all the directories
+			self.ensurePaths( () ->
+				self.writeConfig( type, scaffold + "/build.json", () ->
+					self.log.onComplete "Scaffold #{ scaffold } created!"
+				)
+			, scaffold )
 
 		else if htmlPage
 			config.genHtml = htmlPage
@@ -183,6 +186,7 @@ class Configuration
 	# Make sure that all expected paths exist
 	# ### Args:
 	# * _onComplete {Function}_: what to call when work is complete
+	# * _prefix {String}_: the prefix to prepend to all paths
 	ensurePaths: ( onComplete, prefix ) ->
 		self = this
 		prefix = prefix or= ""
