@@ -47,7 +47,7 @@ defaultDoc =
 	output: "docs"
 
 continuous = test = inProcess = quiet = debug = false
-version = "0.7.0"
+version = "0.7.1"
 
 ext =
 	gzip: "gz"
