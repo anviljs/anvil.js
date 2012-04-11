@@ -1,4 +1,7 @@
 _ = require "underscore"
+
+# ## Combiner ##
+# Combines imports with the files importing them
 class Combiner
 
 	constructor: ( @fp, @scheduler, @findPatterns, @replacePatterns ) ->
@@ -19,14 +22,19 @@ class Combiner
 				self.findImports file, list, done
 			, this )
 
+		# once the imports are known, we can determine how many
+		# files import (or depend) a given file
 		findDependents = _.bind( ( file, done ) ->
 				self.findDependents file, list, done
 			, this )
 
+		# replace all of file's import statements with
+		# the imported files' contents
 		combineFile = _.bind( ( file, done ) ->
 			self.combineFile file, done
 			, this )
 
+		# combine all the files
 		forAll list, findImports, () ->
 			for f1 in list
 				findDependents f1, list
@@ -117,9 +125,13 @@ class Combiner
 		else
 			onComplete()
 
-	getStep: ( i ) -> 
+	# ## getStep ##
+	# This is insane but it works - creating a closure around
+	# a specific import to prevent accessing a changing variable.
+	# _import {String}_: the imported file to create the closure around
+	getStep: ( imported ) -> 
 		self = this
-		( text, onDone ) -> self.replace text, i, onDone
+		( text, onDone ) -> self.replace text, imported, onDone
 
 	# ## replace ##
 	# create a replacement regex that will take the _imported_ content and replace the
@@ -135,10 +147,18 @@ class Combiner
 		working = imported.workingPath
 		@fp.read [ working, source ], ( newContent ) ->
 			steps = for pattern in patterns
+				# creates a function that will replace the import statement
+				# with a specific file's contents
 				( current, done ) ->
 					stringified = pattern.toString().replace ///replace///, source
 					stringified = stringified.substring( 1, stringified.length - 2 )
-					fullPattern = new RegExp stringified, "g"
+					fullPattern = new RegExp stringified, "g"					
+					capture = fullPattern.exec( content )
+					if capture and capture.length > 1
+						# capture the indentation of the import
+						whiteSpace = capture[1]
+						# apply indentation to all lines of the new content
+						newContent = "#{ whiteSpace }" + newContent.replace ///\n///g, "\n#{ whiteSpace }"
 					done( current.replace fullPattern, newContent )
 			pipe content, steps, ( result ) ->
 				onComplete result

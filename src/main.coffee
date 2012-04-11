@@ -1,3 +1,5 @@
+# ## Anvil ##
+# This provides the primary logic and flow control for build activities
 class Anvil
 
 	constructor: ( @config, @fp, @compiler, @combiner, @scheduler, @postProcessor, @log, @callback ) ->
@@ -18,32 +20,45 @@ class Anvil
 				status = ( this.source or not this.hasSource ) and ( this.style or not this.hasStyle ) and ( this.markup or not this.hasMarkup )
 				status
 
-
+	# ## build ##
+	# Kicks off the build for the currently configured Anvil instance
 	build: () ->
 		if not @inProcess
 			@inProcess = true
 			@buildSource()
 			@buildStyle()
 
-
+	# ## buildMarkup ##
+	# Builds all markup sources and provides the regex patterns used to
+	# identify dependencies using regular expressions.
 	buildMarkup: () ->
 		findPatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
-		replacePatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
+		replacePatterns = [ ///([ \t]*)[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
 		@processType( "markup", findPatterns, replacePatterns )
-			
 
+	# ## buildSource ##
+	# Builds all JS and Coffee sources and provides the regex patterns used to
+	# identify dependencies using regular expressions.
 	buildSource: () ->
-		findPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([/]{2}|[\#]{3})?///g ]
-		replacePatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?([/]{2}|[\#]{3})?///g ]
+		findPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([\#]{0,3})///g ]
+		replacePatterns = [ ///([ \t]*)([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[\#]{0,3}///g ]
 		@processType( "source", findPatterns, replacePatterns )
 
-
+	# ## buildSource ##
+	# Builds all CSS, LESS and Stylus sources and provides the regex patterns used to
+	# identify dependencies using regular expressions.
 	buildStyle: () ->
-		findPatterns = [ ///@import[(]?.?[\"'].*[.]css[\"'].?[)]?///g ]
-		replacePatterns = [ ///@import[(]?.?[\"']replace[\"'].?[)]?///g ]
+		findPatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][/])?///g ]
+		replacePatterns = [ ///([ \t]*)([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][/])?///g ]
 		@processType( "style", findPatterns, replacePatterns )
 
-
+	# ## processType ##
+	# The steps that get followed for each resource type are the same.
+	# This function provides the core behavior of identifying, combining,
+	# compiling and post-processing for all the types.
+	# _type {String}_: ('source', 'style', 'markup') the type of resources to process
+	# _findPatterns {Regex}_: the list of regular expressions used to identify imports in this resource type
+	# _replacePatterns {Regex}_: the list of replacement regular expressions used to replace imports with file contents
 	processType: ( type, findPatterns, replacePatterns ) ->
 		self = this
 		scheduler = @scheduler
@@ -52,36 +67,59 @@ class Anvil
 		postProcessor = @postProcessor
 
 		self.prepFiles type, ( list ) ->
-			self.moveFiles list, () ->
+			self.copyFiles list, () ->
+				# combines imported files
 				combiner.combineList list, () ->
-					scheduler.parallel list, compiler.compile, ( compiled ) ->
-						final = _.filter( compiled, ( x ) -> x.dependents == 0 )
-						postProcessor[ type ].process final, ( list ) ->
+					# filter out all files that were combined into another file
+					final = _.filter( list, ( x ) -> x.dependents == 0 )
+					# compiles the combined results
+					scheduler.parallel final, compiler.compile, ( compiled ) ->
+						# kick off post processors for compiled files
+						postProcessor[ type ].process compiled, ( list ) ->
+							# copy complete files to the destination folders
 							self.finalOutput list, () ->
 								self.stepComplete type
 
-
-	fileBuilt: ( file ) ->
-		@filesBuilt[ file.fullPath ] = file
-
-
+	# ## finalOutput ##
+	# Copies the final list of files to their output folders
+	# _files {Array}_: the list of files to copy
+	# _onComplete {Function}_: the function to call once all files have been copied
 	finalOutput: ( files, onComplete ) ->
 		fp = @fp
 		forAll = @scheduler.parallel
-		move = ( file, done ) ->
+		copy = ( file, done ) ->
 			forAll( file.outputPaths, ( destination, moved ) ->
-				fp.move [ file.workingPath, file.name ], [ destination, file.name ], moved
+				fp.copy [ file.workingPath, file.name ], [ destination, file.name ], moved
 			, done )
-		forAll files, move, onComplete
+		forAll files, copy, onComplete
 
-
-	moveFiles: ( files, onComplete ) ->
+	# ## copyFiles ##
+	# Copies the source files to the working path before beginning any processing
+	# _files {Array}_: the list of files to copy
+	# _onComplete {Function}_: the function to call once all files have been copied
+	copyFiles: ( files, onComplete ) ->
 		fp = @fp
-		move = ( file, done ) -> 
-			fp.move file.fullPath, [ file.workingPath, file.name ], done
-		@scheduler.parallel files, move, onComplete
+		copy = ( file, done ) -> 
+			fp.copy file.fullPath, [ file.workingPath, file.name ], done
+		@scheduler.parallel files, copy, onComplete
 
 
+	# ## cleanWorking ##
+	# Clears all files from the working directory
+	# _onComplete {Function}_: the function to call after directory is cleaned
+	cleanWorking: ( onComplete ) ->
+		fp = @fp
+		forAll = @scheduler.parallel
+		fp.getFiles @config.working, ( files ) ->
+			forAll files, fp.delete, onComplete
+
+
+	# ## prepFiles ##
+	# Determine the list of files that belong to this particular resource type
+	# and create metadata objects that describe the file and provide necessary
+	# metadata to the rest of the processes.
+	# _type {String}_: ('source', 'style', 'markup') 
+	# _onComplete {Function}_: the function to invoke with a completed list of file metadata
 	prepFiles: ( type, onComplete ) ->
 		working = @config.working
 		typePath = @config[ type ]
@@ -105,11 +143,16 @@ class Anvil
 						}
 			onComplete list
 
-
+	# ## stepComplete ##
+	# Called at the end of each type's pipe-line in order to control
+	# when markup gets built. Markup must get built last since it can include
+	# built targets from both style and source in it's files.
+	# _step {String}_: ('source','style','markup')
 	stepComplete: ( step ) ->
 		@steps[ step ] = true
 		if step != "markup" and @steps.markupReady()
 			@buildMarkup()
 		if step == "markup" and @steps.allDone()
 			@inProcess = false
-			@callback()
+			@cleanWorking @callback
+				

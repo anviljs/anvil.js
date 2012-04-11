@@ -20,7 +20,6 @@ siteConfig =
 	"lint": {}
 	"uglify": {}
 	"cssmin": {}
-	"gzip": {}
 	"hosts": {
 	  "/": "site"
 	}
@@ -32,7 +31,6 @@ libConfig =
 	"ext": "ext"
 	"lint": {}
 	"uglify": {}
-	"gzip": {}
 	"hosts": {
 	  "/": "spec"
 	}
@@ -45,7 +43,7 @@ defaultMocha =
 	colors: true
 
 continuous = test = inProcess = quiet = debug = false
-version = "0.8.0"
+version = "0.7.0"
 
 ext =
 	gzip: "gz"
@@ -62,7 +60,6 @@ extensionLookup =
 	".coffee": "source"
 	".markdown": "markup"
 	".md": "markup"
-	".markdown": "markup"
 	".html": "markup"
 
 # ## Configuration ##
@@ -102,6 +99,9 @@ class Configuration
 		# Make an html page with our final JS included?
 		htmlPage = @parser.getOptions "html"
 
+		# Run specs via Mocha?
+		useMocha = @parser.getOptions "mocha"
+
 		# Generate scaffold for new lib project?
 		libScaffold = @parser.getOptions "lib"
 
@@ -126,14 +126,17 @@ class Configuration
 				onConfig config
 		else if siteScaffold or libScaffold
 			# Generate all the directories and the config file
-			scaffold = siteScaffold or= libScaffold
 			type = if siteScaffold then 'site' else 'lib'
+			scaffold = siteScaffold or= libScaffold
+			config = if type == 'site' then siteConfig else libConfig
 			@log.onStep "Creating scaffolding for new #{ type } project"
-			@writeConfig type, scaffold + "/build.json", () ->
-				# Create all the directories
-				self.ensurePaths( () ->
-					onConfig config
-				, scaffold )
+			# Create all the directories
+			self.ensurePaths( () ->
+				self.writeConfig( type, scaffold + "/build.json", () ->
+					self.log.onComplete "Scaffold #{ scaffold } created!"
+					onConfig config, true
+				)
+			, scaffold )
 
 		else if htmlPage
 			config.genHtml = htmlPage
@@ -148,11 +151,15 @@ class Configuration
 				if continuous
 					config.continuous = true
 
+				if useMocha
+					config.mocha = defaultMocha
+
 				# Run transforms and generate output
 				self.ensurePaths () ->
 					onConfig config		
 
-
+	# ## createLibBuild ##
+	# This creates a file containing the default lib build convention
 	createLibBuild: () ->
 		# build lib template?
 		if buildLibTemplate
@@ -161,7 +168,8 @@ class Configuration
 			global.process.exit(0)
 			config
 
-
+	# ## createSiteBuild ##
+	# This creates a file containing the default site build convention
 	createSiteBuild: () ->
 		# build site template?
 		if buildSiteTemplate
@@ -172,9 +180,10 @@ class Configuration
 
 
 	# ## ensurePaths ##
-	# Make sure that the output and temp directories exist then call _callback_
+	# Make sure that all expected paths exist
 	# ### Args:
 	# * _onComplete {Function}_: what to call when work is complete
+	# * _prefix {String}_: the prefix to prepend to all paths
 	ensurePaths: ( onComplete, prefix ) ->
 		self = this
 		prefix = prefix or= ""
@@ -281,29 +290,7 @@ class Configuration
 					config.wrap = result
 					done()
 
-		# specs without a specific runner?
-		spec = config.spec
-		if spec and not config.mocha and not config.qunit
-			calls.push ( done ) ->
-				fp.getFiles spec, ( files ) ->
-					if files.length == 0
-						done()
-					else
-						specFile = files[ 0 ]
-						if not specFile
-							done()
-						else
-							try
-								fp.read specFile, ( content ) ->
-									hasQUnit = ///QUnit///g.test content
-									if hasQUnit
-										config.qunit = {}
-									else
-										config.mocha = defaultMocha
-									done()
-							catch err
-								done()
-		else if config.mocha
+		if config.mocha
 			config.mocha = _.extend defaultMocha, config.mocha
 
 		# any calls?
@@ -389,11 +376,11 @@ class Configuration
 			@getContentBlock original, "suffix", aggregation
 			# make sure we don't try to aggregate on empty
 			if _.isEqual aggregation, {}
-				onComplete finalization
+				onComplete wrap
 			else
 				aggregate aggregation, ( constructed ) ->
 					wrap.source = constructed
-					onComplete finalization
+					onComplete wrap
 		# there are multiple sections
 		else
 			sources = {}
@@ -409,7 +396,7 @@ class Configuration
 				sources[ name ] = ( done ) -> aggregate subAggregate, done
 			)
 			aggregate sources, onComplete
-		
+
 	# ## getContentBlock ##
 	# Normalizes a wrapper or finalizer segment
 	# ### Args:
@@ -443,7 +430,7 @@ class Configuration
 				copy = ( file, done ) ->
 					fileName = path.basename( file )
 					if not fp.pathExists [ config.ext, fileName ]
-						fp.move file, [ config.ext, fileName ], done
+						fp.copy file, [ config.ext, fileName ], done
 					else
 						done()
 				forAll files, copy, () -> 

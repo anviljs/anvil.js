@@ -27,7 +27,3 @@ ArgParser = require "argparser"
 # A Sinatra inspired web development framework for Node -- 
 # See http://expressjs.com for more info
 express = require "express"
-
-# Generates HTML via an API -- 
-# See https://github.com/insin/DOMBuilder for more info
-builder = require "DOMBuilder"

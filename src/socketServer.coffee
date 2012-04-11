@@ -21,17 +21,23 @@ class SocketServer
     socket.on "disconnect", @removeClient
     log.onEvent "client connected"
 
+  # ## removeClient ##
+  # Removes the socket from the current list of connected sockets
+  # _socket {Object}_: the socket that has disconnected
   removeClient: ( socket ) ->
     index = @clients.indexOf socket
-    @clients.splice i, 1
+    @clients.splice index, 1
     log.onEvent "client connected"
 
+  # ## refreshClient ##
+  # Sends a 'refresh' message to all connected clients
   refreshClients: ->
     log.onEvent "Refreshing hooked clients"
-    notifyClients "refresh"
+    @notifyClients "refresh"
 
   # ## notifyClients ##
-  # Send a "refresh" message to all connected clients.
+  # Send a message to all connected clients
+  # _msg {String}_: the message to send to connected clients
   notifyClients: ( msg ) ->
     for client in @clients
       client.emit msg, {}
