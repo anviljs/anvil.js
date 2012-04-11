@@ -96,9 +96,6 @@ class Configuration
 		# host site ?
 		host = @parser.getOptions "h", "host"
 
-		# Make an html page with our final JS included?
-		htmlPage = @parser.getOptions "html"
-
 		# Run specs via Mocha?
 		useMocha = @parser.getOptions "mocha"
 
@@ -117,13 +114,13 @@ class Configuration
 		if showVersion
 			# Display version info and exit
 			@log.onEvent "Anvil.js " + version
-			onConfig config
+			onConfig config, true
 		else if createLibFile or createSiteFile
 			# Generate all the directories and the config file
 			name = createLibFile or= createSiteFile
 			type = if createSiteFile then 'site' else 'lib'
 			@writeConfig type, "#{name}.json", () ->
-				onConfig config
+				onConfig config, true
 		else if siteScaffold or libScaffold
 			# Generate all the directories and the config file
 			type = if siteScaffold then 'site' else 'lib'
@@ -137,10 +134,6 @@ class Configuration
 					onConfig config, true
 				)
 			, scaffold )
-
-		else if htmlPage
-			config.genHtml = htmlPage
-			onConfig config
 		else
 			@log.onStep "Checking for config..."
 			exists = @fp.pathExists buildFile
