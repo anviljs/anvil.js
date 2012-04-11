@@ -2,7 +2,7 @@
 # This provides the primary logic and flow control for build activities
 class Anvil
 
-	constructor: ( @config, @fp, @compiler, @combiner, @scheduler, @postProcessor, @log, @callback ) ->
+	constructor: ( @config, @fp, @compiler, @combiner, @documenter, @scheduler, @postProcessor, @log, @callback ) ->
 		config = @config
 		@filesBuilt = {}
 		@inProcess = false
@@ -56,14 +56,14 @@ class Anvil
 	# The steps that get followed for each resource type are the same.
 	# This function provides the core behavior of identifying, combining,
 	# compiling and post-processing for all the types.
-	# _type {String}_: ('source', 'style', 'markup') the type of resources to process
-	# _findPatterns {Regex}_: the list of regular expressions used to identify imports in this resource type
-	# _replacePatterns {Regex}_: the list of replacement regular expressions used to replace imports with file contents
+	# * _type {String}_: ('source', 'style', 'markup') the type of resources to process
+	# * _findPatterns {Regex}_: the list of regular expressions used to identify imports in this resource type
+	# * _replacePatterns {Regex}_: the list of replacement regular expressions used to replace imports with file contents
 	processType: ( type, findPatterns, replacePatterns ) ->
 		self = this
-		scheduler = @scheduler
+		forAll = @scheduler.parallel
 		compiler = @compiler
-		combiner = new @combiner( @fp, scheduler, findPatterns, replacePatterns )
+		combiner = new @combiner( @fp, @scheduler, findPatterns, replacePatterns )
 		postProcessor = @postProcessor
 
 		self.prepFiles type, ( list ) ->
@@ -72,8 +72,11 @@ class Anvil
 				combiner.combineList list, () ->
 					# filter out all files that were combined into another file
 					final = _.filter( list, ( x ) -> x.dependents == 0 )
+					# if documentation should be generated, do that now
+					if self.config.docs
+						self.documenter.generate final
 					# compiles the combined results
-					scheduler.parallel final, compiler.compile, ( compiled ) ->
+					forAll final, compiler.compile, ( compiled ) ->
 						# kick off post processors for compiled files
 						postProcessor[ type ].process compiled, ( list ) ->
 							# copy complete files to the destination folders
@@ -82,8 +85,8 @@ class Anvil
 
 	# ## finalOutput ##
 	# Copies the final list of files to their output folders
-	# _files {Array}_: the list of files to copy
-	# _onComplete {Function}_: the function to call once all files have been copied
+	# * _files {Array}_: the list of files to copy
+	# * _onComplete {Function}_: the function to call once all files have been copied
 	finalOutput: ( files, onComplete ) ->
 		fp = @fp
 		forAll = @scheduler.parallel
@@ -95,8 +98,8 @@ class Anvil
 
 	# ## copyFiles ##
 	# Copies the source files to the working path before beginning any processing
-	# _files {Array}_: the list of files to copy
-	# _onComplete {Function}_: the function to call once all files have been copied
+	# * _files {Array}_: the list of files to copy
+	# * _onComplete {Function}_: the function to call once all files have been copied
 	copyFiles: ( files, onComplete ) ->
 		fp = @fp
 		copy = ( file, done ) -> 
@@ -106,7 +109,7 @@ class Anvil
 
 	# ## cleanWorking ##
 	# Clears all files from the working directory
-	# _onComplete {Function}_: the function to call after directory is cleaned
+	# * _onComplete {Function}_: the function to call after directory is cleaned
 	cleanWorking: ( onComplete ) ->
 		fp = @fp
 		forAll = @scheduler.parallel
@@ -118,8 +121,8 @@ class Anvil
 	# Determine the list of files that belong to this particular resource type
 	# and create metadata objects that describe the file and provide necessary
 	# metadata to the rest of the processes.
-	# _type {String}_: ('source', 'style', 'markup') 
-	# _onComplete {Function}_: the function to invoke with a completed list of file metadata
+	# * _type {String}_: ('source', 'style', 'markup') 
+	# * _onComplete {Function}_: the function to invoke with a completed list of file metadata
 	prepFiles: ( type, onComplete ) ->
 		working = @config.working
 		typePath = @config[ type ]
@@ -147,7 +150,7 @@ class Anvil
 	# Called at the end of each type's pipe-line in order to control
 	# when markup gets built. Markup must get built last since it can include
 	# built targets from both style and source in it's files.
-	# _step {String}_: ('source','style','markup')
+	# * _step {String}_: ('source','style','markup')
 	stepComplete: ( step ) ->
 		@steps[ step ] = true
 		if step != "markup" and @steps.markupReady()

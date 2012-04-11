@@ -42,6 +42,10 @@ defaultMocha =
 	ui: "bdd"
 	colors: true
 
+defaultDoc =
+	generator: "docco"
+	output: "docs"
+
 continuous = test = inProcess = quiet = debug = false
 version = "0.7.0"
 
@@ -72,7 +76,7 @@ class Configuration
 	# ## configure ##
 	# this call will return a configuration object that will
 	# inform the rest of the process
-	# _onConfig {Function}_: the callback to invoke with a configuration object
+	# * _onConfig {Function}_: the callback to invoke with a configuration object
 	configure: ( onConfig ) ->
 		self = this
 		
@@ -111,6 +115,12 @@ class Configuration
 		# Generate scaffold for new site project?
 		siteScaffold = @parser.getOptions "site"
 
+		# Generate annotated source with docco?
+		runDocco = @parser.getOptions "docco"
+
+		# Generate annotated source with ape?
+		runApe = @parser.getOptions "ape"		
+
 		if showVersion
 			# Display version info and exit
 			@log.onEvent "Anvil.js " + version
@@ -146,6 +156,13 @@ class Configuration
 
 				if useMocha
 					config.mocha = defaultMocha
+
+				if runApe
+					config.docs = defaultDoc
+					config.docs.generator = "ape"
+
+				if runDocco
+					config.docs = defaultDoc
 
 				# Run transforms and generate output
 				self.ensurePaths () ->
@@ -190,6 +207,10 @@ class Configuration
 			config[ "ext" ]
 			config[ "working" ] 
 		]
+
+		# if documenting
+		if config.docs
+			paths.push config.docs.output
 		
 		# if the output is an object
 		if _.isObject config.output
@@ -285,6 +306,9 @@ class Configuration
 
 		if config.mocha
 			config.mocha = _.extend defaultMocha, config.mocha
+
+		if config.docs
+			config.docs = _.extend defaultDoc, config.docs
 
 		# any calls?
 		if calls.length > 0

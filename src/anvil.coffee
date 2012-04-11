@@ -7,6 +7,7 @@
 ###import "compile.coffee" ###
 ###import "combiner.coffee" ###
 ###import "pipeline.coffee" ###
+###import "documenter.coffee" ###
 ###import "main.coffee" ###
 ###import "continuous.coffee" ###
 ###import "mocha.coffee" ###

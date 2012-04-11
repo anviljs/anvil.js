@@ -17,8 +17,8 @@ class FSCrawler
 	# ## crawl ##
 	# Crawls the whole directory structure starting with _directory_
 	# and returns the full file listing.
-	# _directory {String/Array}_: a string or path spec for the directory to start crawling at
-	# _onComplete {Function}_: the function to call with a complete list of all the files
+	# * _directory {String/Array}_: a string or path spec for the directory to start crawling at
+	# * _onComplete {Function}_: the function to call with a complete list of all the files
 	crawl: ( directory, onComplete ) ->
 		self = this
 		fileList = []
@@ -57,8 +57,8 @@ class FSCrawler
 	# ## classifyHandles ##
 	# Provides a fork/join wrapper around getting the fs stat objects for the list
 	# of paths.
-	# _list {Array}_: the list of paths to check
-	# _onComplete {Function}_: the function to call with the lists of files and directories
+	# * _list {Array}_: the list of paths to check
+	# * _onComplete {Function}_: the function to call with the lists of files and directories
 	classifyHandles: ( list, onComplete ) ->
 		if list and list.length > 0
 			@scheduler.parallel list, @classifyHandle, ( classified ) ->
@@ -72,8 +72,8 @@ class FSCrawler
 
 	# ## classifyHandle ##
 	# Get the fs stat and determine if the path is to a file or a directory
-	# _file {String}_: the path to check
-	# _onComplete {Function}_: the function to call with the result of the check
+	# * _file {String}_: the path to check
+	# * _onComplete {Function}_: the function to call with the result of the check
 	classifyHandle: ( file, onComplete ) ->
 		fs.stat file, ( err, stat ) ->
 			if err

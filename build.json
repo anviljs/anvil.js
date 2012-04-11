@@ -4,5 +4,12 @@
 	"ext": "ext",
 	"finalize": {
 		"header-file": "license.txt"
+	},
+	"docs": {
+		"generator": "ape",
+		"output": "docs"
+	},
+	"hosts": {
+		"/": "docs"
 	}
 }

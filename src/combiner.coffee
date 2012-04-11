@@ -128,7 +128,7 @@ class Combiner
 	# ## getStep ##
 	# This is insane but it works - creating a closure around
 	# a specific import to prevent accessing a changing variable.
-	# _import {String}_: the imported file to create the closure around
+	# * _import {String}_: the imported file to create the closure around
 	getStep: ( imported ) -> 
 		self = this
 		( text, onDone ) -> self.replace text, imported, onDone

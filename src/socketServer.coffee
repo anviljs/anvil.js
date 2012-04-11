@@ -23,7 +23,7 @@ class SocketServer
 
   # ## removeClient ##
   # Removes the socket from the current list of connected sockets
-  # _socket {Object}_: the socket that has disconnected
+  # * _socket {Object}_: the socket that has disconnected
   removeClient: ( socket ) ->
     index = @clients.indexOf socket
     @clients.splice index, 1
@@ -37,7 +37,7 @@ class SocketServer
 
   # ## notifyClients ##
   # Send a message to all connected clients
-  # _msg {String}_: the message to send to connected clients
+  # * _msg {String}_: the message to send to connected clients
   notifyClients: ( msg ) ->
     for client in @clients
       client.emit msg, {}

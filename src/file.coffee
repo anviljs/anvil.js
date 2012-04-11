@@ -58,8 +58,8 @@ class FSProvider
 
 	# ## getFiles ##
 	# Get all files in a specific path specification
-	# _filePath {String/Array}_: a string or array specifying the path to get files for
-	# _onFiles {Function}_: the function to call with the list of full file paths
+	# * _filePath {String/Array}_: a string or array specifying the path to get files for
+	# * _onFiles {Function}_: the function to call with the list of full file paths
 	getFiles: ( filePath, onFiles ) ->
 		if not filePath 
 			onFiles []
@@ -70,9 +70,9 @@ class FSProvider
 
 	# ## copy ## 
 	# Copy a file
-	# _from {String/Array}_: the path spec for the file to copy
-	# _to {String/Array}_: the path spec for the destination
-	# _onComplete {Function}_: the function to call when the copy has completed
+	# * _from {String/Array}_: the path spec for the file to copy
+	# * _to {String/Array}_: the path spec for the destination
+	# * _onComplete {Function}_: the function to call when the copy has completed
 	copy: ( from, to, onComplete ) ->
 		from = this.buildPath from
 		to = this.buildPath to
@@ -86,7 +86,7 @@ class FSProvider
 
 	# ## pathExists ##
 	# Sychronously (GASP) check for the existence of a file or directory
-	# _pathSpec {String/Array}_: the string or path spec of the file or directory to check for
+	# * _pathSpec {String/Array}_: the string or path spec of the file or directory to check for
 	pathExists: ( pathSpec ) ->
 		pathSpec = this.buildPath pathSpec
 		path.existsSync pathSpec

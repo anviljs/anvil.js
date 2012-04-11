@@ -13,9 +13,9 @@ class Scheduler
 	# function with the signature ( item, done ) and
 	# calls the worker for each item only invoking onComplete
 	# once all calls have completed.
-	# _items {Array}_: a list of items to process
-	# _worker {Function}_: the worker that processes all the items
-	# _onComplete {Function}_: the function to call once all workers have completed
+	# * _items {Array}_: a list of items to process
+	# * _worker {Function}_: the worker that processes all the items
+	# * _onComplete {Function}_: the function to call once all workers have completed
 	parallel: ( items, worker, onComplete ) ->
 		# Fail fast if list is empty
 		if not items or items.length == 0
@@ -41,9 +41,9 @@ class Scheduler
 	# This takes an item and mutates it by calling a series
 	# of asynchronous workers with the signature ( item, done ) and
 	# only invokes onComplete after the last function in the pipeline completes.
-	# _item {Object}_: the initial item to pass to the first call
-	# _workers {Array}_: the ordered list of functions that compose the pipeline
-	# _onComplete {Function}_: the function to call once the last function has completed
+	# * _item {Object}_: the initial item to pass to the first call
+	# * _workers {Array}_: the ordered list of functions that compose the pipeline
+	# * _onComplete {Function}_: the function to call once the last function has completed
 	pipeline: ( item, workers, onComplete ) ->
 		# Fail fast if list is empty
 		if item == undefined or not workers or workers.length == 0
@@ -72,8 +72,8 @@ class Scheduler
 	# Takes a hash map of calls and returns a corresponding hash map of
 	# the results once all calls have completed. It's a weird fork/join
 	# with named results vs. a randomly ordered list of results
-	# _calls {Object}_: the hash map of named asynchronous functions to call
-	# _onComplete {Function}_: the resulting hash map of corresponding values
+	# * _calls {Object}_: the hash map of named asynchronous functions to call
+	# * _onComplete {Function}_: the resulting hash map of corresponding values
 	aggregate: ( calls, onComplete ) ->
 		results = {}
 		# checks to see if all results have been collected

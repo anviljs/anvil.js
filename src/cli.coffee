@@ -15,6 +15,7 @@ exports.run = ->
 	compiler = new Compiler fp, log
 	mochaRunner = undefined
 	ci = undefined
+	documenter = undefined
 	anvil = {}
 	socketServer = {}
 	fileChange = ->
@@ -38,8 +39,9 @@ exports.run = ->
 			socketServer = new SocketServer server.app
 
 		# create the post processor instance
-		postProcessor = new PostProcessor config, fp, scheduler, log 
-		anvil = new Anvil config, fp, compiler, Combiner, scheduler, postProcessor, log, () ->
+		postProcessor = new PostProcessor config, fp, scheduler, log
+		documenter = new Documenter config, fp, scheduler, log
+		anvil = new Anvil config, fp, compiler, Combiner, documenter, scheduler, postProcessor, log, () ->
 			log.onComplete "build done"
 			if mochaRunner
 				# wrap the mocha runner invocation in a timeout call
