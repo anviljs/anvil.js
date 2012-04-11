@@ -31,13 +31,10 @@ class FSProvider
 	# * _onDeleted {Function}_: callback called if the file delete is successful
 	delete: ( filePath, onDeleted ) ->
 		filePath = @buildPath filePath
-		file = @files[ filePath ]
-		if file
-			delete @files filePath
-			file.delete onDeleted
-		else
-			throw new Error "Cannot delete #{filePath} - it does not exist"
-			process.exit 1
+		if @pathExists filePath
+			fs.unlink filePath, ( err ) ->
+				onDeleted()
+			
 
 	# ## ensurePath ##
 	# Makes sure _pathSpec_ path exists before calling _onComplete_ by

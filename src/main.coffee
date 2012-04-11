@@ -103,6 +103,17 @@ class Anvil
 			fp.copy file.fullPath, [ file.workingPath, file.name ], done
 		@scheduler.parallel files, copy, onComplete
 
+
+	# ## cleanWorking ##
+	# Clears all files from the working directory
+	# _onComplete {Function}_: the function to call after directory is cleaned
+	cleanWorking: ( onComplete ) ->
+		fp = @fp
+		forAll = @scheduler.parallel
+		fp.getFiles @config.working, ( files ) ->
+			forAll files, fp.delete, onComplete
+
+
 	# ## prepFiles ##
 	# Determine the list of files that belong to this particular resource type
 	# and create metadata objects that describe the file and provide necessary
@@ -143,4 +154,5 @@ class Anvil
 			@buildMarkup()
 		if step == "markup" and @steps.allDone()
 			@inProcess = false
-			@callback()
+			@cleanWorking @callback
+				
