@@ -30,7 +30,8 @@
         "marked": ">=0.2.3",
         "haml": ">=0.4.2",
         "coffeekup": ">=0.3.1",
-        "growler": ">=0.0.1"
+        "growler": ">=0.0.1",
+        "jsdom": ">=0.2.13"
     },
     "preferGlobal": true,
     "bin": {

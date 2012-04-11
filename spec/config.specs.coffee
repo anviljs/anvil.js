@@ -3,7 +3,8 @@ log = require( "./logMock.coffee" ).log
 FP = require( "./fsMock.coffee" ).fsProvider
 ArgParser = require( "./argParserMock.coffee" ).parser
 Configuration = require( "../src/config").configuration
-scheduler = require( "../src/scheduler.coffee").scheduler
+Scheduler = require( "../src/scheduler.coffee").scheduler
+scheduler = new Scheduler()
 
 require "should"
 
@@ -133,43 +134,6 @@ describe "when specifying hosting", ->
 		cp.configure ( config ) ->
 			config.host.should.be.ok
 			done()
-
-describe "when detecting test type with qunit specs", ->
-	fp = new FP()
-
-	build = 
-		"source": "thisHereIsMuhSource"
-		"output": 
-			"style": "lib"
-			"source": "lib"
-			"markup": "lib"
-		"spec": "spec"
-		"ext": "ext"
-		"lint": {}
-		"uglify": {}
-		"gzip": {}
-		"hosts":
-			"/": "spec"
-		"finalize": {}
-		"wrap": {}
-			
-	before ( done ) ->
-		json = JSON.stringify build
-		fp.write "./build.json", json, () ->
-			fp.write "spec/test.js", """
-			(function() {
-				QUnit.thing();
-				})();
-			""", () ->
-				done()
-
-	parser = new ArgParser( {} )
-	cp = new Configuration fp, parser, scheduler, log
-
-	it "should specify qunit in resulting configuration", ( complete ) ->
-		cp.configure ( config ) ->
-			config.qunit.should.be.ok
-			complete()
 
 describe "when lib scaffold is requested", ->
 	fp = new FP()

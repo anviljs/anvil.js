@@ -4,7 +4,8 @@ FP = require( "./fsMock.coffee" ).fsProvider
 Compiler = require( "../src/compile.coffee").compiler
 Combiner = require( "../src/combiner.coffee").combiner
 path = require "path"
-scheduler = require( "../src/scheduler.coffee").scheduler
+Scheduler = require( "../src/scheduler.coffee").scheduler
+scheduler = new Scheduler()
 
 require "should"
 

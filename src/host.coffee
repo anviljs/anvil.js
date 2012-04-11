@@ -1,5 +1,9 @@
 express = require 'express'
 
+# ## Host ##
+# This class provides a simple static HTTP server
+# that can support all supported files types for Anvil
+# builds
 class Host
 
 	constructor: ( @fp, @scheduler, @compiler, @config ) ->
@@ -43,13 +47,15 @@ class Host
 			if @config.spec
 				app.use "/spec", express.static( path.resolve @config.spec )
 
+		# if a static file type is requested that fits an extension we know how to
+		# compile, use the compiler to translate it on-the-fly
 		app.get ///.*[.](coffee|kup|less|styl|md|markdown|haml)///, ( req, res ) ->
 			fileNmae = req.get 'content-disposition', 'filename'
 			ext = path.extname fileName
-
-			res.header 'Content-Type', 'application/javascript'
+			mimeType = self.contentTypes[ ext ]
+			res.header 'Content-Type', mimeType
 			self.fp.read ".#{ req.url }", ( content ) ->
-				self.compiler.compilers[ext] content, ( compiled ) ->
+				self.compiler.compilers[ ext ] content, ( compiled ) ->
 					res.send compiled
 
 		port = if @config.port then @config.port else 3080

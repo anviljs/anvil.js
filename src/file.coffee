@@ -1,10 +1,13 @@
 fs = require "fs"
 _ = require "underscore"
 
+# ## FSProvider ##
+# An abstraction around file interaction.
+# This is necessary to test any of Anvil's file level
+# interactions.
 class FSProvider
 	
-	constructor: () ->
-		@crawler = new FSCrawler scheduler
+	constructor: ( @crawler, @log ) ->
 		_.bindAll this
 
 	# ## buildPath ##
@@ -56,7 +59,10 @@ class FSProvider
 			else
 				onComplete()
 
-
+	# ## getFiles ##
+	# Get all files in a specific path specification
+	# _filePath {String/Array}_: a string or array specifying the path to get files for
+	# _onFiles {Function}_: the function to call with the list of full file paths
 	getFiles: ( filePath, onFiles ) ->
 		if not filePath 
 			onFiles []
@@ -65,7 +71,12 @@ class FSProvider
 			files = []
 			@crawler.crawl filePath, onFiles
 
-	move: ( from, to, done ) ->
+	# ## copy ## 
+	# Copy a file
+	# _from {String/Array}_: the path spec for the file to copy
+	# _to {String/Array}_: the path spec for the destination
+	# _onComplete {Function}_: the function to call when the copy has completed
+	copy: ( from, to, onComplete ) ->
 		from = this.buildPath from
 		to = this.buildPath to
 		readStream = undefined
@@ -74,8 +85,11 @@ class FSProvider
 		readStream.on 'end', () ->
 			if writeStream
 				writeStream.destroySoon()
-			done()
+			onComplete()
 
+	# ## pathExists ##
+	# Sychronously (GASP) check for the existence of a file or directory
+	# _pathSpec {String/Array}_: the string or path spec of the file or directory to check for
 	pathExists: ( pathSpec ) ->
 		pathSpec = this.buildPath pathSpec
 		path.existsSync pathSpec
@@ -146,8 +160,5 @@ class FSProvider
 			else
 				onComplete()
 
-
-fp = new FSProvider()
-
-exports.fsProvider = fp
+exports.fsProvider = FSProvider
 
