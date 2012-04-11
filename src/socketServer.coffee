@@ -26,7 +26,7 @@ class SocketServer
   # _socket {Object}_: the socket that has disconnected
   removeClient: ( socket ) ->
     index = @clients.indexOf socket
-    @clients.splice i, 1
+    @clients.splice index, 1
     log.onEvent "client connected"
 
   # ## refreshClient ##

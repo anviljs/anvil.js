@@ -47,17 +47,21 @@ class Compiler
 		newExt = @extensionMap[ ext ]
 		newFile = file.name.replace ext, newExt
 		log = @log
-		@fp.transform( 
-			[ file.workingPath, file.name ],
-			@compilers[ ext ],
-			[ file.workingPath, newFile ],
-			( err ) ->
-				unless err
-					file.name = newFile
-					onComplete file
-				else
-					onComplete err
-		)
+		compiler = @compilers[ ext ]
+		if compiler
+			@fp.transform( 
+				[ file.workingPath, file.name ],
+				compiler,
+				[ file.workingPath, newFile ],
+				( err ) ->
+					unless err
+						file.name = newFile
+						onComplete file
+					else
+						onComplete err
+			)
+		else
+			onComplete file
 
 	# ## extensionMap ##
 	# Provides a map of original to resulting extension

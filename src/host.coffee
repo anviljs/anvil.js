@@ -42,19 +42,20 @@ class Host
 					target = output.source
 			app.use "/", express.static( path.resolve target )
 
-			if @config.ext
-				app.use "/ext", express.static( path.resolve @config.ext )
-			if @config.spec
-				app.use "/spec", express.static( path.resolve @config.spec )
+		if @config.ext
+			app.use "/ext", express.static( path.resolve @config.ext )
+		if @config.spec
+			app.use "/spec", express.static( path.resolve @config.spec )
 
 		# if a static file type is requested that fits an extension we know how to
 		# compile, use the compiler to translate it on-the-fly
 		app.get ///.*[.](coffee|kup|less|styl|md|markdown|haml)///, ( req, res ) ->
-			fileNmae = req.get 'content-disposition', 'filename'
+			fileName = ".#{ req.url }"
+
 			ext = path.extname fileName
 			mimeType = self.contentTypes[ ext ]
 			res.header 'Content-Type', mimeType
-			self.fp.read ".#{ req.url }", ( content ) ->
+			self.fp.read fileName, ( content ) ->
 				self.compiler.compilers[ ext ] content, ( compiled ) ->
 					res.send compiled
 

@@ -152,7 +152,13 @@ class Combiner
 				( current, done ) ->
 					stringified = pattern.toString().replace ///replace///, source
 					stringified = stringified.substring( 1, stringified.length - 2 )
-					fullPattern = new RegExp stringified, "g"
+					fullPattern = new RegExp stringified, "g"					
+					capture = fullPattern.exec( content )
+					if capture and capture.length > 1
+						# capture the indentation of the import
+						whiteSpace = capture[1]
+						# apply indentation to all lines of the new content
+						newContent = "#{ whiteSpace }" + newContent.replace ///\n///g, "\n#{ whiteSpace }"
 					done( current.replace fullPattern, newContent )
 			pipe content, steps, ( result ) ->
 				onComplete result

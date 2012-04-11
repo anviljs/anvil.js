@@ -20,7 +20,6 @@ siteConfig =
 	"lint": {}
 	"uglify": {}
 	"cssmin": {}
-	"gzip": {}
 	"hosts": {
 	  "/": "site"
 	}
@@ -32,7 +31,6 @@ libConfig =
 	"ext": "ext"
 	"lint": {}
 	"uglify": {}
-	"gzip": {}
 	"hosts": {
 	  "/": "spec"
 	}
@@ -45,7 +43,7 @@ defaultMocha =
 	colors: true
 
 continuous = test = inProcess = quiet = debug = false
-version = "0.8.0"
+version = "0.7.0"
 
 ext =
 	gzip: "gz"
@@ -62,7 +60,6 @@ extensionLookup =
 	".coffee": "source"
 	".markdown": "markup"
 	".md": "markup"
-	".markdown": "markup"
 	".html": "markup"
 
 # ## Configuration ##
@@ -129,7 +126,6 @@ class Configuration
 				onConfig config
 		else if siteScaffold or libScaffold
 			# Generate all the directories and the config file
-			console.log "#{ siteScaffold } / #{ libScaffold }"
 			type = if siteScaffold then 'site' else 'lib'
 			scaffold = siteScaffold or= libScaffold
 			config = if type == 'site' then siteConfig else libConfig
@@ -138,6 +134,7 @@ class Configuration
 			self.ensurePaths( () ->
 				self.writeConfig( type, scaffold + "/build.json", () ->
 					self.log.onComplete "Scaffold #{ scaffold } created!"
+					onConfig config, true
 				)
 			, scaffold )
 
@@ -379,11 +376,11 @@ class Configuration
 			@getContentBlock original, "suffix", aggregation
 			# make sure we don't try to aggregate on empty
 			if _.isEqual aggregation, {}
-				onComplete finalization
+				onComplete wrap
 			else
 				aggregate aggregation, ( constructed ) ->
 					wrap.source = constructed
-					onComplete finalization
+					onComplete wrap
 		# there are multiple sections
 		else
 			sources = {}

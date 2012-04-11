@@ -18,7 +18,9 @@ exports.run = ->
 	anvil = {}
 	socketServer = {}
 	fileChange = ->
-	configuration.configure ( config ) ->
+	configuration.configure ( config, stop ) ->
+		if stop
+			process.exit 0
 		
 		# if the user wants CI, setup the continuous module
 		if config.continuous

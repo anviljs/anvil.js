@@ -23,7 +23,6 @@ defaultSiteConfig =
 	"lint": {}
 	"uglify": {}
 	"cssmin": {}
-	"gzip": {}
 	"hosts": {
 	  "/": "site"
 	}
@@ -36,7 +35,6 @@ defaultLibConfig =
 	"ext": "ext"
 	"lint": {}
 	"uglify": {}
-	"gzip": {}
 	"hosts": {
 	  "/": "spec"
 	}
@@ -153,7 +151,10 @@ describe "when lib scaffold is requested", ->
 		it "should create spec folder", () -> fp.paths["newlib/spec"].should.be.ok
 		it "should create the standard lib build config", () ->
 			# validate that build file is standard site build
-			_.isEqual( config, defaultSiteConfig ).should.be.ok
+			delete config[ "host" ]
+			delete config[ "continuous" ]
+			_.isEqual( config, defaultLibConfig ).should.be.ok
+			#( JSON.stringify config ).should.equal( JSON.stringify defaultLibConfig )
 
 describe "when site scaffold is requested", ->
 	fp = new FP()
@@ -189,7 +190,6 @@ describe "when requesting new lib build file", ->
 		cp.configure ( config ) ->
 			fp.read "new.json", ( content ) ->
 				obj = JSON.parse content
-				delete obj["testWith"]
 				delete obj["host"]
 				delete obj["continuous"]
 
@@ -205,7 +205,6 @@ describe "when requesting new site build file", ->
 		cp.configure ( config ) ->
 			fp.read "new.json", ( content ) ->
 				obj = JSON.parse content
-				delete obj["testWith"]
 				delete obj["host"]
 				delete obj["continuous"]
 
@@ -326,6 +325,53 @@ describe "when finalize has a file header only", ->
 			_.isEqual( config, expected ).should.be.ok
 			complete()
 
+describe "when wrapping with strings", ->
+	fp = new FP()
 
+	build = 
+		"source": "thisHereIsMuhSource"
+		"output": "lib"
+		"spec": "spec"
+		"ext": "ext"
+		"lint": {}
+		"uglify": {}
+		"gzip": {}
+		"hosts":
+			"/": "spec"
+		"wrap": 
+			"prefix": "look at my prefix, ya'll"
+			"suffix": "bye, ya'll"
+			
+	expected =
+		"source": "thisHereIsMuhSource"
+		"output": 
+			"style": "lib"
+			"source": "lib"
+			"markup": "lib"
+		"spec": "spec"
+		"ext": "ext"
+		"lint": {}
+		"uglify": {}
+		"gzip": {}
+		"hosts":
+			"/": "spec"
+		"wrap": 
+			"source":
+				"prefix": "look at my prefix, ya'll"
+				"suffix": "bye, ya'll"
+		"working": "./tmp"
+
+	before ( done ) ->
+		json = JSON.stringify build
+		fp.write "./build.json", json, done
+
+	parser = new ArgParser( {} )
+	cp = new Configuration fp, parser, scheduler, log
+
+	it "should use normalize the wrapper", ( complete ) ->
+		cp.configure ( config ) ->
+			build.working = "./tmp"
+			_.isEqual( config, expected ).should.be.ok
+			complete()
 
 

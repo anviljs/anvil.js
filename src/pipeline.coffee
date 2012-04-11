@@ -6,9 +6,6 @@ pro = require( "uglify-js" ).uglify
 # A Node-compatible port of Douglas Crockford's JSLint -- 
 jslint = require( "readyjslint" ).JSLINT
 
-# Gzip for Node -- 
-gzipper = require( "gzip" )
-
 # CSS Minifier --
 # See https://github.com/jbleuzen/node-cssmin
 cssminifier = require( "cssmin" )
@@ -198,6 +195,7 @@ class SourcePipeline
 	wrap: ( file, onComplete ) ->
 		self = this
 		if @config.wrap and @config.wrap.source
+			@log.onStep "Wrapping #{ file.name }"
 			prefix = @config.wrap.source.prefix
 			suffix = @config.wrap.source.suffix  
 			@fp.transform( 
@@ -209,7 +207,8 @@ class SourcePipeline
 						content = content + suffix
 					onTransform content
 				, [ file.workingPath, file.name ],
-				onComplete
+				() ->
+					onComplete()
 			)
 		else
 			onComplete()

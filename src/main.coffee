@@ -33,15 +33,15 @@ class Anvil
 	# identify dependencies using regular expressions.
 	buildMarkup: () ->
 		findPatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
-		replacePatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
+		replacePatterns = [ ///([ \t]*)[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
 		@processType( "markup", findPatterns, replacePatterns )
 
 	# ## buildSource ##
 	# Builds all JS and Coffee sources and provides the regex patterns used to
 	# identify dependencies using regular expressions.
 	buildSource: () ->
-		findPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([/]{2}|[\#]{3})?///g ]
-		replacePatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?([/]{2}|[\#]{3})?///g ]
+		findPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([\#]{0,3})///g ]
+		replacePatterns = [ ///([ \t]*)([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[\#]{0,3}///g ]
 		@processType( "source", findPatterns, replacePatterns )
 
 	# ## buildSource ##
@@ -49,7 +49,7 @@ class Anvil
 	# identify dependencies using regular expressions.
 	buildStyle: () ->
 		findPatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][/])?///g ]
-		replacePatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][/])?///g ]
+		replacePatterns = [ ///([ \t]*)([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][/])?///g ]
 		@processType( "style", findPatterns, replacePatterns )
 
 	# ## processType ##
