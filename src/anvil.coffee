@@ -10,6 +10,6 @@
 ###import "main.coffee" ###
 ###import "continuous.coffee" ###
 ###import "mocha.coffee" ###
-###import "refresher.coffee" ###
+###import "socketServer.coffee" ###
 ###import "host.coffee" ###
 ###import "cli.coffee" ###

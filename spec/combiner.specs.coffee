@@ -4,20 +4,26 @@ FP = require( "./fsMock.coffee" ).fsProvider
 Compiler = require( "../src/compile.coffee").compiler
 Combiner = require( "../src/combiner.coffee").combiner
 path = require "path"
-scheduler = require( "../src/scheduler.coffee").scheduler
+Scheduler = require( "../src/scheduler.coffee").scheduler
+scheduler = new Scheduler()
 
 require "should"
 
 fp = new FP()
 
 htmlFindPatterns = [ 	///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
-htmlReplacePatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
+htmlReplacePatterns = [ ///([ \t]*)[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
 
-sourceFindPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?///g ]
-sourceReplacePatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?///g ]
+sourceFindPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?[\#]{0,3}///g ]
+sourceReplacePatterns = [ ///([ \t]*)([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[\#]{0,3}///g ]
 
+###
 cssFindPatterns = [ ///@import[(]?.?[\"'].*[.]css[\"'].?[)]?///g ]
 cssReplacePatterns = [ ///@import[(]?.?[\"']replace[\"'].?[)]?///g ]
+###
+
+cssFindPatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][/])?///g ]
+cssReplacePatterns = [ ///([ \t]*)([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][/])?///g ]
 
 stripSpace = ( content ) -> content.replace ///\s///g, ""
 compareOutput = ( one, two ) ->  ( stripSpace one ).should.equal ( stripSpace two )
@@ -53,9 +59,7 @@ jsSixTxt = """
 """
 
 cssOneTxt = """
-	@import 'two.css'
-	@import 'ignored'
-	@import 'ignored.less'
+	/* import 'two.css' */
 """
 
 cssTwoTxt = """
@@ -86,8 +90,6 @@ cssFinalTxt = """
 	.stylin {
 		margin: .25em;
 	}
-	@import 'ignored'
-	@import 'ignored.less'
 """
 
 htmlText = """
@@ -131,13 +133,39 @@ htmlFinalText = """
 			.stylin {
 				margin: .25em;
 			}
-			@import 'ignored'
-			@import 'ignored.less'
 		</style>
 	</head>
 	<body>
 	</body>
 </html>
+"""
+
+indentHostCoffee = """
+test = () ->
+	###import 'indentChild.coffee' ###
+"""
+
+indentChildCoffee = """
+printStuff: () ->
+
+	###import 'indentGrandChild.coffee' ###
+
+
+"""
+
+indentGrandChildCoffee = """
+console.log "this is just some text and stuff"
+console.log "this is a second line, just to be sure"
+"""
+
+indentResultCoffee = """
+test = () ->
+	printStuff: () ->
+
+		console.log "this is just some text and stuff"
+		console.log "this is a second line, just to be sure"
+
+
 """
 
 createFile = ( local, name, working, content ) ->
@@ -166,7 +194,12 @@ ignored = createFile "style", "ignored.less", "tmp", ignoredTxt
 
 htmlFile = createFile "markup", "one.html", "tmp", htmlText
 
-all = [ oneCoffee, twoCoffee, threeCoffee, fourJs, fiveJs, sixJs, oneCss, twoCss, ignored, htmlFile ]
+indentHost = createFile "source", "indentHost.coffee", "tmp", indentHostCoffee
+indentChild = createFile "source", "indentChild.coffeee", "tmp", indentChildCoffee
+indentGrandChild = createFile "source", "indentGrandChild.coffeee", "tmp", indentGrandChildCoffee
+indentResult = createFile "source", "indentResult.coffee", "tmp", indentResultCoffee
+
+all = [ oneCoffee, twoCoffee, threeCoffee, fourJs, fiveJs, sixJs, oneCss, twoCss, ignored, htmlFile, indentHost, indentChild, indentGrandChild, indentResult ]
 
 describe "when adding files for tests", ->
 
@@ -325,4 +358,20 @@ describe "when combining html with other resources", ->
 	it "should combine files correctly", ( done ) ->
 		fp.read [ htmlFile.workingPath, htmlFile.name ], ( content ) ->
 			compareOutput content, htmlFinalText
+			done()
+
+describe "when combining files with indented import statements", ->
+	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+	coffeeFiles = [ indentHost, indentChild, indentGrandChild ]
+
+	wrapper = ( f, done ) ->
+		combine.combineFile f, done
+
+	before ( done ) ->
+		scheduler.parallel coffeeFiles, wrapper, () -> done()
+
+	it "should combine files correctly", ( done ) ->
+		fp.read [ indentResult.workingPath, indentResult.name ], ( content ) ->
+			console.log "\n#{ content }"
+			content.should.equal indentResultCoffee
 			done()

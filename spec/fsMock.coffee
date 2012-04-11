@@ -34,7 +34,6 @@ class FileMock
 				, self.delay
 			)
 		else
-			console.log "Shit"
 			throw new Error "Cannot write file #{ @name }"
 
 	

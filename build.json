@@ -1,15 +1,12 @@
 {
 	"source": "src",
 	"spec": "spec",
-	"ext": "test",
+	"ext": "ext",
 	"uglify": {},
 	"hosts": {
 		"/": "html"
 	},
 	"finalize": {
 		"header-file": "license.txt"
-	},
-	"mocha": {
-		"reporter": "landing"
 	}
 }

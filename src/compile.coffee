@@ -23,9 +23,14 @@ marked.setOptions { sanitize: false }
 # See http://haml-lang.com/
 coffeeKup = require( "coffeekup" )
 
-
+# underscore --
+# The most essential JS lib that ever was
+# See http://underscorejs.org/
 _ = require "underscore"
 
+# ## Compiler ##
+# 'Compiles' files based on the extension to produce
+# browser friendly resources: JS, CSS, HTML
 class Compiler
 
 	constructor: (@fp, @log) ->
@@ -42,18 +47,24 @@ class Compiler
 		newExt = @extensionMap[ ext ]
 		newFile = file.name.replace ext, newExt
 		log = @log
-		@fp.transform( 
-			[ file.workingPath, file.name ],
-			@compilers[ ext ],
-			[ file.workingPath, newFile ],
-			( err ) ->
-				unless err
-					file.name = newFile
-					onComplete file
-				else
-					onComplete err
-		)
+		compiler = @compilers[ ext ]
+		if compiler
+			@fp.transform( 
+				[ file.workingPath, file.name ],
+				compiler,
+				[ file.workingPath, newFile ],
+				( err ) ->
+					unless err
+						file.name = newFile
+						onComplete file
+					else
+						onComplete err
+			)
+		else
+			onComplete file
 
+	# ## extensionMap ##
+	# Provides a map of original to resulting extension
 	extensionMap:
 		".coffee" : ".js"
 		".kup": ".html"
@@ -65,6 +76,9 @@ class Compiler
 		".md": ".html"
 		".markdown": ".html"
 
+	# ## compilers ##
+	# A simple hash map of file extension to a function that
+	# invokes the corresponding compiler
 	compilers:
 		".coffee" : ( content, onContent ) ->
 			try

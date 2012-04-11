@@ -1,5 +1,6 @@
 _ = require "underscore"
-scheduler = require( "../src/scheduler.coffee").scheduler
+Scheduler = require( "../src/scheduler.coffee").scheduler
+scheduler = new Scheduler()
 require "should"
 
 describe "when building an item through a pipeline", ->
