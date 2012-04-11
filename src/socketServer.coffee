@@ -33,7 +33,7 @@ class SocketServer
   # Sends a 'refresh' message to all connected clients
   refreshClients: ->
     log.onEvent "Refreshing hooked clients"
-    notifyClients "refresh"
+    @notifyClients "refresh"
 
   # ## notifyClients ##
   # Send a message to all connected clients

@@ -48,8 +48,8 @@ class Anvil
 	# Builds all CSS, LESS and Stylus sources and provides the regex patterns used to
 	# identify dependencies using regular expressions.
 	buildStyle: () ->
-		findPatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*]{/])?///g ]
-		replacePatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*]{/])?///g ]
+		findPatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][/])?///g ]
+		replacePatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][/])?///g ]
 		@processType( "style", findPatterns, replacePatterns )
 
 	# ## processType ##

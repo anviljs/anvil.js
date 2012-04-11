@@ -17,8 +17,13 @@ htmlReplacePatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[
 sourceFindPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?///g ]
 sourceReplacePatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?///g ]
 
+###
 cssFindPatterns = [ ///@import[(]?.?[\"'].*[.]css[\"'].?[)]?///g ]
 cssReplacePatterns = [ ///@import[(]?.?[\"']replace[\"'].?[)]?///g ]
+###
+
+cssFindPatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][/])?///g ]
+cssReplacePatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][/])?///g ]
 
 stripSpace = ( content ) -> content.replace ///\s///g, ""
 compareOutput = ( one, two ) ->  ( stripSpace one ).should.equal ( stripSpace two )
@@ -54,9 +59,7 @@ jsSixTxt = """
 """
 
 cssOneTxt = """
-	@import 'two.css'
-	@import 'ignored'
-	@import 'ignored.less'
+	/* import 'two.css' */
 """
 
 cssTwoTxt = """
@@ -87,8 +90,6 @@ cssFinalTxt = """
 	.stylin {
 		margin: .25em;
 	}
-	@import 'ignored'
-	@import 'ignored.less'
 """
 
 htmlText = """
@@ -132,8 +133,6 @@ htmlFinalText = """
 			.stylin {
 				margin: .25em;
 			}
-			@import 'ignored'
-			@import 'ignored.less'
 		</style>
 	</head>
 	<body>
