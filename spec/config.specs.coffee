@@ -211,17 +211,6 @@ describe "when requesting new site build file", ->
 				_.isEqual( obj, defaultSiteConfig ).should.be.ok
 				done()
 
-describe "when requesting creation of HTML file", ->
-	fp = new FP()
-	parser = new ArgParser( { "html": "new" } )
-	cp = new Configuration fp, parser, scheduler, log
-
-	it "should create an html file with script tags for all lib and ext files", ( done ) ->
-		cp.configure ( config ) ->
-			cp.configure ( config ) ->
-			config.genHtml.should.equal "new"
-			done()
-
 describe "when finalize has string header only", ->
 	fp = new FP()
 
@@ -368,10 +357,65 @@ describe "when wrapping with strings", ->
 	parser = new ArgParser( {} )
 	cp = new Configuration fp, parser, scheduler, log
 
-	it "should use normalize the wrapper", ( complete ) ->
+	it "should normalize the wrapper", ( complete ) ->
 		cp.configure ( config ) ->
 			build.working = "./tmp"
 			_.isEqual( config, expected ).should.be.ok
 			complete()
 
+describe "when using a single name customization", ->
+	fp = new FP()
+	build = 
+		"source": "thisHereIsMuhSource"
+		"output": "lib"
+		"spec": "spec"
+		"ext": "ext"
+		"lint": {}
+		"uglify": {}
+		"gzip": {}
+		"hosts":
+			"/": "spec"
+		"name": "test/this/is/so/fun/test.js"
 
+	before ( done ) ->
+		json = JSON.stringify build
+		fp.write "./build.json", json, done
+
+	parser = new ArgParser( {} )
+	cp = new Configuration fp, parser, scheduler, log
+
+	it "should create any path as part of the name", ( complete ) ->
+		cp.configure ( config ) ->
+			exists = fp.pathExists "lib/test/this/is/so/fun"
+			exists.should.be.ok
+			complete()
+
+describe "when using a multiple name customizations", ->
+	fp = new FP()
+	build = 
+		"source": "thisHereIsMuhSource"
+		"output": "lib"
+		"spec": "spec"
+		"ext": "ext"
+		"lint": {}
+		"uglify": {}
+		"gzip": {}
+		"hosts":
+			"/": "spec"
+		"name":
+			"one.js": "test/this/is/so/fun/test.js"
+			"two.js": "this/is/also/pretty/great/test.js",
+			"three.js": "notspecial.js"
+
+	before ( done ) ->
+		json = JSON.stringify build
+		fp.write "./build.json", json, done
+
+	parser = new ArgParser( {} )
+	cp = new Configuration fp, parser, scheduler, log
+
+	it "should create all paths as part of the name", ( complete ) ->
+		cp.configure ( config ) ->
+			fp.pathExists( "lib/test/this/is/so/fun" ).should.be.ok
+			fp.pathExists( "lib/this/is/also/pretty/great" ).should.be.ok
+			complete()

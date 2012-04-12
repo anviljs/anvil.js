@@ -1,7 +1,7 @@
 {
     "name": "anvil.js",
     "description": "A continuous integration tool for JS, CSS and HTML.",
-    "version": "0.7.1",
+    "version": "0.7.3",
     "authors": ["Alex Robson <@A_Robson>"],
     "keywords": ["build","compile","static","ci"],
     "main": "./lib/anvil.js",
@@ -29,7 +29,9 @@
         "haml": ">=0.4.2",
         "coffeekup": ">=0.3.1",
         "ape": ">=0.3.6",
-        "docco": "https://github.com/andtan/flocco/tarball/master"
+        "docco": "https://github.com/andtan/flocco/tarball/master",
+        "mocha": ">=0.12.1",
+        "should": ">=0.6.0"
     },
     "preferGlobal": true,
     "bin": {
