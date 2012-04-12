@@ -1,6 +1,0 @@
-/*
- *      This is a header
- *      Author:         Me
- *      Copyright:      Lulz
- *      Description:    If you have to ask, you'll never know
- */

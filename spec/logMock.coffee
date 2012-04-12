@@ -1,12 +1,17 @@
-class Log
+colors = require "colors"
+
+class LogMock
+
+	messages: []
 
 	# ## onEvent ##
 	# Logs events in default console color
 	# ### Args:
 	# * _x {String}_: message to log
 	onEvent: (x) ->
-	    unless quiet
-	        console.log "   #{x}"
+	    unless @quiet
+	        @messages.push "   #{x}"
+	        #console.log "   #{x}"
 
 
 	# ## onStep ##
@@ -14,8 +19,9 @@ class Log
 	# ### Args:
 	# * _x {String}_: message to log
 	onStep: (x) ->
-	    unless quiet
-	        console.log "#{x}".blue
+	    unless @quiet
+	        @messages.push "#{x}".blue
+	        #console.log "#{x}".blue
 
 
 	# ## onComplete ##
@@ -23,7 +29,8 @@ class Log
 	# ### Args:
 	# * _x {String}_: message to log
 	onComplete: (x) ->
-	    console.log "#{x}".green
+	    @messages.push "#{x}".green
+	    #console.log "#{x}".green
 
 
 	# ## onError ##
@@ -31,8 +38,9 @@ class Log
 	# ### Args:
 	# * _x {String}_: message to log
 	onError: (x) ->
-	    console.log "!!! #{x} !!!".red
+	    @messages.push "!!! #{x} !!!".red
+	    #console.log "!!! #{x} !!!".red
 
-log = new Log()
+log = new LogMock()
 
 exports.log = log

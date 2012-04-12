@@ -1,12 +1,15 @@
 {
 	"source": "src",
-	"output": "lib",
 	"spec": "spec",
 	"ext": "ext",
-	"lint": {},
-	"gendocs": {},
-    "hosts": {
-        "/one": "./demo/html1",
-        "/two": "./demo/html2"
-    }
+	"finalize": {
+		"header-file": "license.txt"
+	},
+	"docs": {
+		"generator": "ape",
+		"output": "docs"
+	},
+	"hosts": {
+		"/": "docs"
+	}
 }
