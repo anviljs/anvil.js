@@ -1,30 +1,56 @@
-# ## createWatch ##
-# Set up watchers on project files to trigger rebuild when in continuous mode.
-createWatch = () ->
-  continuous = false
-  # onChange callback is _triggerProcess_
-  onChange = triggerProcess
-  divedir = (dir) ->
-    dive dir, { recursive: false, all: false }, ( err, file ) ->
-      unless err
-        fs.watch file, { persistent: true }, ( c, p ) ->
-          onEvent "Change in #{file} detected. Rebuilding..."
-          callback = onChange
-          # Change _onChange_ to a noop function to avoid infinite loopage
-          onChange = -> #do nothing
-          callback()
-  divedir dir for dir in [config.source, config.spec, config.ext]
+# ## Continuous ##
+# Provides a way to trigger the build on file change
+class Continuous
 
-# ## triggerProcess ##
-# Unsets watchers and kicks off from the beginning
-triggerProcess = () ->
-  # Walk down the source dir and unwatch the files
-  dive config.source, { recursive: false, all: false }, ( err, file ) ->
-    unless err
-      fs.unwatchFile file
+	constructor: ( @fp, @config, @onChange ) ->
+		@style = @normalize @config.style
+		@source = @normalize @config.source
+		@markup = @normalize @config.markup
+		@spec = @normalize @config.spec
+		@watchers = []
+		@watching = false
+		_.bindAll( this )
+		this
 
-  # Re-generate Pavlov test page
-  createPage()
+	# ## normalize ##
+	# Takes an input and, if it is an array, returns the plain array
+	# if the input is not an array, it turns it into a single element array
+	# * _x {Object}_: anything
+	normalize: ( x ) -> if _.isArray x then x else [ x ]
 
-  # Re-start process
-  process()
+	# ## setup ##
+	# Determines which directories should cause a build to trigger
+	# if any contents change
+	setup: () ->
+		if not @watching
+			if @style then @watchPath p for p in @style
+			if @source then @watchPath p for p in @source
+			if @markup then @watchPath p for p in @markup
+			if @spec then @watchPath p for p in @spec
+
+		@watching = true
+
+	# ## watchpath ##
+	# Calls watchFiles for all files in the path
+	# * _path {String/Array}_: the path specification to watch for changes in
+	watchPath: ( path ) ->
+		@fp.getFiles path, @watchFiles
+
+	# ## watchFiles ##
+	# Creates a file watcher instance for all files in the list
+	# * _files {Array}_: the list of files to watch for changes in
+	watchFiles: ( files ) ->
+		for file in files
+			@watchers.push fs.watch file, @onEvent
+
+	# ## onEvent ##
+	# This handler triggers the build and closes all watchers in the event 
+	# of a change. This is necessary to prevent event storms that can trigger 
+	# during the build process.
+	# * _event {Object}_: the event that fired on the file system
+	# * _file {String}_: the file that triggered the change
+	onEvent: ( event, file ) ->
+		@watching = false
+		while @watchers.length > 0
+			@watchers.pop().close()
+		@onChange()

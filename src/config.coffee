@@ -1,185 +1,471 @@
+_ = require "underscore"
+path = require "path"
+
 # Configuration container
 config = { }
 
 # Configuration defaults
-conventionConfig =
-    "source": "src"
-    "output": "lib"
-    "spec": "spec"
-    "ext": "ext"
-    "lint": {}
-    "uglify": {}
-    "gzip": {}
-    "gendocs": {}
-    "hosts": {
-      "/": "html"
-    }
+siteConfig =
+	"source": "src"
+	"style": "style"
+	"markup": "markup"
+	"output": 
+		{
+			"source": [ "lib", "site/js" ],
+			"style": [ "css", "site/css" ],
+			"markup": "site/"
+		}
+	"spec": "spec"
+	"ext": "ext"
+	"lint": {}
+	"uglify": {}
+	"cssmin": {}
+	"hosts": {
+	  "/": "site"
+	}
 
-continuous = test = false
-inProcess = false
-quiet = false
+libConfig = 
+	"source": "src"
+	"output": "lib"
+	"spec": "spec"
+	"ext": "ext"
+	"lint": {}
+	"uglify": {}
+	"hosts": {
+	  "/": "spec"
+	}
 
-version = "0.6.8"
+defaultMocha =
+	growl: true
+	ignoreLeaks: true
+	reporter: "spec"
+	ui: "bdd"
+	colors: true
+
+defaultDoc =
+	generator: "docco"
+	output: "docs"
+
+continuous = test = inProcess = quiet = debug = false
+version = "0.7.1"
 
 ext =
-    gzip: "gz"
-    uglify: "min"
+	gzip: "gz"
+	uglify: "min"
+	cssmin: "min"
 
-# ## ensurePaths ##
-# Make sure that the output and temp directories exist then call _callback_
-# ### Args:
-# * _callback {Function}_: what do do once we're sure that the paths exist
-ensurePaths = (callback) ->
-    config.tmp = path.join config.source, "tmp"
-    ensurePath config.output, () ->
-        ensurePath config.tmp, -> callback()
+extensionLookup = 
+	".css": "style"
+	".scss": "style"
+	".sass": "style"
+	".less": "style"
+	".stylus": "style"
+	".js": "source"
+	".coffee": "source"
+	".markdown": "markup"
+	".md": "markup"
+	".html": "markup"
 
-# ## configure ##
+# ## Configuration ##
 # Do all the things!
 # Calling anvil from the command line runs this.
-configure = () ->
-    # Setup the CLI arg parser and parse all the args
-    parser = new ArgParser();
-    parser.addValueOptions(["t","b","n","html"])
-    parser.parse()
+class Configuration 
 
-    # Generate scaffold for new project?
-    scaffold = parser.getOptions("n")
-    # Make an html page with our final JS included?
-    htmlPage = parser.getOptions("html")
-    # Show version info?
-    showVersion = parser.getOptions("v","version")
+	constructor: ( @fp, @parser, @scheduler, @log ) ->
 
-    if showVersion
-        # Display version info and exit
-        console.log "Anvil.js " + version
-        global.process.exit(0)
-    else if scaffold
-      # Generate all the directories and the config file
-      console.log "Creating scaffolding for " + scaffold
-      # Make all the paths
-      ensurePath scaffold, ->
-        ensurePath scaffold + "/src", ->
-          ensurePath scaffold + "/lib", ->
-            ensurePath scaffold + "/ext", ->
-              ensurePath scaffold + "/spec", ->
-                # Generate default config file
-                writeConfig scaffold + "/build.json"
-                global.process.exit(0)
-    else if htmlPage
-        # Create html template
-        generator = new HtmlGenerator()
-        generator.createPageTemplate htmlPage
-    else
-        # Get build file from CLI args or use default
-        buildOpt = parser.getOptions("b")
-        buildFile = if buildOpt then buildOpt else "build.json"
+	# ## configure ##
+	# this call will return a configuration object that will
+	# inform the rest of the process
+	# * _onConfig {Function}_: the callback to invoke with a configuration object
+	configure: ( onConfig ) ->
+		self = this
+		
+		# Setup the CLI arg parser and parse all the args
+		@parser.addValueOptions [ "b", "build", "n", "html", "site", "lib", "libfile", "sitefile" ]
+		@parser.parse()
 
-        onStep "Checking for config..."
-        path.exists buildFile, ( exists ) ->
-          prepConfig( exists, buildFile, () ->
+		# Get build file from CLI args or use default
+		buildOpt = @parser.getOptions "b", "build"
+		buildFile = if buildOpt then buildOpt else "./build.json"
 
-            # Get build template
-            buildTemplate = parser.getOptions("t","template")
-            if buildTemplate
-                output = if buildTemplate == true then "build.json" else buildTemplate
-                writeConfig output
-                global.process.exit(0)
+		# create a new lib build file?
+		createLibFile = @parser.getOptions "libfile"
 
-            # Run as CI server?
-            continuous = parser.getOptions("ci")
+		# create a new site build file?
+		createSiteFile = @parser.getOptions "sitefile"
 
-            #Quiet mode
-            quiet = parser.getOptions("q")
+		# Run as CI server?
+		continuous = @parser.getOptions "ci"
 
-            # Host tests?
-            test = parser.getOptions("p","pavlov")
-            config.testTarget = config.output or= "lib"
-            if test
-              if parser.getOptions("s")
-                config.testTarget = config.source or= "src"
-              hostPavlov()
+		# host site ?
+		host = @parser.getOptions "h", "host"
 
-            # Host pages?
-            host = parser.getOptions("h")
-            if host
-                hostStatic()
-            # Run transforms and generate output
-            process()
-          )
+		# Run specs via Mocha?
+		useMocha = @parser.getOptions "mocha"
 
+		# Generate scaffold for new lib project?
+		libScaffold = @parser.getOptions "lib"
 
-# ## prepConfig ##
-# Fallback to default config, if specified config doesn't exist
-# ### Args:
-# * _exists {Boolean}_: does the specified config file exist?
-# * _file {String}_: config file name
-# * _complete {Function}_: what to do after config is prepped
-prepConfig = ( exists, file, complete ) ->
-    unless exists
-        loadConvention( complete )
-    else
-        loadConfig( file, complete )
+		#Quiet mode
+		quiet = @parser.getOptions "q", "quiet"
 
+		# Show version info?
+		showVersion = @parser.getOptions "v", "version"
 
-# ## loadConfig ##
-# Setup full configuration using specified config file 
-# For example, anvil -b custom.json
-# ### Args:
-# * _file {String}_: config file name
-# * _complete {Function}_: what to do after config is loaded
-loadConfig = ( file, complete ) ->
-    onStep "Loading config..."
-    readFile "./" + file,  ( x ) ->
-        config = JSON.parse( x )
-        if config.extensions
-            ext.gzip = config.extensions.gzip || ext.gzip
-            ext.uglify = config.extensions.uglify || ext.uglify
+		# Generate scaffold for new site project?
+		siteScaffold = @parser.getOptions "site"
 
-        # Setup import wrapper
-        if config.wrapper
-          if config.wrapper['prefix-file']
-            config.wrapper.prefix = readFileSync config.wrapper['prefix-file'], 'utf-8'
-          if config.wrapper['suffix-file']
-            config.wrapper.suffix = readFileSync config.wrapper['suffix-file'], 'utf-8'
+		# Generate annotated source with docco?
+		runDocco = @parser.getOptions "docco"
 
-        # Setup final output wrapper
-        if config.finalize
-          if config.finalize['header-file']
-            config.finalize.header = fs.readFileSync config.finalize['header-file'], 'utf-8'
-          if config.finalize['footer-file']
-            config.finalize.footer = fs.readFileSync config.finalize['footer-file'], 'utf-8'
+		# Generate annotated source with ape?
+		runApe = @parser.getOptions "ape"		
 
-        # Setup output file renaming
-        if config.name
-          if typeof config.name == "string"
-            config.getName = (x) -> config.name
-          if typeof config.name == "object"
-            config.getName = (x) -> config.name[x] || config.name
-          config.rename = true
+		if showVersion
+			# Display version info and exit
+			@log.onEvent "Anvil.js " + version
+			onConfig config, true
+		else if createLibFile or createSiteFile
+			# Generate all the directories and the config file
+			name = createLibFile or= createSiteFile
+			type = if createSiteFile then 'site' else 'lib'
+			@writeConfig type, "#{name}.json", () ->
+				onConfig config, true
+		else if siteScaffold or libScaffold
+			# Generate all the directories and the config file
+			type = if siteScaffold then 'site' else 'lib'
+			scaffold = siteScaffold or= libScaffold
+			config = if type == 'site' then siteConfig else libConfig
+			@log.onStep "Creating scaffolding for new #{ type } project"
+			# Create all the directories
+			self.ensurePaths( () ->
+				self.writeConfig( type, scaffold + "/build.json", () ->
+					self.log.onComplete "Scaffold #{ scaffold } created!"
+					onConfig config, true
+				)
+			, scaffold )
+		else
+			@log.onStep "Checking for config..."
+			exists = @fp.pathExists buildFile
+			@prepConfig exists, buildFile, () ->
+				if host
+					config.host = true
+
+				if continuous
+					config.continuous = true
+
+				if useMocha
+					config.mocha = defaultMocha
+
+				if runApe
+					config.docs = defaultDoc
+					config.docs.generator = "ape"
+
+				if runDocco
+					config.docs = defaultDoc
+
+				# Run transforms and generate output
+				self.ensurePaths () ->
+					onConfig config		
+
+	# ## createLibBuild ##
+	# This creates a file containing the default lib build convention
+	createLibBuild: () ->
+		# build lib template?
+		if buildLibTemplate
+			output = if buildLibTemplate == true then "build.json" else buildLibTemplate
+			writeConfig "lib", output
+			global.process.exit(0)
+			config
+
+	# ## createSiteBuild ##
+	# This creates a file containing the default site build convention
+	createSiteBuild: () ->
+		# build site template?
+		if buildSiteTemplate
+			output = if buildSiteTemplate == true then "build.json" else buildSiteTemplate
+			writeConfig "site", output
+			global.process.exit(0)
+			config
 
 
-        # Carry on!
-        complete()
+	# ## ensurePaths ##
+	# Make sure that all expected paths exist
+	# ### Args:
+	# * _onComplete {Function}_: what to call when work is complete
+	# * _prefix {String}_: the prefix to prepend to all paths
+	ensurePaths: ( onComplete, prefix ) ->
+		self = this
+		prefix = prefix or= ""
+		config.working = config.working || "./tmp"
+		fp = @fp
+		paths = [
+			config[ "source" ]
+			config[ "style" ]
+			config[ "markup" ]
+			config[ "spec" ]
+			config[ "ext" ]
+			config[ "working" ] 
+		]
+
+		# if documenting
+		if config.docs
+			paths.push config.docs.output
+		
+		# if the output is an object
+		if _.isObject config.output
+			paths = paths.concat _.flatten config.output
+		else
+			# if output is a single path
+			paths.push config.output
+
+		worker = ( p, done ) -> 
+			try 
+				fp.ensurePath [ prefix, p ], () ->
+					done()
+			catch err
+				done()
+
+		@scheduler.parallel paths, worker, () -> self.copyPrereqs onComplete
+
+	# ## prepConfig ##
+	# Fallback to default config, if specified config doesn't exist
+	# ### Args:
+	# * _exists {Boolean}_: does the specified config file exist?
+	# * _file {String}_: config file name
+	# * _onComplete {Function}_: what to do after config is prepped
+	prepConfig: ( exists, file, onComplete ) ->
+		self = this
+		onDone = () -> self.normalizeConfig onComplete		
+		unless exists
+			@loadConvention( onDone )
+		else
+			@loadConfig( file, onDone )
 
 
-# ## loadConvention ##
-# Sets up default config if no config file is found
-# ### Args:
-# * _complete {Function}_: what to do after config is setup
-loadConvention = ( complete ) ->
-    onStep "Loading convention..."
-    config = conventionConfig
-    complete()
+	# ## loadConfig ##
+	# Setup full configuration using specified config file 
+	# For example, anvil -b custom.json
+	# ### Args:
+	# * _file {String}_: config file name
+	# * _onComplete {Function}_: what to do after config is loaded
+	loadConfig: ( file, onComplete ) ->
+		@log.onStep "Loading config..."
+		fp = @fp
+		fp.read file, ( content ) ->
+			config = JSON.parse( content )
+			if config.extensions
+				ext.gzip = config.extensions.gzip || ext.gzip
+				ext.uglify = config.extensions.uglify || ext.uglify
+
+			# Carry on!
+			onComplete()
+
+	# ## loadConvention ##
+	# Sets up default config if no config file is found
+	# ### Args:
+	# * _onComplete {Function}_: what to do after config is setup
+	loadConvention: ( onComplete ) ->
+		conventionConfig = if @fp.pathExists "./site" then siteConfig else libConfig
+		@log.onStep "Loading convention..."
+		config = conventionConfig
+		onComplete()
+
+	# ## normalizeConfig ##
+	# Tries to normalize differences in configuration formats
+	# between options and site vs. lib configurations
+	# #### Args:
+	# * _onComplete {Function}_: what to call when work is complete
+	normalizeConfig: ( onComplete ) ->
+		self = this
+		fp = @fp
+		config.output = config.output || "lib"
+		if _.isString config.output
+			outputPath = config.output
+			config.output =
+				style: outputPath
+				source: outputPath
+				markup: outputPath
+
+		calls = []
+
+		# finalization?
+		finalize = config.finalize
+		if finalize 
+			calls.push ( done ) -> 
+				self.getFinalization finalize, ( result ) -> 
+					config.finalize = result
+					done()
+		# wrapping?
+		wrap = config.wrap
+		if wrap
+			calls.push ( done ) -> 
+				self.getWrap wrap, ( result ) -> 
+					config.wrap = result
+					done()
+
+		if config.mocha
+			config.mocha = _.extend defaultMocha, config.mocha
+
+		if config.docs
+			config.docs = _.extend defaultDoc, config.docs
+
+		# any calls?
+		if calls.length > 0
+			@scheduler.parallel calls, 
+				( call, done ) -> 
+					call( done )
+				, () -> onComplete()
+		else
+			onComplete()
 
 
-# ## writeConfig ##
-# Creates new default config file
-# ### Args:
-# * _name {String}_: the config file name
-writeConfig = ( name ) ->
-    writeFileSync name, JSON.stringify( conventionConfig, null, "\t" ), ( x ) ->
-        onComplete "#{name} created successfully!"
+	# ## getFinalization ##
+	# Build up a custom state machine to address how
+	# finalization should happen for this project
+	# ### Args:
+	# * _original {Object}_: the existing finalization block
+	# * _onComplete {Function}_: what to call when work is complete
+	getFinalization: ( original, onComplete ) ->
+		self = this
+		finalization = {}
+		result = {}
+		aggregation = {}
+		aggregate = @scheduler.aggregate
+		
+		# if there's no finalization
+		if not original or _.isEqual original, {}
+			onComplete finalization
+		# if there's only one section
+		else if original.header or 
+				original["header-file"] or 
+				original.footer or 
+				original["footer-file"]
+			# build out aggregation for resolving header and footer
+			@getContentBlock original, "header", aggregation
+			@getContentBlock original, "footer", aggregation
+			# make sure we don't try to aggregate on empty
+			if _.isEqual aggregation, {}
+				onComplete finalization
+			else
+				aggregate aggregation, ( constructed ) ->
+					finalization.source = constructed
+					onComplete finalization
+		# there are multiple sections
+		else
+			sources = {}
+			blocks = { 
+				"source": original[ "source" ], 
+				"style": original[ "style" ], 
+				"markup": original[ "markup" ] 
+			}
+			_.each( blocks, ( block, name ) -> 
+				subAggregate = {}
+				self.getContentBlock block, "header", subAggregate
+				self.getContentBlock block, "footer", subAggregate
+				sources[ name ] = ( done ) -> 
+					aggregate subAggregate, done
+			)
+			aggregate sources, onComplete
 
-# The import detection regex
-importRegex = new RegExp "([/].|[#])import[( ][\"].*[\"][ )][;]?([*/]{2})?", "g"
+	# ## getWrap ##
+	# Build up a custom state machine to address how
+	# wrapping should happen for this project
+	# ### Args:
+	# * _original {Object}_: the existing wrap block
+	# * _onComplete {Function}_: what to call when work is complete
+	getWrap: ( original, onComplete ) ->
+		self = this
+		wrap = {}
+		result = {}
+		aggregation = {}
+		aggregate = @scheduler.aggregate
+		# if there's no wrap
+		if not original or _.isEqual original, {}
+			onComplete wrap
+		# if there's only one section
+		else if original.prefix or 
+				original["prefix-file"] or 
+				original.suffix or 
+				original["suffix-file"]
+			# build out aggregation for resolving prefix and suffix
+			@getContentBlock original, "prefix", aggregation
+			@getContentBlock original, "suffix", aggregation
+			# make sure we don't try to aggregate on empty
+			if _.isEqual aggregation, {}
+				onComplete wrap
+			else
+				aggregate aggregation, ( constructed ) ->
+					wrap.source = constructed
+					onComplete wrap
+		# there are multiple sections
+		else
+			sources = {}
+			blocks = { 
+				"source": original[ "source" ], 
+				"style": original[ "style" ], 
+				"markup": original[ "markup" ] 
+			}
+			_.each( blocks, ( block, name ) -> 
+				subAggregate = {}
+				self.getContentBlock block, "prefix", subAggregate
+				self.getContentBlock block, "suffix", subAggregate
+				sources[ name ] = ( done ) -> aggregate subAggregate, done
+			)
+			aggregate sources, onComplete
+
+	# ## getContentBlock ##
+	# Normalizes a wrapper or finalizer segment
+	# ### Args:
+	# * _property {string}: the property name to check for
+	# * _source {Object}_: the configuration block
+	# * _onComplete {Function}_: what to call when work is complete
+	getContentBlock: ( source, property, aggregation ) ->
+		aggregation[ property ] = ( done ) -> done ""
+		fp = @fp
+		if source
+			propertyPath = source["#{ property }-file"]
+			propertyValue = source[ property ]
+			if propertyPath and @fp.pathExists propertyPath
+				aggregation[ property ] = ( done ) -> 
+					fp.read propertyPath, ( content ) ->
+						done content
+			else if propertyValue
+				aggregation[ property ] = ( done ) -> done propertyValue
+
+	# ## copyPrereqs ##
+	# Copy the prerequisites for QUnit, pavlov and anvilHook.js
+	# to the project's ext folder
+	# ### Args:
+	# * _onComplete {Function}_: what to call when work is complete
+	copyPrereqs: ( onComplete ) ->
+		fp = @fp
+		forAll = @scheduler.parallel
+		if config.ext
+			prereqPath = path.resolve __dirname, '../ext'
+			fp.getFiles prereqPath, ( files ) ->
+				copy = ( file, done ) ->
+					fileName = path.basename( file )
+					if not fp.pathExists [ config.ext, fileName ]
+						fp.copy file, [ config.ext, fileName ], done
+					else
+						done()
+				forAll files, copy, () -> 
+					onComplete()
+		else
+			onComplete()
+
+	# ## writeConfig ##
+	# Creates new default config file
+	# ### Args:
+	# * _name {String}_: the config file name
+	# * _onComplete {Function}_: what to call when work is complete
+	writeConfig: ( type, name, onComplete ) ->
+		config = if type == "lib" then libConfig else siteConfig
+		log = @log
+		json = JSON.stringify( config, null, "\t" )
+		@fp.write name, json, () ->
+			log.onComplete "#{name} created successfully!"
+			onComplete()
+
+exports.configuration = Configuration
