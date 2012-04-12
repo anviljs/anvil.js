@@ -47,7 +47,7 @@ defaultDoc =
 	output: "docs"
 
 continuous = test = inProcess = quiet = debug = false
-version = "0.7.1"
+version = "0.7.3"
 
 ext =
 	gzip: "gz"
@@ -205,19 +205,33 @@ class Configuration
 			config[ "markup" ]
 			config[ "spec" ]
 			config[ "ext" ]
-			config[ "working" ] 
+			config[ "working" ]
 		]
 
 		# if documenting
 		if config.docs
 			paths.push config.docs.output
 		
+		outputList = []
 		# if the output is an object
 		if _.isObject config.output
-			paths = paths.concat _.flatten config.output
+			outputList = _.flatten config.output
 		else
 			# if output is a single path
-			paths.push config.output
+			outputList = [ config.output ]
+		paths = paths.concat outputList
+
+		# if names
+		name = config.name
+		if name
+			for output in outputList
+				if _.isString name
+					nestedPath = path.dirname name
+					if nestedPath 
+						paths.push path.join output, nestedPath
+				else
+					nestedPaths = _.map _.flatten( name ), ( x ) -> path.join output, path.dirname( x )
+					paths = paths.concat nestedPaths
 
 		worker = ( p, done ) -> 
 			try 

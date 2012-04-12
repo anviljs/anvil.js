@@ -20,6 +20,8 @@ class Anvil
 				status = ( this.source or not this.hasSource ) and ( this.style or not this.hasStyle ) and ( this.markup or not this.hasMarkup )
 				status
 
+	extensions: [ ".js", ".coffee", ".html", ".haml", ".markdown", ".md", ".css", ".styl", ".less", ".css" ]
+
 	# ## build ##
 	# Kicks off the build for the currently configured Anvil instance
 	build: () ->
@@ -89,10 +91,18 @@ class Anvil
 	# * _onComplete {Function}_: the function to call once all files have been copied
 	finalOutput: ( files, onComplete ) ->
 		fp = @fp
+		names = @config.name
 		forAll = @scheduler.parallel
 		copy = ( file, done ) ->
 			forAll( file.outputPaths, ( destination, moved ) ->
-				fp.copy [ file.workingPath, file.name ], [ destination, file.name ], moved
+				outputName = file.name
+				if names
+					if _.isString names 
+						outputName = names
+					else 
+						custom = names[ file.name ]
+						outputName = custom or= outputName
+				fp.copy [ file.workingPath, file.name ], [ destination, outputName ], moved
 			, done )
 		forAll files, copy, onComplete
 
@@ -124,6 +134,7 @@ class Anvil
 	# * _type {String}_: ('source', 'style', 'markup') 
 	# * _onComplete {Function}_: the function to invoke with a completed list of file metadata
 	prepFiles: ( type, onComplete ) ->
+		self = this
 		working = @config.working
 		typePath = @config[ type ]
 		output = @config.output[ type ]
@@ -144,7 +155,8 @@ class Anvil
 							relativePath: file.replace typePath, ""
 							workingPath: working
 						}
-			onComplete list
+			filtered = _.filter list, ( x ) -> _.any self.extensions, ( y ) -> y == x.ext()
+			onComplete filtered
 
 	# ## stepComplete ##
 	# Called at the end of each type's pipe-line in order to control
