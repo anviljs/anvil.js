@@ -27,7 +27,7 @@ class SocketServer
   removeClient: ( socket ) ->
     index = @clients.indexOf socket
     @clients.splice index, 1
-    log.onEvent "client connected"
+    log.onEvent "client disconnected"
 
   # ## refreshClient ##
   # Sends a 'refresh' message to all connected clients

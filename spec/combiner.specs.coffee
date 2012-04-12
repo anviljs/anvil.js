@@ -372,6 +372,5 @@ describe "when combining files with indented import statements", ->
 
 	it "should combine files correctly", ( done ) ->
 		fp.read [ indentResult.workingPath, indentResult.name ], ( content ) ->
-			console.log "\n#{ content }"
 			content.should.equal indentResultCoffee
 			done()

@@ -89,10 +89,18 @@ class Anvil
 	# * _onComplete {Function}_: the function to call once all files have been copied
 	finalOutput: ( files, onComplete ) ->
 		fp = @fp
+		names = @config.name
 		forAll = @scheduler.parallel
 		copy = ( file, done ) ->
 			forAll( file.outputPaths, ( destination, moved ) ->
-				fp.copy [ file.workingPath, file.name ], [ destination, file.name ], moved
+				outputName = file.name
+				if names
+					if _.isString names 
+						outputName = names
+					else 
+						custom = names[ file.name ]
+						outputName = custom or= outputName
+				fp.copy [ file.workingPath, file.name ], [ destination, outputName ], moved
 			, done )
 		forAll files, copy, onComplete
 
