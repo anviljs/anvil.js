@@ -5,8 +5,8 @@ class Log
 	# ### Args:
 	# * _x {String}_: message to log
 	onEvent: (x) ->
-	    unless quiet
-	        console.log "   #{x}"
+		unless quiet
+			console.log "   #{x}"
 
 
 	# ## onStep ##
@@ -14,8 +14,8 @@ class Log
 	# ### Args:
 	# * _x {String}_: message to log
 	onStep: (x) ->
-	    unless quiet
-	        console.log "#{x}".blue
+		unless quiet
+			console.log "#{x}".blue
 
 
 	# ## onComplete ##
@@ -23,7 +23,7 @@ class Log
 	# ### Args:
 	# * _x {String}_: message to log
 	onComplete: (x) ->
-	    console.log "#{x}".green
+		console.log "#{x}".green
 
 
 	# ## onError ##
@@ -31,7 +31,7 @@ class Log
 	# ### Args:
 	# * _x {String}_: message to log
 	onError: (x) ->
-	    console.log "!!! #{x} !!!".red
+		console.log "!!! #{x} !!!".red
 
 log = new Log()
 

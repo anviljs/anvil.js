@@ -14,8 +14,8 @@ See http://expressjs.com for more info</p>             </td>             <td cla
 <ul>
 <li><em>x {String}</em>: message to log</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">onEvent: </span><span class="nf">(x) -&gt;</span>
-      <span class="nx">unless</span> <span class="nx">quiet</span>
-          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;   </span><span class="si">#{</span><span class="nx">x</span><span class="si">}</span><span class="s">&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <h2>onStep</h2>
+    <span class="nx">unless</span> <span class="nx">quiet</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;   </span><span class="si">#{</span><span class="nx">x</span><span class="si">}</span><span class="s">&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <h2>onStep</h2>
 
 <p>Logs steps in blue</p>
 
@@ -24,8 +24,8 @@ See http://expressjs.com for more info</p>             </td>             <td cla
 <ul>
 <li><em>x {String}</em>: message to log</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">onStep: </span><span class="nf">(x) -&gt;</span>
-      <span class="nx">unless</span> <span class="nx">quiet</span>
-          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">x</span><span class="si">}</span><span class="s">&quot;</span><span class="p">.</span><span class="nx">blue</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <h2>onComplete</h2>
+    <span class="nx">unless</span> <span class="nx">quiet</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">x</span><span class="si">}</span><span class="s">&quot;</span><span class="p">.</span><span class="nx">blue</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <h2>onComplete</h2>
 
 <p>Logs successful process completions in green</p>
 
@@ -34,7 +34,7 @@ See http://expressjs.com for more info</p>             </td>             <td cla
 <ul>
 <li><em>x {String}</em>: message to log</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">onComplete: </span><span class="nf">(x) -&gt;</span>
-      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">x</span><span class="si">}</span><span class="s">&quot;</span><span class="p">.</span><span class="nx">green</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <h2>onError</h2>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">x</span><span class="si">}</span><span class="s">&quot;</span><span class="p">.</span><span class="nx">green</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <h2>onError</h2>
 
 <p>Logs errors in red</p>
 
@@ -43,7 +43,7 @@ See http://expressjs.com for more info</p>             </td>             <td cla
 <ul>
 <li><em>x {String}</em>: message to log</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">onError: </span><span class="nf">(x) -&gt;</span>
-      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;!!! </span><span class="si">#{</span><span class="nx">x</span><span class="si">}</span><span class="s"> !!!&quot;</span><span class="p">.</span><span class="nx">red</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;!!! </span><span class="si">#{</span><span class="nx">x</span><span class="si">}</span><span class="s"> !!!&quot;</span><span class="p">.</span><span class="nx">red</span>
 
 <span class="nv">log = </span><span class="k">new</span> <span class="nx">Log</span><span class="p">()</span>
 
@@ -91,7 +91,7 @@ See http://expressjs.com for more info</p>             </td>             <td cla
   <span class="nv">output: </span><span class="s">&quot;docs&quot;</span>
 
 <span class="nv">continuous = test = inProcess = quiet = debug = </span><span class="kc">false</span>
-<span class="nv">version = </span><span class="s">&quot;0.7.1&quot;</span>
+<span class="nv">version = </span><span class="s">&quot;0.7.2&quot;</span>
 
 <span class="nv">ext =</span>
   <span class="nv">gzip: </span><span class="s">&quot;gz&quot;</span>
@@ -1251,7 +1251,9 @@ everything else is done since markup can import other built resources</p>       
       <span class="nv">markupReady: </span><span class="nf">() -&gt;</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">source</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasSource</span> <span class="p">)</span> <span class="o">and</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">style</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasStyle</span> <span class="p">)</span>
       <span class="nv">allDone: </span><span class="nf">() -&gt;</span> 
         <span class="nv">status = </span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">source</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasSource</span> <span class="p">)</span> <span class="o">and</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">style</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasStyle</span> <span class="p">)</span> <span class="o">and</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">markup</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasMarkup</span> <span class="p">)</span>
-        <span class="nx">status</span></pre></div>             </td>           </tr>                               <tr id="section-169">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-169">&#182;</a>               </div>               <h2>build</h2>
+        <span class="nx">status</span>
+
+  <span class="nv">extensions: </span><span class="p">[</span> <span class="s">&quot;.js&quot;</span><span class="p">,</span> <span class="s">&quot;.coffee&quot;</span><span class="p">,</span> <span class="s">&quot;.html&quot;</span><span class="p">,</span> <span class="s">&quot;.haml&quot;</span><span class="p">,</span> <span class="s">&quot;.markdown&quot;</span><span class="p">,</span> <span class="s">&quot;.md&quot;</span><span class="p">,</span> <span class="s">&quot;.css&quot;</span><span class="p">,</span> <span class="s">&quot;.styl&quot;</span><span class="p">,</span> <span class="s">&quot;.less&quot;</span><span class="p">,</span> <span class="s">&quot;.css&quot;</span> <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-169">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-169">&#182;</a>               </div>               <h2>build</h2>
 
 <p>Kicks off the build for the currently configured Anvil instance</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">build: </span><span class="nf">() -&gt;</span>
     <span class="k">if</span> <span class="o">not</span> <span class="nx">@inProcess</span>
@@ -1333,6 +1335,7 @@ and create metadata objects that describe the file and provide necessary
 metadata to the rest of the processes.
 * <em>type {String}</em>: ('source', 'style', 'markup') 
 * <em>onComplete {Function}</em>: the function to invoke with a completed list of file metadata</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">prepFiles: </span><span class="nf">( type, onComplete ) -&gt;</span>
+    <span class="nv">self = </span><span class="k">this</span>
     <span class="nv">working = </span><span class="nx">@config</span><span class="p">.</span><span class="nx">working</span>
     <span class="nv">typePath = </span><span class="nx">@config</span><span class="p">[</span> <span class="nx">type</span> <span class="p">]</span>
     <span class="nv">output = </span><span class="nx">@config</span><span class="p">.</span><span class="nx">output</span><span class="p">[</span> <span class="nx">type</span> <span class="p">]</span>
@@ -1353,7 +1356,8 @@ metadata to the rest of the processes.
               <span class="nv">relativePath: </span><span class="nx">file</span><span class="p">.</span><span class="nx">replace</span> <span class="nx">typePath</span><span class="p">,</span> <span class="s">&quot;&quot;</span>
               <span class="nv">workingPath: </span><span class="nx">working</span>
             <span class="p">}</span>
-      <span class="nx">onComplete</span> <span class="nx">list</span></pre></div>             </td>           </tr>                               <tr id="section-184">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-184">&#182;</a>               </div>               <h2>stepComplete</h2>
+      <span class="nv">filtered = </span><span class="nx">_</span><span class="p">.</span><span class="nx">filter</span> <span class="nx">list</span><span class="p">,</span> <span class="nf">( x ) -&gt;</span> <span class="nx">_</span><span class="p">.</span><span class="nx">any</span> <span class="nx">self</span><span class="p">.</span><span class="nx">extensions</span><span class="p">,</span> <span class="nf">( y ) -&gt;</span> <span class="nx">y</span> <span class="o">==</span> <span class="nx">x</span><span class="p">.</span><span class="nx">ext</span><span class="p">()</span>
+      <span class="nx">onComplete</span> <span class="nx">filtered</span></pre></div>             </td>           </tr>                               <tr id="section-184">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-184">&#182;</a>               </div>               <h2>stepComplete</h2>
 
 <p>Called at the end of each type's pipe-line in order to control
 when markup gets built. Markup must get built last since it can include
