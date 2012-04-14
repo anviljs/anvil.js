@@ -34,7 +34,7 @@ Without a build file, Anvil will use its default conventions to attempt to build
         "source": "src",
         "style": "style",
         "markup": "markup",
-        {
+        "output": {
             "source": [ "lib", "site/js" ],
             "style": [ "css", "site/css" ],
             "markup": "site/"
