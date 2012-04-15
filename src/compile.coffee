@@ -47,6 +47,7 @@ class Compiler
 		newExt = @extensionMap[ ext ]
 		newFile = file.name.replace ext, newExt
 		log = @log
+		log.onEvent "Compiling #{ file.name } to #{ newFile }"
 		compiler = @compilers[ ext ]
 		if compiler
 			@fp.transform( 
@@ -58,6 +59,7 @@ class Compiler
 						file.name = newFile
 						onComplete file
 					else
+						log.onError "Error compiling #{ file.name }: \r\n #{ err }"
 						onComplete err
 			)
 		else

@@ -81,7 +81,7 @@ class Configuration
 		self = this
 		command = new Commander()
 		command
-			.version("0.7.3")
+			.version("0.7.4")
 			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
 			.option( "--ci", "Run a continuous integration build" )
 			.option( "--host", "Setup a static HTTP host" )
@@ -101,6 +101,7 @@ class Configuration
 			name = command.libfile or= command.sitefile
 			type = if command.sitefile then 'site' else 'lib'
 			@writeConfig type, "#{name}.json", () ->
+				self.log.onComplete "Created #{ type } build file - #{ name }"
 				onConfig config, true
 		else if command.site or command.lib
 			# Generate all the directories and the config file
@@ -111,13 +112,13 @@ class Configuration
 			# Create all the directories
 			self.ensurePaths( () ->
 				self.writeConfig( type, scaffold + "/build.json", () ->
-					self.log.onComplete "Scaffold #{ scaffold } created!"
+					self.log.onComplete "Scaffold ( #{ scaffold } ) created."
 					onConfig config, true
 				)
 			, scaffold )
 		else
 			buildFile = command.build
-			@log.onStep "Checking for conifg file #{ buildFile }..."
+			@log.onStep "Checking for #{ buildFile }"
 			exists = @fp.pathExists buildFile
 			@prepConfig exists, buildFile, () ->
 				if command.host
@@ -211,6 +212,7 @@ class Configuration
 			catch err
 				done()
 
+		@log.onStep "Ensuring project directory structure"
 		@scheduler.parallel paths, worker, () -> self.copyPrereqs onComplete
 
 	# ## prepConfig ##
@@ -250,8 +252,9 @@ class Configuration
 	# ### Args:
 	# * _onComplete {Function}_: what to do after config is setup
 	loadConvention: ( onComplete ) ->
-		conventionConfig = if @fp.pathExists "./site" then siteConfig else libConfig
-		@log.onStep "Loading convention..."
+		isSite = @fp.pathExists "./site"
+		conventionConfig = if isSite then siteConfig else libConfig
+		@log.onStep "No build file found, using #{ if isSite then 'site' else 'lib' } conventions"
 		config = conventionConfig
 		onComplete()
 

@@ -30,39 +30,46 @@ exports.run = ->
 		# if the user wants mocha to run after the build, setup the mocha runner
 		if config.mocha
 			mochaRunner = new MochaRunner fp, scheduler, config, () ->
-				log.onComplete "tests complete"
+				log.onComplete "Tests completed"
 
 		# if the user wants hosting then, spin up the Static HTTP host and socket server
 		if config.host
 			server = new Host fp, scheduler, compiler, config
 			socketServer = new SocketServer server.app
+			log.onStep "Static HTTP server listening on port #{ config.port }"
 
 		# create the post processor instance
 		postProcessor = new PostProcessor config, fp, scheduler, log
 		documenter = new Documenter config, fp, scheduler, log
 		anvil = new Anvil config, fp, compiler, Combiner, documenter, scheduler, postProcessor, log, () ->
-			log.onComplete "build done"
+			log.onComplete "Build completed"
 			if mochaRunner
 				# wrap the mocha runner invocation in a timeout call
 				# to prevent odd timing issues.
 				setTimeout( 
-					() -> mochaRunner.run(),
-					200
+					() -> 
+						log.onStep "Running specifications with Mocha"
+						mochaRunner.run()
+					, 200
 				)
 
 			if ci
 				# wrap the CI watcher in a timeout call
 				# to prevent odd timing issues.
 				setTimeout( 
-					() -> ci.setup(),
-					200
+					() -> 
+						log.onStep "Initializing file watchers for CI"
+						ci.setup()
+					, 200
 				)
 
 			if socketServer.refreshClients
 				# don't notify the clients immediate after the build
 				setTimeout(
-					() -> socketServer.refreshClients(),
-					200
+					() -> 
+						log.onStep "Notifying clients of build completion"
+						socketServer.refreshClients()
+					, 200
 				)
 
 		fileChange = -> anvil.build()
