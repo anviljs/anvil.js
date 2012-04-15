@@ -31,7 +31,8 @@ class Documenter
 	generate: ( files ) ->
 		self = this
 		@scheduler.parallel files, @document, () ->
-			self.log.onComplete "Documents have been completed"
+			if files.length > 0
+				self.log.onComplete "Documents have been completed"
 
 	# ## document ##
 	# Generate docco/ape annotated source for the combined file
