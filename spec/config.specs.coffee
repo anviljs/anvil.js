@@ -1,7 +1,6 @@
 _ = require "underscore"
 log = require( "./logMock.coffee" ).log
 FP = require( "./fsMock.coffee" ).fsProvider
-ArgParser = require( "./argParserMock.coffee" ).parser
 Configuration = require( "../src/config").configuration
 Scheduler = require( "../src/scheduler.coffee").scheduler
 scheduler = new Scheduler()
@@ -46,11 +45,10 @@ class Anvil
 
 describe "when building in lib without build file", ->
 	fp = new FP()
-	parser = new ArgParser( {} )
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	it "should provide default lib configuration", ( done ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil" ], ( config ) ->
 			defaultLibConfig.output = 
 				"style": "lib"
 				"source": "lib"
@@ -60,14 +58,13 @@ describe "when building in lib without build file", ->
 
 describe "when building in site without build file", ->
 	fp = new FP()
-	parser = new ArgParser( {} )
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	before ( done ) ->
 		fp.ensurePath "./site", done
 
 	it "should provide default site configuration", ( done ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil" ], ( config ) ->
 			_.isEqual( config, defaultSiteConfig ).should.be.ok
 			done()
 
@@ -94,53 +91,39 @@ describe "when using default build.json file", ->
 		json = JSON.stringify build
 		fp.write "./build.json", json, done
 
-	parser = new ArgParser( {} )
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
-	it "should use the loaded file", ( complete ) ->
-		cp.configure ( config ) ->
+	it "should use the loaded file", ( done ) ->
+		cp.configure [ "coffee", "./bin/anvil" ], ( config ) ->
 			build.working = "./tmp"
 			_.isEqual( config, build ).should.be.ok
-			complete()
-
-describe "when requesting version", ->
-	fp = new FP()
-	parser = new ArgParser { "v": true }
-	cp = new Configuration fp, parser, scheduler, log
-
-	it "should write version to console", ( done ) ->
-		cp.configure ( config ) ->
-			_.find( log.messages, ( m ) -> m.match ///Anvil.js.*[0-9].[0-9].[0-9]/// ).should.be.ok
 			done()
 
 describe "when specifying CI", ->
 	fp = new FP()
-	parser = new ArgParser { "ci": true }
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	it "should set continuous flag", ( done ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil", "--ci" ], ( config ) ->
 			config.continuous.should.be.ok
 			done()
 
 describe "when specifying hosting", ->
 	fp = new FP()
-	parser = new ArgParser { "host": true }
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	it "should set host flag", ( done ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil", "--host" ], ( config ) ->
 			config.host.should.be.ok
 			done()
 
 describe "when lib scaffold is requested", ->
 	fp = new FP()
-	parser = new ArgParser { "lib": "newlib" }
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	config = {}
 	before ( done ) ->
-		cp.configure ( cfg ) -> 
+		cp.configure [ "coffee", "./bin/anvil", "--lib", "newlib" ], ( cfg ) -> 
 			config = cfg
 			done()
 
@@ -154,16 +137,14 @@ describe "when lib scaffold is requested", ->
 			delete config[ "host" ]
 			delete config[ "continuous" ]
 			_.isEqual( config, defaultLibConfig ).should.be.ok
-			#( JSON.stringify config ).should.equal( JSON.stringify defaultLibConfig )
 
 describe "when site scaffold is requested", ->
 	fp = new FP()
-	parser = new ArgParser { "site": "newSite" }
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	config = {}
 	before ( done ) ->
-		cp.configure ( cfg ) -> 
+		cp.configure [ "coffee", "./bin/anvil", "--site", "newSite" ], ( cfg ) -> 
 			config = cfg
 			done()
 
@@ -183,11 +164,10 @@ describe "when site scaffold is requested", ->
 
 describe "when requesting new lib build file", ->
 	fp = new FP()
-	parser = new ArgParser( { "libfile": "new" } )
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 	
 	it "should create the default lib configuration", ( done ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil", "--libfile", "new" ], ( config ) ->
 			fp.read "new.json", ( content ) ->
 				obj = JSON.parse content
 				delete obj["host"]
@@ -198,16 +178,16 @@ describe "when requesting new lib build file", ->
 
 describe "when requesting new site build file", ->
 	fp = new FP()
-	parser = new ArgParser( { "sitefile": "new" } )
-	cp = new Configuration fp, parser, scheduler, log
+	process.argv.push "--sitefile"
+	process.argv.push "new"
+	cp = new Configuration fp, scheduler, log
 	
 	it "should create the default site configuration", ( done ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil", "--sitefile", "new" ], ( config ) ->
 			fp.read "new.json", ( content ) ->
 				obj = JSON.parse content
 				delete obj["host"]
 				delete obj["continuous"]
-
 				_.isEqual( obj, defaultSiteConfig ).should.be.ok
 				done()
 
@@ -253,11 +233,10 @@ describe "when finalize has string header only", ->
 		json = JSON.stringify build
 		fp.write "./build.json", json, done
 
-	parser = new ArgParser( {} )
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	it "should use the loaded file", ( complete ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil" ], ( config ) ->
 			build.working = "./tmp"
 			_.isEqual( config, expected ).should.be.ok
 			complete()
@@ -305,11 +284,10 @@ describe "when finalize has a file header only", ->
 		fp.write "./build.json", json, () ->
 			fp.write "test.txt", "// this is a test header", done
 
-	parser = new ArgParser( {} )
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	it "should use the loaded file", ( complete ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil" ], ( config ) ->
 			build.working = "./tmp"
 			_.isEqual( config, expected ).should.be.ok
 			complete()
@@ -354,11 +332,10 @@ describe "when wrapping with strings", ->
 		json = JSON.stringify build
 		fp.write "./build.json", json, done
 
-	parser = new ArgParser( {} )
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	it "should normalize the wrapper", ( complete ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil" ], ( config ) ->
 			build.working = "./tmp"
 			_.isEqual( config, expected ).should.be.ok
 			complete()
@@ -381,11 +358,10 @@ describe "when using a single name customization", ->
 		json = JSON.stringify build
 		fp.write "./build.json", json, done
 
-	parser = new ArgParser( {} )
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	it "should create any path as part of the name", ( complete ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil" ], ( config ) ->
 			exists = fp.pathExists "lib/test/this/is/so/fun"
 			exists.should.be.ok
 			complete()
@@ -411,11 +387,10 @@ describe "when using a multiple name customizations", ->
 		json = JSON.stringify build
 		fp.write "./build.json", json, done
 
-	parser = new ArgParser( {} )
-	cp = new Configuration fp, parser, scheduler, log
+	cp = new Configuration fp, scheduler, log
 
 	it "should create all paths as part of the name", ( complete ) ->
-		cp.configure ( config ) ->
+		cp.configure [ "coffee", "./bin/anvil" ], ( config ) ->
 			fp.pathExists( "lib/test/this/is/so/fun" ).should.be.ok
 			fp.pathExists( "lib/this/is/also/pretty/great" ).should.be.ok
 			complete()

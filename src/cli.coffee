@@ -8,10 +8,9 @@
 # can properly instantiate. If it hurts your eyes, look away :)
 exports.run = ->
 	scheduler = new Scheduler()
-	parser = new ArgParser()
 	crawler = new FSCrawler( scheduler )
 	fp = new FSProvider( crawler, log )
-	configuration = new Configuration fp, parser, scheduler, log
+	configuration = new Configuration fp, scheduler, log
 	compiler = new Compiler fp, log
 	mochaRunner = undefined
 	ci = undefined
@@ -19,7 +18,7 @@ exports.run = ->
 	anvil = {}
 	socketServer = {}
 	fileChange = ->
-	configuration.configure ( config, stop ) ->
+	configuration.configure process.argv, ( config, stop ) ->
 		if stop
 			process.exit 0
 		

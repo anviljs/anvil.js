@@ -1,5 +1,6 @@
 _ = require "underscore"
 path = require "path"
+Commander = require( "Commander" ).Command
 
 # Configuration container
 config = { }
@@ -47,7 +48,6 @@ defaultDoc =
 	output: "docs"
 
 continuous = test = inProcess = quiet = debug = false
-version = "0.7.3"
 
 ext =
 	gzip: "gz"
@@ -71,70 +71,41 @@ extensionLookup =
 # Calling anvil from the command line runs this.
 class Configuration 
 
-	constructor: ( @fp, @parser, @scheduler, @log ) ->
+	constructor: ( @fp, @scheduler, @log ) ->
 
 	# ## configure ##
 	# this call will return a configuration object that will
 	# inform the rest of the process
 	# * _onConfig {Function}_: the callback to invoke with a configuration object
-	configure: ( onConfig ) ->
+	configure: ( argList, onConfig ) ->
 		self = this
-		
-		# Setup the CLI arg parser and parse all the args
-		@parser.addValueOptions [ "b", "build", "n", "html", "site", "lib", "libfile", "sitefile" ]
-		@parser.parse()
+		command = new Commander()
+		command
+			.version("0.7.3")
+			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
+			.option( "--ci", "Run a continuous integration build" )
+			.option( "--host", "Setup a static HTTP host" )
+			.option( "--lib [project]", "Create a lib project at the folder [project]" )
+			.option( "--libfile [file name]", "Create a new lib build file named [file name]" )
+			.option( "--site [project]", "Create a site project at the folder [project]" )
+			.option( "--sitefile [file name]", "Create a new site build file named [file name]" )
+			.option( "--mocha", "Run specifications using Mocha" )
+			.option( "--docco", "Create annotated source using docco" )
+			.option( "--ape", "Create annotated source using ape" )
+			.option( "-q, --quiet", "Only print completion and error messages" )
 
-		# Get build file from CLI args or use default
-		buildOpt = @parser.getOptions "b", "build"
-		buildFile = if buildOpt then buildOpt else "./build.json"
+		command.parse( argList );
 
-		# create a new lib build file?
-		createLibFile = @parser.getOptions "libfile"
-
-		# create a new site build file?
-		createSiteFile = @parser.getOptions "sitefile"
-
-		# Run as CI server?
-		continuous = @parser.getOptions "ci"
-
-		# host site ?
-		host = @parser.getOptions "h", "host"
-
-		# Run specs via Mocha?
-		useMocha = @parser.getOptions "mocha"
-
-		# Generate scaffold for new lib project?
-		libScaffold = @parser.getOptions "lib"
-
-		#Quiet mode
-		quiet = @parser.getOptions "q", "quiet"
-
-		# Show version info?
-		showVersion = @parser.getOptions "v", "version"
-
-		# Generate scaffold for new site project?
-		siteScaffold = @parser.getOptions "site"
-
-		# Generate annotated source with docco?
-		runDocco = @parser.getOptions "docco"
-
-		# Generate annotated source with ape?
-		runApe = @parser.getOptions "ape"		
-
-		if showVersion
-			# Display version info and exit
-			@log.onEvent "Anvil.js " + version
-			onConfig config, true
-		else if createLibFile or createSiteFile
+		if command.libfile or command.sitefile
 			# Generate all the directories and the config file
-			name = createLibFile or= createSiteFile
-			type = if createSiteFile then 'site' else 'lib'
+			name = command.libfile or= command.sitefile
+			type = if command.sitefile then 'site' else 'lib'
 			@writeConfig type, "#{name}.json", () ->
 				onConfig config, true
-		else if siteScaffold or libScaffold
+		else if command.site or command.lib
 			# Generate all the directories and the config file
-			type = if siteScaffold then 'site' else 'lib'
-			scaffold = siteScaffold or= libScaffold
+			type = if command.site then 'site' else 'lib'
+			scaffold = command.site or= command.lib
 			config = if type == 'site' then siteConfig else libConfig
 			@log.onStep "Creating scaffolding for new #{ type } project"
 			# Create all the directories
@@ -145,23 +116,24 @@ class Configuration
 				)
 			, scaffold )
 		else
-			@log.onStep "Checking for config..."
+			buildFile = command.build
+			@log.onStep "Checking for conifg file #{ buildFile }..."
 			exists = @fp.pathExists buildFile
 			@prepConfig exists, buildFile, () ->
-				if host
+				if command.host
 					config.host = true
 
-				if continuous
+				if command.ci
 					config.continuous = true
 
-				if useMocha
+				if command.mocha
 					config.mocha = defaultMocha
 
-				if runApe
+				if command.ape
 					config.docs = defaultDoc
 					config.docs.generator = "ape"
 
-				if runDocco
+				if command.docco
 					config.docs = defaultDoc
 
 				# Run transforms and generate output
@@ -187,7 +159,6 @@ class Configuration
 			writeConfig "site", output
 			global.process.exit(0)
 			config
-
 
 	# ## ensurePaths ##
 	# Make sure that all expected paths exist
@@ -255,7 +226,6 @@ class Configuration
 			@loadConvention( onDone )
 		else
 			@loadConfig( file, onDone )
-
 
 	# ## loadConfig ##
 	# Setup full configuration using specified config file 
