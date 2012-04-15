@@ -35,7 +35,10 @@ class StylePipeline
 			if self.config.cssmin
 				minified = _.map( files, ( x ) -> _.clone x )
 			forAll files, self.finalize, () -> 
+				self.log.onStep "Finalizing CSS"
 				forAll minified, self.minify, () -> 
+					if minified.length > 0
+						self.log.onStep "Minifying CSS"
 					forAll minified, self.finalize, () -> 
 						onComplete( files.concat minified )
 
@@ -45,6 +48,7 @@ class StylePipeline
 	# * _onComplete {Function}_: the function to call after minification has completed
 	minify: ( file, onComplete ) ->
 		if @config.cssmin
+			@log.onEvent "Minifying #{ file.name }"
 			self = this
 			ext = file.ext()
 			newFile = file.name.replace ext, ".min.css"
@@ -69,6 +73,7 @@ class StylePipeline
 	finalize: ( file, onComplete ) ->
 		self = this
 		if @config.finalize and @config.finalize.style
+			@log.onEvent "Finalizing #{ file.name }"
 			header = @config.finalize.style.header
 			footer = @config.finalize.style.footer
 			@fp.transform( 
@@ -92,6 +97,7 @@ class StylePipeline
 	wrap: ( file, onComplete ) ->
 		self = this
 		if @config.wrap and @config.wrap.style
+			@log.onEvent "Wrapping #{ file.name }"
 			prefix = @config.wrap.style.prefix
 			suffix = @config.wrap.style.suffix
 			@fp.transform( 
@@ -132,7 +138,10 @@ class SourcePipeline
 			if self.config.uglify
 				minify = _.map( files, ( x ) -> _.clone x )
 			forAll files, self.finalize, () -> 
+				self.log.onStep "Finalizing source files"
 				forAll minify, self.minify, () -> 
+					if minify.length > 0
+						self.log.onStep "Minifying source files"
 					forAll minify, self.finalize, () -> 
 						onComplete( files.concat minify )
 
@@ -145,7 +154,7 @@ class SourcePipeline
 			self = this
 			ext = file.ext()
 			newFile = file.name.replace ext, ".min.js"
-			@log.onStep "Uglifying #{ newFile }"
+			@log.onEvent "Minifying #{ newFile }"
 			@fp.transform( 
 				[ file.workingPath, file.name ],
 				( content, onTransform ) ->
@@ -171,7 +180,7 @@ class SourcePipeline
 	finalize: ( file, onComplete ) ->
 		self = this
 		if @config.finalize and @config.finalize.source
-			@log.onStep "Finalizing #{ file.name }"
+			@log.onEvent "Finalizing #{ file.name }"
 			header = @config.finalize.source.header
 			footer = @config.finalize.source.footer
 			@fp.transform( 
@@ -196,7 +205,7 @@ class SourcePipeline
 	wrap: ( file, onComplete ) ->
 		self = this
 		if @config.wrap and @config.wrap.source
-			@log.onStep "Wrapping #{ file.name }"
+			@log.onEvent "Wrapping #{ file.name }"
 			prefix = @config.wrap.source.prefix
 			suffix = @config.wrap.source.suffix  
 			@fp.transform( 

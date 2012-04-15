@@ -26,6 +26,7 @@ class Anvil
 	# Kicks off the build for the currently configured Anvil instance
 	build: () ->
 		if not @inProcess
+			@log.onStep "Build initiated"
 			@inProcess = true
 			@buildSource()
 			@buildStyle()
@@ -68,22 +69,31 @@ class Anvil
 		combiner = new @combiner( @fp, @scheduler, findPatterns, replacePatterns )
 		postProcessor = @postProcessor
 
+		@log.onStep "Starting #{ type } pipe-line"
 		self.prepFiles type, ( list ) ->
-			self.copyFiles list, () ->
-				# combines imported files
-				combiner.combineList list, () ->
-					# filter out all files that were combined into another file
-					final = _.filter( list, ( x ) -> x.dependents == 0 )
-					# if documentation should be generated, do that now
-					if self.config.docs
-						self.documenter.generate final
-					# compiles the combined results
-					forAll final, compiler.compile, ( compiled ) ->
-						# kick off post processors for compiled files
-						postProcessor[ type ].process compiled, ( list ) ->
-							# copy complete files to the destination folders
-							self.finalOutput list, () ->
-								self.stepComplete type
+			if list and list.length > 0
+
+				self.copyFiles list, () ->
+					# combines imported files
+					self.log.onStep "Combining #{ type } files"
+					combiner.combineList list, () ->
+						# filter out all files that were combined into another file
+						final = _.filter( list, ( x ) -> x.dependents == 0 )
+						# if documentation should be generated, do that now
+						if self.config.docs
+							self.documenter.generate final
+						# compiles the combined results
+						self.log.onStep "Compiling #{ type } files"
+						forAll final, compiler.compile, ( compiled ) ->
+							# kick off post processors for compiled files
+							self.log.onStep "Post-process #{ type } files"
+							postProcessor[ type ].process compiled, ( list ) ->
+								# copy complete files to the destination folders
+								self.log.onStep "Moving #{ type } files to destinations"
+								self.finalOutput list, () ->
+									self.stepComplete type
+			else
+				self.stepComplete type
 
 	# ## finalOutput ##
 	# Copies the final list of files to their output folders
@@ -141,7 +151,7 @@ class Anvil
 		output = if _.isArray( output ) then output else [ output ]
 		log = @log
 		@fp.getFiles typePath, ( files ) ->
-			log.onEvent "Scanning #{ files.length } #{ type } files ..."
+			log.onEvent "Found #{ files.length } #{ type } files ..."
 			list = for file in files
 						name = path.basename file
 						{
