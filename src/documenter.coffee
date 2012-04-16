@@ -30,8 +30,10 @@ class Documenter
 	# * _files {Array}_: the array of file objects to create documents for
 	generate: ( files ) ->
 		self = this
-		@scheduler.parallel files, @document, () ->
-			self.log.onComplete "Documents have been completed"
+		if files && files.length > 0
+			@log.onEvent "Creating annotated source for: #{ _.pluck( files, 'name' ).toString() }"
+			@scheduler.parallel files, @document, () ->
+				self.log.onComplete "Code annotation completed"
 
 	# ## document ##
 	# Generate docco/ape annotated source for the combined file
@@ -44,7 +46,7 @@ class Documenter
 		ext = file.ext()
 		newFile = file.name.replace ext, ".html"
 
-		@log.onStep "Generating source documentation for #{ file.name }"
+		@log.onEvent "Annotation for #{ file.name }"
 		@fp.read [ file.workingPath, file.name ], ( content ) ->
 			self.generator language, ext, newFile, content, ( doc ) ->
 				self.fp.write [ self.config.docs.output, newFile ], doc, onComplete
