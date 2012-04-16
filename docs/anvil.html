@@ -1265,10 +1265,41 @@ Thanks much to @aaronmccall for contributing this code to Anvil!
 
 <p>This provides the primary logic and flow control for build activities</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">Anvil</span>
 
-  <span class="nv">constructor: </span><span class="nf">( @config, @fp, @compiler, @combiner, @documenter, @scheduler, @postProcessor, @log, @callback ) -&gt;</span>
-    <span class="nv">config = </span><span class="nx">@config</span>
-    <span class="vi">@filesBuilt = </span><span class="p">{}</span>
-    <span class="vi">@inProcess = </span><span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-153">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-153">&#182;</a>               </div>               <p>mini FSM - basically we don't want to start building markup until
+  <span class="nv">constructor: </span><span class="nf">( @fp, @compiler, @combiner, @documenter, @scheduler, @postProcessor, @log, @callback ) -&gt;</span>
+    <span class="vi">@buildNumber = </span><span class="mi">0</span>
+    <span class="vi">@inProcess = </span><span class="kc">false</span>
+    
+  <span class="nv">extensions: </span><span class="p">[</span> <span class="s">&quot;.js&quot;</span><span class="p">,</span> <span class="s">&quot;.coffee&quot;</span><span class="p">,</span> <span class="s">&quot;.html&quot;</span><span class="p">,</span> <span class="s">&quot;.haml&quot;</span><span class="p">,</span> <span class="s">&quot;.markdown&quot;</span><span class="p">,</span> <span class="s">&quot;.md&quot;</span><span class="p">,</span> <span class="s">&quot;.css&quot;</span><span class="p">,</span> <span class="s">&quot;.styl&quot;</span><span class="p">,</span> <span class="s">&quot;.less&quot;</span><span class="p">,</span> <span class="s">&quot;.css&quot;</span> <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-153">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-153">&#182;</a>               </div>               <h2>build</h2>
+
+<p>Kicks off the build for the currently configured Anvil instance</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">build: </span><span class="nf">( config ) -&gt;</span>
+    <span class="k">if</span> <span class="o">not</span> <span class="nx">@inProcess</span>
+      <span class="nx">@initialize</span><span class="p">(</span> <span class="nx">config</span> <span class="p">)</span>
+      <span class="nx">@log</span><span class="p">.</span><span class="nx">onStep</span> <span class="s">&quot;Build </span><span class="si">#{</span> <span class="nx">@buildNumber</span> <span class="si">}</span><span class="s"> initiated&quot;</span>
+      <span class="vi">@inProcess = </span><span class="kc">true</span>
+      <span class="nx">@buildSource</span><span class="p">()</span>
+      <span class="nx">@buildStyle</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-154">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-154">&#182;</a>               </div>               <h2>buildMarkup</h2>
+
+<p>Builds all markup sources and provides the regex patterns used to
+identify dependencies using regular expressions.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">buildMarkup: </span><span class="nf">() -&gt;</span>
+    <span class="nv">findPatterns = </span><span class="p">[</span> <span class="sr">///[\&lt;][!][-]{2}.?import[(]?.?[&#39;\&quot;].*[&#39;\&quot;].?[)]?.?[-]{2}[\&gt;]///g</span> <span class="p">]</span>
+    <span class="nv">replacePatterns = </span><span class="p">[</span> <span class="sr">///([ \t]*)[\&lt;][!][-]{2}.?import[(]?.?[&#39;\&quot;]replace[&#39;\&quot;].?[)]?.?[-]{2}[\&gt;]///g</span> <span class="p">]</span>
+    <span class="nx">@processType</span><span class="p">(</span> <span class="s">&quot;markup&quot;</span><span class="p">,</span> <span class="nx">findPatterns</span><span class="p">,</span> <span class="nx">replacePatterns</span> <span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-155">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-155">&#182;</a>               </div>               <h2>buildSource</h2>
+
+<p>Builds all JS and Coffee sources and provides the regex patterns used to
+identify dependencies using regular expressions.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">buildSource: </span><span class="nf">() -&gt;</span>
+    <span class="nv">findPatterns = </span><span class="p">[</span> <span class="sr">///([/]{2}|[\</span><span class="c1">#]{3}).?import.?[(]?.?[\&quot;&#39;].*[\&quot;&#39;].?[)]?[;]?.?([\#]{0,3})///g ]</span>
+    <span class="sr">replacePatterns = [ ///</span><span class="p">([</span> <span class="err">\</span><span class="nx">t</span><span class="p">]</span><span class="o">*</span><span class="p">)([</span><span class="sr">/]{2}|[\#]{3}).?import.?[(]?.?[\&quot;&#39;]replace[\&quot;&#39;].?[)]?[;]?.?[\#]{0,3}/</span><span class="o">//</span><span class="nx">g</span> <span class="p">]</span>
+    <span class="nx">@processType</span><span class="p">(</span> <span class="s">&quot;source&quot;</span><span class="p">,</span> <span class="nx">findPatterns</span><span class="p">,</span> <span class="nx">replacePatterns</span> <span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-156">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-156">&#182;</a>               </div>               <h2>buildSource</h2>
+
+<p>Builds all CSS, LESS and Stylus sources and provides the regex patterns used to
+identify dependencies using regular expressions.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">buildStyle: </span><span class="nf">() -&gt;</span>
+    <span class="nv">findPatterns = </span><span class="p">[</span> <span class="sr">///([/]{2}|[/][*]).?import[(]?.?[\&quot;&#39;].*[\&quot;&#39;].?[)]?([*][/])?///g</span> <span class="p">]</span>
+    <span class="nv">replacePatterns = </span><span class="p">[</span> <span class="sr">///([ \t]*)([/]{2}|[/][*]).?import[(]?.?[\&quot;&#39;]replace[\&quot;&#39;].?[)]?([*][/])?///g</span> <span class="p">]</span>
+    <span class="nx">@processType</span><span class="p">(</span> <span class="s">&quot;style&quot;</span><span class="p">,</span> <span class="nx">findPatterns</span><span class="p">,</span> <span class="nx">replacePatterns</span> <span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-157">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-157">&#182;</a>               </div>               <h2>initialize</h2>
+
+<p>Initializes state for the build</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">initialize: </span><span class="nf">( config ) -&gt;</span>
+    <span class="vi">@config = </span><span class="nx">config</span>
+    <span class="vi">@filesBuilt = </span><span class="p">{}</span></pre></div>             </td>           </tr>                               <tr id="section-158">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-158">&#182;</a>               </div>               <p>mini FSM - basically we don't want to start building markup until
 everything else is done since markup can import other built resources</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@steps = </span>
       <span class="nv">source: </span><span class="kc">false</span>
       <span class="nv">style: </span><span class="kc">false</span>
@@ -1279,34 +1310,7 @@ everything else is done since markup can import other built resources</p>       
       <span class="nv">markupReady: </span><span class="nf">() -&gt;</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">source</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasSource</span> <span class="p">)</span> <span class="o">and</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">style</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasStyle</span> <span class="p">)</span>
       <span class="nv">allDone: </span><span class="nf">() -&gt;</span> 
         <span class="nv">status = </span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">source</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasSource</span> <span class="p">)</span> <span class="o">and</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">style</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasStyle</span> <span class="p">)</span> <span class="o">and</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">markup</span> <span class="o">or</span> <span class="o">not</span> <span class="k">this</span><span class="p">.</span><span class="nx">hasMarkup</span> <span class="p">)</span>
-        <span class="nx">status</span>
-
-  <span class="nv">extensions: </span><span class="p">[</span> <span class="s">&quot;.js&quot;</span><span class="p">,</span> <span class="s">&quot;.coffee&quot;</span><span class="p">,</span> <span class="s">&quot;.html&quot;</span><span class="p">,</span> <span class="s">&quot;.haml&quot;</span><span class="p">,</span> <span class="s">&quot;.markdown&quot;</span><span class="p">,</span> <span class="s">&quot;.md&quot;</span><span class="p">,</span> <span class="s">&quot;.css&quot;</span><span class="p">,</span> <span class="s">&quot;.styl&quot;</span><span class="p">,</span> <span class="s">&quot;.less&quot;</span><span class="p">,</span> <span class="s">&quot;.css&quot;</span> <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-154">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-154">&#182;</a>               </div>               <h2>build</h2>
-
-<p>Kicks off the build for the currently configured Anvil instance</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">build: </span><span class="nf">() -&gt;</span>
-    <span class="k">if</span> <span class="o">not</span> <span class="nx">@inProcess</span>
-      <span class="nx">@log</span><span class="p">.</span><span class="nx">onStep</span> <span class="s">&quot;Build initiated&quot;</span>
-      <span class="vi">@inProcess = </span><span class="kc">true</span>
-      <span class="nx">@buildSource</span><span class="p">()</span>
-      <span class="nx">@buildStyle</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-155">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-155">&#182;</a>               </div>               <h2>buildMarkup</h2>
-
-<p>Builds all markup sources and provides the regex patterns used to
-identify dependencies using regular expressions.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">buildMarkup: </span><span class="nf">() -&gt;</span>
-    <span class="nv">findPatterns = </span><span class="p">[</span> <span class="sr">///[\&lt;][!][-]{2}.?import[(]?.?[&#39;\&quot;].*[&#39;\&quot;].?[)]?.?[-]{2}[\&gt;]///g</span> <span class="p">]</span>
-    <span class="nv">replacePatterns = </span><span class="p">[</span> <span class="sr">///([ \t]*)[\&lt;][!][-]{2}.?import[(]?.?[&#39;\&quot;]replace[&#39;\&quot;].?[)]?.?[-]{2}[\&gt;]///g</span> <span class="p">]</span>
-    <span class="nx">@processType</span><span class="p">(</span> <span class="s">&quot;markup&quot;</span><span class="p">,</span> <span class="nx">findPatterns</span><span class="p">,</span> <span class="nx">replacePatterns</span> <span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-156">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-156">&#182;</a>               </div>               <h2>buildSource</h2>
-
-<p>Builds all JS and Coffee sources and provides the regex patterns used to
-identify dependencies using regular expressions.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">buildSource: </span><span class="nf">() -&gt;</span>
-    <span class="nv">findPatterns = </span><span class="p">[</span> <span class="sr">///([/]{2}|[\</span><span class="c1">#]{3}).?import.?[(]?.?[\&quot;&#39;].*[\&quot;&#39;].?[)]?[;]?.?([\#]{0,3})///g ]</span>
-    <span class="sr">replacePatterns = [ ///</span><span class="p">([</span> <span class="err">\</span><span class="nx">t</span><span class="p">]</span><span class="o">*</span><span class="p">)([</span><span class="sr">/]{2}|[\#]{3}).?import.?[(]?.?[\&quot;&#39;]replace[\&quot;&#39;].?[)]?[;]?.?[\#]{0,3}/</span><span class="o">//</span><span class="nx">g</span> <span class="p">]</span>
-    <span class="nx">@processType</span><span class="p">(</span> <span class="s">&quot;source&quot;</span><span class="p">,</span> <span class="nx">findPatterns</span><span class="p">,</span> <span class="nx">replacePatterns</span> <span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-157">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-157">&#182;</a>               </div>               <h2>buildSource</h2>
-
-<p>Builds all CSS, LESS and Stylus sources and provides the regex patterns used to
-identify dependencies using regular expressions.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">buildStyle: </span><span class="nf">() -&gt;</span>
-    <span class="nv">findPatterns = </span><span class="p">[</span> <span class="sr">///([/]{2}|[/][*]).?import[(]?.?[\&quot;&#39;].*[\&quot;&#39;].?[)]?([*][/])?///g</span> <span class="p">]</span>
-    <span class="nv">replacePatterns = </span><span class="p">[</span> <span class="sr">///([ \t]*)([/]{2}|[/][*]).?import[(]?.?[\&quot;&#39;]replace[\&quot;&#39;].?[)]?([*][/])?///g</span> <span class="p">]</span>
-    <span class="nx">@processType</span><span class="p">(</span> <span class="s">&quot;style&quot;</span><span class="p">,</span> <span class="nx">findPatterns</span><span class="p">,</span> <span class="nx">replacePatterns</span> <span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-158">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-158">&#182;</a>               </div>               <h2>processType</h2>
+        <span class="nx">status</span></pre></div>             </td>           </tr>                               <tr id="section-159">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-159">&#182;</a>               </div>               <h2>processType</h2>
 
 <p>The steps that get followed for each resource type are the same.
 This function provides the core behavior of identifying, combining,
@@ -1324,9 +1328,11 @@ compiling and post-processing for all the types.
     <span class="nx">self</span><span class="p">.</span><span class="nx">prepFiles</span> <span class="nx">type</span><span class="p">,</span> <span class="nf">( list ) -&gt;</span>
       <span class="k">if</span> <span class="nx">list</span> <span class="o">and</span> <span class="nx">list</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
-        <span class="nx">self</span><span class="p">.</span><span class="nx">copyFiles</span> <span class="nx">list</span><span class="p">,</span> <span class="nf">() -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-159">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-159">&#182;</a>               </div>               <p>combines imported files</p>             </td>             <td class="code">               <div class="highlight"><pre>          <span class="nx">self</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">onStep</span> <span class="s">&quot;Combining </span><span class="si">#{</span> <span class="nx">type</span> <span class="si">}</span><span class="s"> files&quot;</span>
-          <span class="nx">combiner</span><span class="p">.</span><span class="nx">combineList</span> <span class="nx">list</span><span class="p">,</span> <span class="nf">() -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-160">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-160">&#182;</a>               </div>               <p>filter out all files that were combined into another file</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">final = </span><span class="nx">_</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span> <span class="nx">list</span><span class="p">,</span> <span class="nf">( x ) -&gt;</span> <span class="nx">x</span><span class="p">.</span><span class="nx">dependents</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-161">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-161">&#182;</a>               </div>               <p>if documentation should be generated, do that now</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="k">if</span> <span class="nx">self</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">docs</span>
-              <span class="nx">self</span><span class="p">.</span><span class="nx">documenter</span><span class="p">.</span><span class="nx">generate</span> <span class="nx">final</span></pre></div>             </td>           </tr>                               <tr id="section-162">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-162">&#182;</a>               </div>               <p>compiles the combined results</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">self</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">onStep</span> <span class="s">&quot;Compiling </span><span class="si">#{</span> <span class="nx">type</span> <span class="si">}</span><span class="s"> files&quot;</span>
+        <span class="nx">self</span><span class="p">.</span><span class="nx">copyFiles</span> <span class="nx">list</span><span class="p">,</span> <span class="nf">() -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-160">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-160">&#182;</a>               </div>               <p>combines imported files</p>             </td>             <td class="code">               <div class="highlight"><pre>          <span class="nx">self</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">onStep</span> <span class="s">&quot;Combining </span><span class="si">#{</span> <span class="nx">type</span> <span class="si">}</span><span class="s"> files&quot;</span>
+          <span class="nx">combiner</span><span class="p">.</span><span class="nx">combineList</span> <span class="nx">list</span><span class="p">,</span> <span class="nf">() -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-161">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-161">&#182;</a>               </div>               <p>filter out all files that were combined into another file</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">final = </span><span class="nx">_</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span> <span class="nx">list</span><span class="p">,</span> <span class="nf">( x ) -&gt;</span> <span class="nx">x</span><span class="p">.</span><span class="nx">dependents</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-162">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-162">&#182;</a>               </div>               <p>if documentation should be generated, do that now
+if self.config.docs
+self.documenter.generate final
+compiles the combined results</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">self</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">onStep</span> <span class="s">&quot;Compiling </span><span class="si">#{</span> <span class="nx">type</span> <span class="si">}</span><span class="s"> files&quot;</span>
             <span class="nx">forAll</span> <span class="nx">final</span><span class="p">,</span> <span class="nx">compiler</span><span class="p">.</span><span class="nx">compile</span><span class="p">,</span> <span class="nf">( compiled ) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-163">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-163">&#182;</a>               </div>               <p>kick off post processors for compiled files</p>             </td>             <td class="code">               <div class="highlight"><pre>              <span class="nx">self</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">onStep</span> <span class="s">&quot;Post-process </span><span class="si">#{</span> <span class="nx">type</span> <span class="si">}</span><span class="s"> files&quot;</span>
               <span class="nx">postProcessor</span><span class="p">[</span> <span class="nx">type</span> <span class="p">].</span><span class="nx">process</span> <span class="nx">compiled</span><span class="p">,</span> <span class="nf">( list ) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-164">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-164">&#182;</a>               </div>               <p>copy complete files to the destination folders</p>             </td>             <td class="code">               <div class="highlight"><pre>                <span class="nx">self</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">onStep</span> <span class="s">&quot;Moving </span><span class="si">#{</span> <span class="nx">type</span> <span class="si">}</span><span class="s"> files to destinations&quot;</span>
                 <span class="nx">self</span><span class="p">.</span><span class="nx">finalOutput</span> <span class="nx">list</span><span class="p">,</span> <span class="nf">() -&gt;</span>
@@ -1366,7 +1372,8 @@ compiling and post-processing for all the types.
     <span class="nv">fp = </span><span class="nx">@fp</span>
     <span class="nv">forAll = </span><span class="nx">@scheduler</span><span class="p">.</span><span class="nx">parallel</span>
     <span class="nx">fp</span><span class="p">.</span><span class="nx">getFiles</span> <span class="nx">@config</span><span class="p">.</span><span class="nx">working</span><span class="p">,</span> <span class="nf">( files ) -&gt;</span>
-      <span class="nx">forAll</span> <span class="nx">files</span><span class="p">,</span> <span class="nx">fp</span><span class="p">.</span><span class="k">delete</span><span class="p">,</span> <span class="nx">onComplete</span></pre></div>             </td>           </tr>                               <tr id="section-168">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-168">&#182;</a>               </div>               <h2>prepFiles</h2>
+      <span class="nx">forAll</span> <span class="nx">files</span><span class="p">,</span> <span class="nx">fp</span><span class="p">.</span><span class="k">delete</span><span class="p">,</span> <span class="nf">() -&gt;</span>
+        <span class="nx">onComplete</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-168">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-168">&#182;</a>               </div>               <h2>prepFiles</h2>
 
 <p>Determine the list of files that belong to this particular resource type
 and create metadata objects that describe the file and provide necessary
@@ -1428,12 +1435,11 @@ if the input is not an array, it turns it into a single element array
 <p>Determines which directories should cause a build to trigger
 if any contents change</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">setup: </span><span class="nf">() -&gt;</span>
     <span class="k">if</span> <span class="o">not</span> <span class="nx">@watching</span>
+      <span class="vi">@watching = </span><span class="kc">true</span>
       <span class="k">if</span> <span class="nx">@style</span> <span class="k">then</span> <span class="nx">@watchPath</span> <span class="nx">p</span> <span class="k">for</span> <span class="nx">p</span> <span class="k">in</span> <span class="nx">@style</span>
       <span class="k">if</span> <span class="nx">@source</span> <span class="k">then</span> <span class="nx">@watchPath</span> <span class="nx">p</span> <span class="k">for</span> <span class="nx">p</span> <span class="k">in</span> <span class="nx">@source</span>
       <span class="k">if</span> <span class="nx">@markup</span> <span class="k">then</span> <span class="nx">@watchPath</span> <span class="nx">p</span> <span class="k">for</span> <span class="nx">p</span> <span class="k">in</span> <span class="nx">@markup</span>
-      <span class="k">if</span> <span class="nx">@spec</span> <span class="k">then</span> <span class="nx">@watchPath</span> <span class="nx">p</span> <span class="k">for</span> <span class="nx">p</span> <span class="k">in</span> <span class="nx">@spec</span>
-
-    <span class="vi">@watching = </span><span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-173">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-173">&#182;</a>               </div>               <h2>watchpath</h2>
+      <span class="k">if</span> <span class="nx">@spec</span> <span class="k">then</span> <span class="nx">@watchPath</span> <span class="nx">p</span> <span class="k">for</span> <span class="nx">p</span> <span class="k">in</span> <span class="nx">@spec</span></pre></div>             </td>           </tr>                               <tr id="section-173">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-173">&#182;</a>               </div>               <h2>watchpath</h2>
 
 <p>Calls watchFiles for all files in the path
 * <em>path {String/Array}</em>: the path specification to watch for changes in</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">watchPath: </span><span class="nf">( path ) -&gt;</span>
@@ -1449,10 +1455,11 @@ of a change. This is necessary to prevent event storms that can trigger
 during the build process.
 * <em>event {Object}</em>: the event that fired on the file system
 * <em>file {String}</em>: the file that triggered the change</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">onEvent: </span><span class="nf">( event, file ) -&gt;</span>
-    <span class="vi">@watching = </span><span class="kc">false</span>
-    <span class="k">while</span> <span class="nx">@watchers</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
-      <span class="nx">@watchers</span><span class="p">.</span><span class="nx">pop</span><span class="p">().</span><span class="nx">close</span><span class="p">()</span>
-    <span class="nx">@onChange</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nx">@watching</span>
+      <span class="vi">@watching = </span><span class="kc">false</span>
+      <span class="k">while</span> <span class="nx">@watchers</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="nx">@watchers</span><span class="p">.</span><span class="nx">pop</span><span class="p">().</span><span class="nx">close</span><span class="p">()</span>
+      <span class="nx">@onChange</span><span class="p">()</span>
 
 <span class="nv">mocha = </span><span class="nx">require</span> <span class="s">&quot;mocha&quot;</span>
 <span class="nv">_ = </span><span class="nx">require</span> <span class="s">&quot;underscore&quot;</span>
@@ -1469,6 +1476,7 @@ during the build process.
 <span class="s">class MochaRunner</span>
 
 <span class="s">  constructor: ( @fp, @scheduler, @config, @onComplete ) -&gt;</span>
+<span class="s">    _.bindAll( this )</span>
 <span class="s">    </span>
 <span class="s">  run: () -&gt;</span>
 <span class="s">    self = this</span>
@@ -1497,8 +1505,10 @@ during the build process.
 <span class="s">      specs = if _.isString @config.spec then [ @config.spec ] else @config.spec</span>
 
 <span class="s">      forAll specs, @fp.getFiles, ( lists ) -&gt;</span>
+<span class="s">        self.cleanUp()</span>
 <span class="s">        files = _.flatten lists</span>
 <span class="s">        for file in files</span>
+<span class="s">          delete require.cache[ file ]</span>
 <span class="s">          suite.emit &#39;</span><span class="nx">pre</span><span class="o">-</span><span class="nx">require</span><span class="s">&#39;, global, file</span>
 <span class="s">          suite.emit &#39;</span><span class="nx">require</span><span class="s">&#39;, require file, file</span>
 <span class="s">          suite.emit &#39;</span><span class="nx">post</span><span class="o">-</span><span class="nx">require</span><span class="s">&#39;, global, file</span>
@@ -1508,14 +1518,16 @@ during the build process.
 <span class="s">        reporter = new Reporter runner</span>
 <span class="s">        if opts.ignoreLeaks then runner.ignoreLeaks = true</span>
 <span class="s">        runner.run () -&gt; </span>
-<span class="s">          cachedFiles = _.flatten require.cache</span>
-<span class="s">          sourcePath = path.resolve self.config.source</span>
-<span class="s">          pathLength = sourcePath.length</span>
-<span class="s">          for file in cachedFiles</span>
-<span class="s">            modulePath = file.filename.substring 0, pathLength</span>
-<span class="s">            if sourcePath == modulePath</span>
-<span class="s">              delete require.cache[ file ]</span>
 <span class="s">          self.onComplete()</span>
+
+<span class="s">  cleanUp: () -&gt;</span>
+<span class="s">    cachedFiles = _.flatten require.cache</span>
+<span class="s">    sourcePath = path.resolve @config.source</span>
+<span class="s">    pathLength = sourcePath.length</span>
+<span class="s">    for file in cachedFiles</span>
+<span class="s">      modulePath = file.filename.substring 0, pathLength</span>
+<span class="s">      if sourcePath == modulePath</span>
+<span class="s">        delete require.cache[ file ]</span>
 
 
 <span class="s">#DIVIDER</span>
@@ -1629,86 +1641,104 @@ during the build process.
 <span class="s">    &quot;.kup&quot;: &quot;text/html&quot;</span>
 
 <span class="s">#DIVIDER</span>
+<span class="s">class Cli</span>
+
+<span class="s">  constructor: () -&gt;</span>
+<span class="s">    @anvil = {}</span>
+<span class="s">    </span>
+<span class="s">    @ci = undefined</span>
+<span class="s">    @documenter = undefined</span>
+<span class="s">    @mochaRunner = undefined</span>
+<span class="s">    @socketServer = {}</span>
+<span class="s">    @postProcessor = {}</span>
+<span class="s">    @log = log</span>
+<span class="s">    @scheduler = new Scheduler()</span>
+<span class="s">    @crawler = new FSCrawler @scheduler</span>
+<span class="s">    @fp = new FSProvider @crawler, @log</span>
+<span class="s">    @configuration = new Configuration @fp, @scheduler, @log</span>
+<span class="s">    @compiler = new Compiler @fp, @log</span>
+
+<span class="s">    _.bindAll this</span>
+
+<span class="s">  initCI: ( config ) -&gt;</span>
+<span class="s">    @ci = new Continuous @fp, config, @onFileChange</span>
+
+<span class="s">  initHost: ( config ) -&gt;</span>
+<span class="s">    @server = new Host @fp, @scheduler, @compiler, config</span>
+<span class="s">    @socketServer = new SocketServer @server.app</span>
+<span class="s">    @log.onStep &quot;Static HTTP server listening on port #{ config.port }&quot;</span>
+
+<span class="s">  initMocha: ( config ) -&gt;</span>
+<span class="s">    @mochaRunner = new MochaRunner @fp, @scheduler, config, @onTestsComplete</span>
+
+<span class="s">  notifyHttpClients: () -&gt;</span>
+<span class="s">    if @socketServer.refreshClients</span>
+<span class="s">      @log.onStep &quot;Notifying clients of build completion&quot;</span>
+<span class="s">      @socketServer.refreshClients()</span>
+
+<span class="s">  onBuildComplete: () -&gt;</span>
+<span class="s">    self = this</span>
+<span class="s">    @log.onComplete &quot;Build #{ @anvil.buildNumber++ } completed&quot;</span>
+<span class="s">    if self.mochaRunner</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">      self.log.onStep &quot;Running specifications with Mocha&quot;</span>
+<span class="s">      self.mochaRunner.run()</span>
+<span class="s">    else </span>
+<span class="s">      self.startCI()</span>
+<span class="s">      self.notifyHttpClients()</span>
+
+<span class="s">  onConfig: ( config, stop ) -&gt;</span>
+<span class="s">    @config = config</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">    if stop then process.exit 0</span>
+<span class="s">    </span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">    if config.continuous then @initCI config</span>
+<span class="s">      </span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">    if config.mocha then @initMocha config</span>
+
+
+<span class="s">#DIVIDER</span>
+<span class="s">    if config.host then @initHost config</span>
+
+
+<span class="s">#DIVIDER</span>
+<span class="s">    @postProcessor = new PostProcessor config, @fp, @scheduler, @log</span>
+<span class="s">    @documenter = new Documenter config, @fp, @scheduler, @log</span>
+<span class="s">    @anvil = new Anvil @fp, @compiler, Combiner, @documenter, @scheduler, @postProcessor, @log, @onBuildComplete</span>
+
+<span class="s">    @anvil.build( config )</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">    @startCI()</span>
+
+<span class="s">  onFileChange: () -&gt;</span>
+<span class="s">    @log.onEvent &quot;File change detected, starting build&quot;</span>
+<span class="s">    @fileChange = -&gt;</span>
+<span class="s">    @anvil.build( @config )</span>
+
+<span class="s">  onTestsComplete: () -&gt;</span>
+<span class="s">    @log.onComplete &quot;Tests completed&quot;</span>
+<span class="s">    @startCI()</span>
+<span class="s">    @notifyHttpClients()</span>
+<span class="s">  </span>
+<span class="s">  run: () -&gt;</span>
+<span class="s">    @configuration.configure process.argv, @onConfig</span>
+
+<span class="s">  startCI: () -&gt;</span>
+<span class="s">    if @ci</span>
+<span class="s">      @log.onStep &quot;Starting file watchers&quot;</span>
+<span class="s">      @ci.setup()</span>
+<span class="s">      </span>
+
 <span class="s">exports.run = -&gt;</span>
-<span class="s">  scheduler = new Scheduler()</span>
-<span class="s">  crawler = new FSCrawler( scheduler )</span>
-<span class="s">  fp = new FSProvider( crawler, log )</span>
-<span class="s">  configuration = new Configuration fp, scheduler, log</span>
-<span class="s">  compiler = new Compiler fp, log</span>
-<span class="s">  mochaRunner = undefined</span>
-<span class="s">  ci = undefined</span>
-<span class="s">  documenter = undefined</span>
-<span class="s">  anvil = {}</span>
-<span class="s">  socketServer = {}</span>
-<span class="s">  fileChange = -&gt;</span>
-<span class="s">  configuration.configure process.argv, ( config, stop ) -&gt;</span>
-<span class="s">    if stop</span>
-<span class="s">      process.exit 0</span>
-<span class="s">    </span>
-
-<span class="s">#DIVIDER</span>
-<span class="s">    if config.continuous</span>
-<span class="s">      ci = new Continuous fp, config, () -&gt;</span>
-<span class="s">        fileChange()</span>
-
-
-<span class="s">#DIVIDER</span>
-<span class="s">    if config.mocha</span>
-<span class="s">      mochaRunner = new MochaRunner fp, scheduler, config, () -&gt;</span>
-<span class="s">        log.onComplete &quot;Tests completed&quot;</span>
-
-
-<span class="s">#DIVIDER</span>
-<span class="s">    if config.host</span>
-<span class="s">      server = new Host fp, scheduler, compiler, config</span>
-<span class="s">      socketServer = new SocketServer server.app</span>
-<span class="s">      log.onStep &quot;Static HTTP server listening on port #{ config.port }&quot;</span>
-
-
-<span class="s">#DIVIDER</span>
-<span class="s">    postProcessor = new PostProcessor config, fp, scheduler, log</span>
-<span class="s">    documenter = new Documenter config, fp, scheduler, log</span>
-<span class="s">    anvil = new Anvil config, fp, compiler, Combiner, documenter, scheduler, postProcessor, log, () -&gt;</span>
-<span class="s">      log.onComplete &quot;Build completed&quot;</span>
-<span class="s">      if mochaRunner</span>
-
-<span class="s">#DIVIDER</span>
-<span class="s">        setTimeout( </span>
-<span class="s">          () -&gt; </span>
-<span class="s">            log.onStep &quot;Running specifications with Mocha&quot;</span>
-<span class="s">            mochaRunner.run()</span>
-<span class="s">          , 200</span>
-<span class="s">        )</span>
-
-<span class="s">      if ci</span>
-
-<span class="s">#DIVIDER</span>
-<span class="s">        setTimeout( </span>
-<span class="s">          () -&gt; </span>
-<span class="s">            log.onStep &quot;Initializing file watchers for CI&quot;</span>
-<span class="s">            ci.setup()</span>
-<span class="s">          , 200</span>
-<span class="s">        )</span>
-
-<span class="s">      if socketServer.refreshClients</span>
-
-<span class="s">#DIVIDER</span>
-<span class="s">        setTimeout(</span>
-<span class="s">          () -&gt; </span>
-<span class="s">            log.onStep &quot;Notifying clients of build completion&quot;</span>
-<span class="s">            socketServer.refreshClients()</span>
-<span class="s">          , 200</span>
-<span class="s">        )</span>
-
-<span class="s">    fileChange = -&gt; anvil.build()</span>
-<span class="s">    </span>
-<span class="s">    anvil.build()</span>
-
-<span class="s">#DIVIDER</span>
-<span class="s">    if ci</span>
-<span class="s">      ci.setup()</span>
-
-<span class="s">    </span>
+<span class="s">  cli = new Cli()</span>
+<span class="s">  cli.run()</span>
 
 </pre></div>             </td>           </tr>                               <tr id="section-177">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-177">&#182;</a>               </div>               <h1>#</h1>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-178">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-178">&#182;</a>               </div>               <h2>SocketServer</h2>
 
@@ -1735,14 +1765,7 @@ connection event.</li>
 that can support all supported files types for Anvil
 builds</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-185">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-185">&#182;</a>               </div>               <p>if the user told us what to do, make no assumptions
 only host exactly what they specify</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-186">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-186">&#182;</a>               </div>               <p>otherwise, let's have some fun...</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-187">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-187">&#182;</a>               </div>               <p>if a static file type is requested that fits an extension we know how to
-compile, use the compiler to translate it on-the-fly</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-188">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-188">&#182;</a>               </div>               <h2>run</h2>
+compile, use the compiler to translate it on-the-fly</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-188">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-188">&#182;</a>               </div>               <h1>Cli</h1>
 
-<p>This is the function that gets exported for the CLI script.
-It gets the configuration and determines how to invoke Anvil
-and supporting behaviors ( CI, Host, Test runner ) based on
-the configuration.
-Most of the 'wierdness' in this file revolves around late binding
-due to most things needing a hook to the completed config before they
-can properly instantiate. If it hurts your eyes, look away :)</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-189">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-189">&#182;</a>               </div>               <p>if the user wants CI, setup the continuous module</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-190">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-190">&#182;</a>               </div>               <p>if the user wants mocha to run after the build, setup the mocha runner</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-191">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-191">&#182;</a>               </div>               <p>if the user wants hosting then, spin up the Static HTTP host and socket server</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-192">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-192">&#182;</a>               </div>               <p>create the post processor instance</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-193">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-193">&#182;</a>               </div>               <p>wrap the mocha runner invocation in a timeout call
-to prevent odd timing issues.</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-194">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-194">&#182;</a>               </div>               <p>wrap the CI watcher in a timeout call
-to prevent odd timing issues.</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-195">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-195">&#182;</a>               </div>               <p>don't notify the clients immediate after the build</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-196">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-196">&#182;</a>               </div>               <p>if we're using CI, kick it off the first time</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
+<p>Provides the command line interface for interacting with Anvil and related modules</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-189">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-189">&#182;</a>               </div>               <p>wrap the mocha runner invocation in a timeout call
+to prevent odd timing issues.</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-190">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-190">&#182;</a>               </div>               <p>if stop comes back, then this is not a build and we're done</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-191">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-191">&#182;</a>               </div>               <p>if the user wants CI, setup the continuous module</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-192">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-192">&#182;</a>               </div>               <p>if the user wants mocha to run after the build, setup the mocha runner</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-193">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-193">&#182;</a>               </div>               <p>if the user wants hosting then, spin up the Static HTTP host and socket server</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-194">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-194">&#182;</a>               </div>               <p>create the post processor instance</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                               <tr id="section-195">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-195">&#182;</a>               </div>               <p>if we're using CI, kick it off the first time</p>             </td>             <td class="code">               <div class="highlight"><pre>undefined</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
