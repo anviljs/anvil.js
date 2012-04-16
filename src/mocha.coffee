@@ -15,6 +15,7 @@ path = require "path"
 class MochaRunner
 
 	constructor: ( @fp, @scheduler, @config, @onComplete ) ->
+		_.bindAll( this )
 		
 	run: () ->
 		self = this
@@ -43,8 +44,10 @@ class MochaRunner
 			specs = if _.isString @config.spec then [ @config.spec ] else @config.spec
 
 			forAll specs, @fp.getFiles, ( lists ) ->
+				self.cleanUp()
 				files = _.flatten lists
 				for file in files
+					delete require.cache[ file ]
 					suite.emit 'pre-require', global, file
 					suite.emit 'require', require file, file
 					suite.emit 'post-require', global, file
@@ -54,11 +57,13 @@ class MochaRunner
 				reporter = new Reporter runner
 				if opts.ignoreLeaks then runner.ignoreLeaks = true
 				runner.run () -> 
-					cachedFiles = _.flatten require.cache
-					sourcePath = path.resolve self.config.source
-					pathLength = sourcePath.length
-					for file in cachedFiles
-						modulePath = file.filename.substring 0, pathLength
-						if sourcePath == modulePath
-							delete require.cache[ file ]
 					self.onComplete()
+
+	cleanUp: () ->
+		cachedFiles = _.flatten require.cache
+		sourcePath = path.resolve @config.source
+		pathLength = sourcePath.length
+		for file in cachedFiles
+			modulePath = file.filename.substring 0, pathLength
+			if sourcePath == modulePath
+				delete require.cache[ file ]
