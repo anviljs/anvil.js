@@ -2,30 +2,18 @@
 # This provides the primary logic and flow control for build activities
 class Anvil
 
-	constructor: ( @config, @fp, @compiler, @combiner, @documenter, @scheduler, @postProcessor, @log, @callback ) ->
-		config = @config
-		@filesBuilt = {}
+	constructor: ( @fp, @compiler, @combiner, @documenter, @scheduler, @postProcessor, @log, @callback ) ->
+		@buildNumber = 0
 		@inProcess = false
-		# mini FSM - basically we don't want to start building markup until
-		# everything else is done since markup can import other built resources
-		@steps = 
-			source: false
-			style: false
-			markup: false
-			hasSource: config.source
-			hasStyle: config.style
-			hasMarkup: config.markup
-			markupReady: () -> ( this.source or not this.hasSource ) and ( this.style or not this.hasStyle )
-			allDone: () -> 
-				status = ( this.source or not this.hasSource ) and ( this.style or not this.hasStyle ) and ( this.markup or not this.hasMarkup )
-				status
-
+		
 	extensions: [ ".js", ".coffee", ".html", ".haml", ".markdown", ".md", ".css", ".styl", ".less", ".css" ]
 
 	# ## build ##
 	# Kicks off the build for the currently configured Anvil instance
-	build: () ->
+	build: ( config ) ->
 		if not @inProcess
+			@initialize( config )
+			@log.onStep "Build #{ @buildNumber } initiated"
 			@inProcess = true
 			@buildSource()
 			@buildStyle()
@@ -54,6 +42,25 @@ class Anvil
 		replacePatterns = [ ///([ \t]*)([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][/])?///g ]
 		@processType( "style", findPatterns, replacePatterns )
 
+	# ## initialize
+	# Initializes state for the build
+	initialize: ( config ) ->
+		@config = config
+		@filesBuilt = {}
+		# mini FSM - basically we don't want to start building markup until
+		# everything else is done since markup can import other built resources
+		@steps = 
+			source: false
+			style: false
+			markup: false
+			hasSource: config.source
+			hasStyle: config.style
+			hasMarkup: config.markup
+			markupReady: () -> ( this.source or not this.hasSource ) and ( this.style or not this.hasStyle )
+			allDone: () -> 
+				status = ( this.source or not this.hasSource ) and ( this.style or not this.hasStyle ) and ( this.markup or not this.hasMarkup )
+				status
+
 	# ## processType ##
 	# The steps that get followed for each resource type are the same.
 	# This function provides the core behavior of identifying, combining,
@@ -68,22 +75,31 @@ class Anvil
 		combiner = new @combiner( @fp, @scheduler, findPatterns, replacePatterns )
 		postProcessor = @postProcessor
 
+		@log.onStep "Starting #{ type } pipe-line"
 		self.prepFiles type, ( list ) ->
-			self.copyFiles list, () ->
-				# combines imported files
-				combiner.combineList list, () ->
-					# filter out all files that were combined into another file
-					final = _.filter( list, ( x ) -> x.dependents == 0 )
-					# if documentation should be generated, do that now
-					if self.config.docs
-						self.documenter.generate final
-					# compiles the combined results
-					forAll final, compiler.compile, ( compiled ) ->
-						# kick off post processors for compiled files
-						postProcessor[ type ].process compiled, ( list ) ->
-							# copy complete files to the destination folders
-							self.finalOutput list, () ->
-								self.stepComplete type
+			if list and list.length > 0
+
+				self.copyFiles list, () ->
+					# combines imported files
+					self.log.onStep "Combining #{ type } files"
+					combiner.combineList list, () ->
+						# filter out all files that were combined into another file
+						final = _.filter( list, ( x ) -> x.dependents == 0 )
+						# if documentation should be generated, do that now
+						#if self.config.docs
+						#	self.documenter.generate final
+						# compiles the combined results
+						self.log.onStep "Compiling #{ type } files"
+						forAll final, compiler.compile, ( compiled ) ->
+							# kick off post processors for compiled files
+							self.log.onStep "Post-process #{ type } files"
+							postProcessor[ type ].process compiled, ( list ) ->
+								# copy complete files to the destination folders
+								self.log.onStep "Moving #{ type } files to destinations"
+								self.finalOutput list, () ->
+									self.stepComplete type
+			else
+				self.stepComplete type
 
 	# ## finalOutput ##
 	# Copies the final list of files to their output folders
@@ -124,7 +140,8 @@ class Anvil
 		fp = @fp
 		forAll = @scheduler.parallel
 		fp.getFiles @config.working, ( files ) ->
-			forAll files, fp.delete, onComplete
+			forAll files, fp.delete, () ->
+				onComplete()
 
 
 	# ## prepFiles ##
@@ -141,7 +158,7 @@ class Anvil
 		output = if _.isArray( output ) then output else [ output ]
 		log = @log
 		@fp.getFiles typePath, ( files ) ->
-			log.onEvent "Scanning #{ files.length } #{ type } files ..."
+			log.onEvent "Found #{ files.length } #{ type } files ..."
 			list = for file in files
 						name = path.basename file
 						{

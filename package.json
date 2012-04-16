@@ -1,7 +1,7 @@
 {
     "name": "anvil.js",
     "description": "A continuous integration tool for JS, CSS and HTML.",
-    "version": "0.7.3",
+    "version": "0.7.4",
     "authors": ["Alex Robson <@A_Robson>"],
     "keywords": ["build","compile","static","ci"],
     "main": "./lib/anvil.js",
@@ -20,7 +20,7 @@
         "underscore": ">=1.1.7",
         "coffee-script": "1.1.2",
         "express": ">=2.4.6",
-        "argparser": "0.0.9",
+        "commander": ">=0.6.0",
         "socket.io": ">=0.8.4",
         "stylus": ">=0.24.0",
         "cssmin": ">=0.3.1",

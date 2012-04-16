@@ -23,12 +23,11 @@ class Continuous
 	# if any contents change
 	setup: () ->
 		if not @watching
+			@watching = true
 			if @style then @watchPath p for p in @style
 			if @source then @watchPath p for p in @source
 			if @markup then @watchPath p for p in @markup
 			if @spec then @watchPath p for p in @spec
-
-		@watching = true
 
 	# ## watchpath ##
 	# Calls watchFiles for all files in the path
@@ -50,7 +49,8 @@ class Continuous
 	# * _event {Object}_: the event that fired on the file system
 	# * _file {String}_: the file that triggered the change
 	onEvent: ( event, file ) ->
-		@watching = false
-		while @watchers.length > 0
-			@watchers.pop().close()
-		@onChange()
+		if @watching
+			@watching = false
+			while @watchers.length > 0
+				@watchers.pop().close()
+			@onChange()

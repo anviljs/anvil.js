@@ -20,10 +20,6 @@ mkdir = require( "mkdirp" ).mkdirp
 # Node's path helper library
 path = require "path"
 
-# Parses command line args and options -- 
-# See https://github.com/shinout/argparser for more info
-ArgParser = require "argparser"
-
 # A Sinatra inspired web development framework for Node -- 
 # See http://expressjs.com for more info
 express = require "express"
