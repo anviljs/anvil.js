@@ -47,6 +47,12 @@ class Host
 		if @config.spec
 			app.use "/spec", express.static( path.resolve @config.spec )
 
+		# host anvil prerequisites for supporting certain browser features out of
+		# the box
+		anvilPath = path.resolve __dirname, "../ext"
+		console.log "Hosting anvil prerequisites from #{ anvilPath }"
+		app.use "/anvil", express.static( anvilPath )
+
 		# if a static file type is requested that fits an extension we know how to
 		# compile, use the compiler to translate it on-the-fly
 		app.get ///.*[.](coffee|kup|less|styl|md|markdown|haml)///, ( req, res ) ->
