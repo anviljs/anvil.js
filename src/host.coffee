@@ -49,7 +49,7 @@ class Host
 
 		# host anvil prerequisites for supporting certain browser features out of
 		# the box
-		anvilPath = path.resolve __dirname, "../ext"
+		anvilPath = path.resolve( path.dirname( fs.realpathSync( __filename ) ), "../ext" )
 		console.log "Hosting anvil prerequisites from #{ anvilPath }"
 		app.use "/anvil", express.static( anvilPath )
 
