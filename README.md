@@ -38,16 +38,16 @@ Without a build file, Anvil will use its default conventions to attempt to build
             "source": [ "lib", "site/js" ],
             "style": [ "css", "site/css" ],
             "markup": "site/"
-        }
+        },
         "lint": {},
         "uglify": {},
         "cssmin": {},
         "extensions": { "uglify": "min" },
-        "finalize:" {
+        "finalize": {
             "header|header-file": "this is some unprocessed text or a file name",
             "footer|footer-file": "this is some unprocessed text or a file name"
         },
-        "wrap:" {
+        "wrap": {
             "prefix|prefix-file": "this is some unprocessed text or a file name",
             "suffix|suffix-file": "this is some unprocessed text or a file name"
         },
@@ -56,7 +56,7 @@ Without a build file, Anvil will use its default conventions to attempt to build
           "/docs": "docs"
         },
         "name": "custom-name.js",
-        "mocha": { "reporter", "spec" },
+        "mocha": { "reporter": "spec" },
         "docs": { "generator": "ape", "output": "docs" }
     }
 
