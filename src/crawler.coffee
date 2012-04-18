@@ -65,7 +65,10 @@ class FSCrawler
 				files = []
 				directories = []
 				for item in classified
-					if item.isDirectory then directories.push item.file else files.push item.file
+					if item.isDirectory 
+						directories.push item.file 
+					else if not item.error
+						files.push item.file
 				onComplete files, directories
 		else
 			onComplete [], []
@@ -74,11 +77,12 @@ class FSCrawler
 	# Get the fs stat and determine if the path is to a file or a directory
 	# * _file {String}_: the path to check
 	# * _onComplete {Function}_: the function to call with the result of the check
-	classifyHandle: ( file, onComplete ) ->
+	classifyHandle: ( file, onComplete ) ->	
 		fs.stat file, ( err, stat ) ->
 			if err
 				onComplete { file: file, err: err }
 			else
 				onComplete { file: file, isDirectory: stat.isDirectory() }
+		
 
 exports.crawler = FSCrawler

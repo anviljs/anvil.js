@@ -1,6 +1,8 @@
 node_modules/
 test/node_modules/
 .idea/
-pavlov/
 index.html
 .DS_Store
+tmp
+lib/
+next/
