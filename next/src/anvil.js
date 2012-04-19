@@ -1,21 +1,44 @@
 
-var anvilFactory = function( _, Scheduler, FSProvider, Log ) {
+var anvilFactory = function( _, scheduler, fs, log, compiler, combiner ) {
 
 	var Anvil = function( ) {
 
 		this.conventions = {
 			defaultSiteBlock: {
-
+				source: "src",
+				style: "style",
+				markup: "markup",
+				output: {
+					source: [ "lib", "site/js" ],
+					style: [ "css", "site/css" ],
+					markup: "site/"
+				},
+				spec: "spec",
+				ext: "ext",
+				lint: {},
+				uglify: {},
+				cssmin: {},
+				hosts: {
+					"/": "site"
+				}
 			},
 			defaultLibBlock: {
-
+				source: "src",
+				output: "lib",
+				spec: "spec",
+				ext: "ext",
+				lint: {},
+				uglify: {},
+				hosts: {
+					"/": "site"
+				}
 			}
 		};
 
 		
 		this.services = {};
-		this.combiner = {};
-		this.compilers = {};
+		this.combiner = combiner;
+		this.compiler = compiler;
 		this.preprocessors = {};
 		this.postprocessors = {};
 		this.buildState = {};
@@ -29,7 +52,7 @@ var anvilFactory = function( _, Scheduler, FSProvider, Log ) {
 		var moduleSpecification;
 		_.each( this.extensions, function( extension ) {
 			moduleSpecification = extension.file || extension.module;
-			require( moduleSpecification )( Scheduler, )
+			require( moduleSpecification )( Scheduler, );
 		} );
 	};
 
@@ -51,10 +74,8 @@ var anvilFactory = function( _, Scheduler, FSProvider, Log ) {
 		if( !stop ) {
 			// create load pipeline
 
+
 			// create the initialization pipeline
-
-
-			// wire up extensions
 
 
 			// wire up services

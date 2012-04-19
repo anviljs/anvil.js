@@ -1,38 +1,39 @@
 // # Scheduler
 // Asynchronous abstractions
-var SchedulerFactory = function( _ ) {
+var schedulerFactory = function( _ ) {
 
 	function Scheduler() {
 
 	}
 
-	Scheduler.prototype.parallel = function( closures, onComplete ) { 
+	Scheduler.prototype.parallel = function( list, task, onComplete ) {
 		var length = 0,
 			index = 0,
 			results = [],
-			callback = function( result, resultIndex ){ 
+			callback = function( result, resultIndex ){
 				results[ resultIndex ] = result;
 				if( --length === 0 ) {
-					onComplete( results ); 
+					onComplete( results );
 				}
 			},
-			call;
+			input,
+			args;
 
-		// if the list of closures is empty, then return an empty list.
-		if( !closures || ( length = closures.length ) === 0 ) {
+		// if the list of inputs is empty, then return an empty list.
+		if( !list || ( length = list.length ) === 0 ) {
 			onComplete( [] );
 		}
 
-		while( ( call = closures.shift() ) ) {
-			call( function( result ) { callback( result, index ); } );
+		while( ( input = list.shift() ) ) {
+			task( input, function( result ) { callback( result, index ); } );
 			index++;
 		}
 	};
 
-	Scheduler.prototype.mapped = function( map, onComplete ) { 
+	Scheduler.prototype.mapped = function( map, onComplete ) {
 		var remaining = 0,
 			results = {},
-			callback = function( name, result ){ 
+			callback = function( name, result ){
 				results[ name ] = result;
 				if( --remaining === 0 && firstPassComplete ) {
 					onComplete( results );
@@ -43,7 +44,9 @@ var SchedulerFactory = function( _ ) {
 		for( key in map ){
 			if( map.hasOwnProperty( key ) ) {
 				remaining++;
-				map[ key ]( function( value ){ callback( key, value ); } );
+				( function(key) {
+					map[ key ]( function( value ){ callback( key, value ); } );
+				} )( key );
 			}
 		}
 		firstPassComplete = true;
@@ -66,7 +69,7 @@ var SchedulerFactory = function( _ ) {
 				} else {
 					iterate();
 				}
-			};		
+			};
 
 		if( !transforms || transforms.length === 0 ) {
 			onComplete( initial );
@@ -78,4 +81,4 @@ var SchedulerFactory = function( _ ) {
 	return Scheduler;
 };
 
-module.exports = SchedulerFactory;
+module.exports = schedulerFactory;

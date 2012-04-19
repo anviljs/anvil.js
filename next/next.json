@@ -1,10 +1,10 @@
 {
-	"source": "src",
+	"source": "js",
 	"spec": "spec",
 	"ext": "ext",
-	"output": "lib",
+	"output": "next",
 	"finalize": {
-		"header-file": "../license.txt"
+		"header-file": "license.txt"
 	},
 	"docs": {
 		"generator": "docco",
