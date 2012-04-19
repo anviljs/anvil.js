@@ -81,7 +81,7 @@ class Configuration
 		self = this
 		command = new Commander()
 		command
-			.version("0.7.4")
+			.version("0.7.5")
 			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
 			.option( "--ci", "Run a continuous integration build" )
 			.option( "--host", "Setup a static HTTP host" )
@@ -213,7 +213,7 @@ class Configuration
 				done()
 
 		@log.onStep "Ensuring project directory structure"
-		@scheduler.parallel paths, worker, () -> self.copyPrereqs onComplete
+		@scheduler.parallel paths, worker, onComplete
 
 	# ## prepConfig ##
 	# Fallback to default config, if specified config doesn't exist
@@ -419,28 +419,6 @@ class Configuration
 						done content
 			else if propertyValue
 				aggregation[ property ] = ( done ) -> done propertyValue
-
-	# ## copyPrereqs ##
-	# Copy the prerequisites for QUnit, pavlov and anvilHook.js
-	# to the project's ext folder
-	# ### Args:
-	# * _onComplete {Function}_: what to call when work is complete
-	copyPrereqs: ( onComplete ) ->
-		fp = @fp
-		forAll = @scheduler.parallel
-		if config.ext
-			prereqPath = path.resolve __dirname, '../ext'
-			fp.getFiles prereqPath, ( files ) ->
-				copy = ( file, done ) ->
-					fileName = path.basename( file )
-					if not fp.pathExists [ config.ext, fileName ]
-						fp.copy file, [ config.ext, fileName ], done
-					else
-						done()
-				forAll files, copy, () -> 
-					onComplete()
-		else
-			onComplete()
 
 	# ## writeConfig ##
 	# Creates new default config file

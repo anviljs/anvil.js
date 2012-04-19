@@ -150,7 +150,9 @@ class SourcePipeline
 	# * _file {String}_: the file to minify
 	# * _onComplete {Function}_: the function to call after minification has completed
 	minify: ( file, onComplete ) ->
-		if @config.uglify
+		exclusions = @config.uglify?.exclude || []
+		isExcluded = _.any exclusions, ( x ) -> x == file.name
+		if @config.uglify and not isExcluded
 			self = this
 			ext = file.ext()
 			newFile = file.name.replace ext, ".min.js"
