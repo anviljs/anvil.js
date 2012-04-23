@@ -11,19 +11,19 @@ require "should"
 
 fp = new FP()
 
-htmlFindPatterns = [ 	///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
-htmlReplacePatterns = [ ///([ \t]*)[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
+htmlFindPatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
+htmlReplacePatterns = [ ///([\t]*)[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
 
-sourceFindPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?[\#]{0,3}///g ]
-sourceReplacePatterns = [ ///([ \t]*)([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[\#]{0,3}///g ]
+sourceFindPatterns = [ ///([\/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([\#]{0,3})///g ]
+sourceReplacePatterns = [ ///([\t]*)([\/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[\#]{0,3}///g ]
 
 ###
 cssFindPatterns = [ ///@import[(]?.?[\"'].*[.]css[\"'].?[)]?///g ]
 cssReplacePatterns = [ ///@import[(]?.?[\"']replace[\"'].?[)]?///g ]
 ###
 
-cssFindPatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][/])?///g ]
-cssReplacePatterns = [ ///([ \t]*)([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][/])?///g ]
+cssFindPatterns = [ ///([\/]{2}|[\/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][\/])?///g ]
+cssReplacePatterns = [ ///([\t]*)([\/]{2}|[\/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][\/])?///g ]
 
 stripSpace = ( content ) -> content.replace ///\s///g, ""
 compareOutput = ( one, two ) ->  ( stripSpace one ).should.equal ( stripSpace two )
