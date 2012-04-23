@@ -58,6 +58,18 @@ jsSixTxt = """
 	};
 """
 
+jsSevenTxt = """
+	if ( !old ) {
+		context.setAttribute( "id", nid );
+	} else {
+		nid = nid.replace( /'/g, "\\$&" );
+	}
+"""
+
+jsEightTxt = """
+	// import( 'seven.js' );	
+"""
+
 cssOneTxt = """
 	/* import 'two.css' */
 """
@@ -187,6 +199,8 @@ threeCoffee = createFile "source", "three.coffee", "tmp", coffeeThreeTxt
 fourJs = createFile "source", "four.js", "tmp", jsFourTxt
 fiveJs = createFile "source", "five.js", "tmp", jsFiveTxt
 sixJs = createFile "source", "six.js", "tmp", jsSixTxt
+sevenJs = createFile "source", "seven.js", "tmp", jsSevenTxt
+eightJs = createFile "source", "eight.js", "tmp", jsEightTxt
 
 oneCss = createFile "style", "one.css", "tmp", cssOneTxt
 twoCss = createFile "style", "two.css", "tmp", cssTwoTxt
@@ -199,7 +213,7 @@ indentChild = createFile "source", "indentChild.coffeee", "tmp", indentChildCoff
 indentGrandChild = createFile "source", "indentGrandChild.coffeee", "tmp", indentGrandChildCoffee
 indentResult = createFile "source", "indentResult.coffee", "tmp", indentResultCoffee
 
-all = [ oneCoffee, twoCoffee, threeCoffee, fourJs, fiveJs, sixJs, oneCss, twoCss, ignored, htmlFile, indentHost, indentChild, indentGrandChild, indentResult ]
+all = [ oneCoffee, twoCoffee, threeCoffee, fourJs, fiveJs, sixJs, sevenJs, eightJs, oneCss, twoCss, ignored, htmlFile, indentHost, indentChild, indentGrandChild, indentResult ]
 
 describe "when adding files for tests", ->
 
@@ -270,7 +284,7 @@ describe "when combining coffee files", ->
 
 describe "when combining js files", ->
 	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
-	jsFiles = [ fourJs, fiveJs, sixJs ]
+	jsFiles = [ fourJs, fiveJs, sixJs, sevenJs, eightJs ]
 
 	before ( done ) ->
 		combine.combineList jsFiles, () -> done()
@@ -278,6 +292,11 @@ describe "when combining js files", ->
 	it "should combine files correctly", ( done ) ->
 		fp.read [ sixJs.workingPath, sixJs.name ], ( content ) ->
 			compareOutput content, jsFinalTxt
+			done()
+
+	it "should behave with similar inline JS", ( done ) ->
+		fp.read [ eightJs.workingPath, eightJs.name ], ( content ) ->
+			compareOutput content, jsSevenTxt
 			done()
 
 describe "when getting imports for css", ->
