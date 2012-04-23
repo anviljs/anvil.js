@@ -11,19 +11,19 @@ require "should"
 
 fp = new FP()
 
-htmlFindPatterns = [ 	///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
-htmlReplacePatterns = [ ///([ \t]*)[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
+htmlFindPatterns = [ ///[\<][!][-]{2}.?import[(]?.?['\"].*['\"].?[)]?.?[-]{2}[\>]///g ]
+htmlReplacePatterns = [ ///([\t]*)[\<][!][-]{2}.?import[(]?.?['\"]replace['\"].?[)]?.?[-]{2}[\>]///g ]
 
-sourceFindPatterns = [ ///([/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?[\#]{0,3}///g ]
-sourceReplacePatterns = [ ///([ \t]*)([/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[\#]{0,3}///g ]
+sourceFindPatterns = [ ///([\/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([\#]{0,3})///g ]
+sourceReplacePatterns = [ ///([\t]*)([\/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[\#]{0,3}///g ]
 
 ###
 cssFindPatterns = [ ///@import[(]?.?[\"'].*[.]css[\"'].?[)]?///g ]
 cssReplacePatterns = [ ///@import[(]?.?[\"']replace[\"'].?[)]?///g ]
 ###
 
-cssFindPatterns = [ ///([/]{2}|[/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][/])?///g ]
-cssReplacePatterns = [ ///([ \t]*)([/]{2}|[/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][/])?///g ]
+cssFindPatterns = [ ///([\/]{2}|[\/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][\/])?///g ]
+cssReplacePatterns = [ ///([\t]*)([\/]{2}|[\/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][\/])?///g ]
 
 stripSpace = ( content ) -> content.replace ///\s///g, ""
 compareOutput = ( one, two ) ->  ( stripSpace one ).should.equal ( stripSpace two )
@@ -58,6 +58,31 @@ jsSixTxt = """
 	};
 """
 
+jsSevenTxt = """
+	if ( !old ) {
+		context.setAttribute( "id", nid );
+	} else {
+		nid = nid.replace( /'/g, "\\$&" );
+	}
+"""
+
+jsEightTxt = """
+	// import( 'seven.js' );	
+"""
+
+jsNineTxt = """
+	var _ = root._;
+	if (!_ && (typeof require !== 'undefined')) _ = require('underscore');
+	// For Backbone's purposes, jQuery, Zepto, or Ender owns the `$` variable.
+	var $ = root.jQuery || root.Zepto || root.ender;
+"""
+
+jsTenTxt = """
+	// import( 'seven.js' );
+	// import( 'nine.js' );
+	// import( 'five.js' );
+"""
+
 cssOneTxt = """
 	/* import 'two.css' */
 """
@@ -84,6 +109,19 @@ jsFinalTxt = """
 			console.log( 'This example is weak-sauce' );
 		}
 	};
+"""
+
+jsFinalTxt2 = """
+	if ( !old ) {
+		context.setAttribute( "id", nid );
+	} else {
+		nid = nid.replace( /'/g, "\\$&" );
+	}
+	var _ = root._;
+	if (!_ && (typeof require !== 'undefined')) _ = require('underscore');
+	// For Backbone's purposes, jQuery, Zepto, or Ender owns the `$` variable.
+	var $ = root.jQuery || root.Zepto || root.ender;
+	console.log( 'This example is weak-sauce' );
 """
 
 cssFinalTxt = """
@@ -187,6 +225,10 @@ threeCoffee = createFile "source", "three.coffee", "tmp", coffeeThreeTxt
 fourJs = createFile "source", "four.js", "tmp", jsFourTxt
 fiveJs = createFile "source", "five.js", "tmp", jsFiveTxt
 sixJs = createFile "source", "six.js", "tmp", jsSixTxt
+sevenJs = createFile "source", "seven.js", "tmp", jsSevenTxt
+eightJs = createFile "source", "eight.js", "tmp", jsEightTxt
+nineJs = createFile "source", "nine.js", "tmp", jsNineTxt
+tenJs = createFile "source", "ten.js", "tmp", jsTenTxt
 
 oneCss = createFile "style", "one.css", "tmp", cssOneTxt
 twoCss = createFile "style", "two.css", "tmp", cssTwoTxt
@@ -199,7 +241,7 @@ indentChild = createFile "source", "indentChild.coffeee", "tmp", indentChildCoff
 indentGrandChild = createFile "source", "indentGrandChild.coffeee", "tmp", indentGrandChildCoffee
 indentResult = createFile "source", "indentResult.coffee", "tmp", indentResultCoffee
 
-all = [ oneCoffee, twoCoffee, threeCoffee, fourJs, fiveJs, sixJs, oneCss, twoCss, ignored, htmlFile, indentHost, indentChild, indentGrandChild, indentResult ]
+all = [ oneCoffee, twoCoffee, threeCoffee, fourJs, fiveJs, sixJs, sevenJs, eightJs, nineJs, tenJs, oneCss, twoCss, ignored, htmlFile, indentHost, indentChild, indentGrandChild, indentResult ]
 
 describe "when adding files for tests", ->
 
@@ -270,7 +312,7 @@ describe "when combining coffee files", ->
 
 describe "when combining js files", ->
 	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
-	jsFiles = [ fourJs, fiveJs, sixJs ]
+	jsFiles = [ fourJs, fiveJs, sixJs, sevenJs, eightJs, nineJs, tenJs ]
 
 	before ( done ) ->
 		combine.combineList jsFiles, () -> done()
@@ -278,6 +320,16 @@ describe "when combining js files", ->
 	it "should combine files correctly", ( done ) ->
 		fp.read [ sixJs.workingPath, sixJs.name ], ( content ) ->
 			compareOutput content, jsFinalTxt
+			done()
+
+	it "should behave with similar inline JS", ( done ) ->
+		fp.read [ eightJs.workingPath, eightJs.name ], ( content ) ->
+			compareOutput content, jsSevenTxt
+			done()
+
+	it "should not use $` in the source as a regexp match", ( done ) ->
+		fp.read [ tenJs.workingPath, tenJs.name ], ( content ) ->
+			compareOutput content, jsFinalTxt2
 			done()
 
 describe "when getting imports for css", ->
