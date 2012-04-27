@@ -12,9 +12,9 @@ var combinerFactory = function( _, fp, scheduler ) {
 			imported;
 
 		if( !file.combined && file.imports.length > 0 ) {
-			_.each( file.imports, function( imported ) {
+			for( imported in file.imports ) {
 				steps.push( this.getStep( imported ) );
-			}, this );
+			}
 			fp.read( [ file.workingPath, file.name ], function( main ) {
 				scheduler.pipeline( main, steps, function( result ) {
 					fp.write( [ file.workingPath, file.name ], result, onComplete );
@@ -53,34 +53,37 @@ var combinerFactory = function( _, fp, scheduler ) {
 			onImports = function() {
 				self.onImports( list, onComplete );
 			};
+
 		scheduler.parallel( list, findImports, onImports );
 	};
 
 	Combiner.prototype.findDependents = function( file, list ) {
 		var imported = function( importFile ) { return file.name === importFile.name; },
 			item;
-		_.each( list, function( item ) {
+		for( item in list ) {
 			if( _.any( item.imports, imported ) ) {
 				file.dependents++;
 			}
-		} );
+		}
 	};
 
 	Combiner.prototype.findImports = function( file, list, onComplete ) {
 		var self = this,
 			imports = [];
-		fp.read( [file.workingPath, file.name ], function( content ) {
-			_.each( self.findPatterns, function( pattern ) {
-				imports = imports.concat( content.match( pattern ) );
-			} );
-			
-			imports = _.filter( imports, function( x ) { return x != undefined; } );
 
-			_.each( imports, function ( imported ) {
-				var importName = imported.match( /['\"].*['\"]/ )[ 0 ].replace( /['\"]/g, "" );
-				var importedFile = _.find( list, function( i ) { return i.name === importName; } );
+		fp.read( [file.workingPath, file.name ], function( content ) {
+			var pattern, imported, importName;
+
+			for( pattern in self.findPatterns ) {
+				imports = imports.concat( content.match( pattern ) );
+			}
+			imports = _.filter( imports, function( x ) { return x; } );
+
+			for( imported in imports ) {
+				importName = imported.match( /['\"].*['\"]/ )[ 0 ].replace( /['\"]/g, "" );
+				importedFile = _.find( list, function( i ) { return i.name == importName; } );
 				file.imports.push( importedFile );
-			} );
+			}
 			onComplete();
 		} );
 	};
@@ -93,9 +96,14 @@ var combinerFactory = function( _, fp, scheduler ) {
 	};
 
 	Combiner.prototype.onImports = function( list, onComplete ) {
-		_.each( list, function( file ) {
-			this.findDependents( file, list );
-		}, this );
+		var findDependents =  _.bind( function( file, done ) {
+				self.findDependents( file, list, done );
+			} ),
+			file;
+
+		for( file in list ) {
+			findDependents( file, list );
+		}
 		scheduler.parallel( list, this.combineFile, onComplete );
 	};
 
@@ -108,7 +116,7 @@ var combinerFactory = function( _, fp, scheduler ) {
 			var steps = [],
 				pattern;
 
-			_.each( self.replacePatterns, function( pattern ) {
+			for( pattern in self.replacePatterns ) {
 				steps.push( function( current, done ) {
 					var stringified = pattern.toString().replace( /replace/, source ),
 						trimmed = stringified.substring( 1, stringified.length - 2 ),
@@ -117,13 +125,13 @@ var combinerFactory = function( _, fp, scheduler ) {
 						whiteSpace;
 
 						if( capture && capture.length > 1 ) {
-							whiteSpace = capture[ 1 ];
+							whiteSpace = capture[1];
 							newContent = whiteSpace + newContent.replace( /\n/g, "\n" + whiteSpace );
 						}
 						done( current.replace( newPattern, newContent ) );
 				} );
 				scheduler.pipeline( content, steps, onComplete );
-			} );
+			}
 		} );
 	};
 

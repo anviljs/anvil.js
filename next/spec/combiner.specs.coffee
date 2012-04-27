@@ -3,10 +3,10 @@ log = require( "./logMock.coffee" ).log
 FP = require( "./fsMock.coffee" ).fsProvider
 
 path = require "path"
-Scheduler = require( "../src/scheduler.js")( _ )
+Scheduler = require( "../src/scheduler.js" )( _ )
 fp = new FP()
 scheduler = new Scheduler()
-Combiner = require( "../src/combiner.js")( _, fp, scheduler )
+Combiner = require( "../src/combiner.js" )( _, fp, scheduler )
 
 require "should"
 
@@ -213,7 +213,7 @@ describe "when adding files for tests", ->
 
 describe "when getting imports for coffeescript", ->
 
-	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
 	coffeeFiles = [ oneCoffee, twoCoffee, threeCoffee ]
 	findImport = ( file, done ) ->
 		combine.findImports file, coffeeFiles, done
@@ -237,7 +237,7 @@ describe "when getting imports for coffeescript", ->
 		twoCoffee.imports.length.should.equal 0
 
 describe "when getting dependencies for coffeescript", ->
-	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
 	coffeeFiles = [ oneCoffee, twoCoffee, threeCoffee ]
 	
 	before () ->
@@ -254,7 +254,7 @@ describe "when getting dependencies for coffeescript", ->
 		threeCoffee.dependents.should.equal 0
 
 describe "when combining coffee files", ->
-	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
 	coffeeFiles = [ oneCoffee, twoCoffee, threeCoffee ]
 
 	wrapper = ( f, done ) ->
@@ -269,7 +269,7 @@ describe "when combining coffee files", ->
 			done()
 
 describe "when combining js files", ->
-	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
 	jsFiles = [ fourJs, fiveJs, sixJs ]
 
 	before ( done ) ->
@@ -282,7 +282,7 @@ describe "when combining js files", ->
 
 describe "when getting imports for css", ->
 
-	combine = new Combiner fp, scheduler, cssFindPatterns, cssReplacePatterns
+	combine = new Combiner cssFindPatterns, cssReplacePatterns
 	cssFiles = [ oneCss, twoCss, ignored ]
 	findImport = ( file, done ) ->
 		combine.findImports file, cssFiles, done
@@ -300,7 +300,7 @@ describe "when getting imports for css", ->
 		twoCoffee.imports.length.should.equal 0
 
 describe "when getting dependencies for css", ->
-	combine = new Combiner fp, scheduler, cssFindPatterns, cssReplacePatterns
+	combine = new Combiner cssFindPatterns, cssReplacePatterns
 	cssFiles = [ oneCss, twoCss, ignored ]
 	
 	before () ->
@@ -314,7 +314,7 @@ describe "when getting dependencies for css", ->
 		twoCss.dependents.should.equal 1
 
 describe "when combining css files", ->
-	combine = new Combiner fp, scheduler, cssFindPatterns, cssReplacePatterns
+	combine = new Combiner cssFindPatterns, cssReplacePatterns
 	cssFiles = [ oneCss, twoCss, ignored ]
 
 	before ( done ) ->
@@ -328,7 +328,7 @@ describe "when combining css files", ->
 
 describe "when getting imports for html", ->
 
-	combine = new Combiner fp, scheduler, htmlFindPatterns, htmlReplacePatterns
+	combine = new Combiner htmlFindPatterns, htmlReplacePatterns
 	htmlFiles = [ htmlFile ]
 	findImport = ( file, done ) ->
 		combine.findImports file, all, done
@@ -349,7 +349,7 @@ describe "when getting imports for html", ->
 		htmlFile.imports[1].name.should.equal "six.js"
 
 describe "when combining html with other resources", ->
-	combine = new Combiner fp, scheduler, htmlFindPatterns, htmlReplacePatterns
+	combine = new Combiner htmlFindPatterns, htmlReplacePatterns
 	htmlFiles = [ htmlFile ]
 
 	before ( done ) ->
@@ -361,7 +361,7 @@ describe "when combining html with other resources", ->
 			done()
 
 describe "when combining files with indented import statements", ->
-	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
 	coffeeFiles = [ indentHost, indentChild, indentGrandChild ]
 
 	wrapper = ( f, done ) ->

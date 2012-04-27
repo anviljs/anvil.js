@@ -4,20 +4,6 @@ var anvilFactory = function( _, scheduler, fs, log, compiler, combiner ) {
 	var Anvil = function( ) {
 
 		this.conventions = {
-			defaultImportPatterns: {
-					"**/*.(js|coffee)": {
-						find: [ /([\/]{2}|[\#]{3}).?import.?[(]?.?['"].*["'].?[)]?[;]?.?([\#]{0,3})/g ],
-						replace: [ /([\/]{2}|[\#]{3}).?import.?[(]?.?['"]replace["'].?[)]?[;]?.?([\#]{0,3})/g ]
-					},
-					"**/*.(css|styl|less|stylus)": {
-						find: [ /([\/]{2}|[\/][*]).?import[(]?.?['"].*["'].?[)]?([*][\/])?/g ],
-						replace: [ ]
-					},
-					"**/*.(md|html)": {
-						find: [ /[<][!][-]{2}.?import[(]?.?['"].*["'].?[)]?.?[-]{2}[>]/g ],
-						replace: [ /[<][!][-]{2}.?import[(]?.?['"]replace["'].?[)]?.?[-]{2}[>]/g ]
-					}
-				},
 			defaultSiteBlock: {
 				source: "src",
 				style: "style",
@@ -58,17 +44,14 @@ var anvilFactory = function( _, scheduler, fs, log, compiler, combiner ) {
 		this.events = {};
 		this.inProcess = false;
 
-
-
 		_.bindAll( this );
 	};
 
 	Anvil.prototype.load = function() {
-		var self = this,
-			moduleSpecification;
+		var moduleSpecification;
 		_.each( this.extensions, function( extension ) {
 			moduleSpecification = extension.file || extension.module;
-			require( moduleSpecification )( _, scheduler, fs, log, self );
+			require( moduleSpecification )( _, scheduler, fs, log, this );
 		} );
 	};
 
@@ -91,12 +74,13 @@ var anvilFactory = function( _, scheduler, fs, log, compiler, combiner ) {
 			// create load pipeline
 
 
-			
+			// create the initialization pipeline
 
 
 			// wire up services
 
 
+			// create build pipeline
 
 
 		}

@@ -24,15 +24,14 @@ var schedulerFactory = function( _ ) {
 			onComplete( [] );
 		}
 
-		_.each( list, function( input ) {
+		while( ( input = list.shift() ) ) {
 			task( input, function( result ) { callback( result, index ); } );
 			index++;
-		} );
+		}
 	};
 
 	Scheduler.prototype.mapped = function( map, onComplete ) {
-		var keys = _.keys( map ),
-			remaining = keys.length,
+		var remaining = 0,
 			results = {},
 			callback = function( name, result ){
 				results[ name ] = result;
@@ -40,11 +39,16 @@ var schedulerFactory = function( _ ) {
 					onComplete( results );
 				}
 			},
-			firstPassComplete;
+			firstPassComplete, key;
 
-		_.each( keys, function( key ) {
-			map[ key ]( function( value ){ callback( key, value ); } );
-		} );
+		for( key in map ){
+			if( map.hasOwnProperty( key ) ) {
+				remaining++;
+				( function(key) {
+					map[ key ]( function( value ){ callback( key, value ); } );
+				} )( key );
+			}
+		}
 		firstPassComplete = true;
 
 		// if the remaining count is 0, we're done
