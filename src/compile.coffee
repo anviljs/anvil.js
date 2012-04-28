@@ -68,6 +68,9 @@ class Compiler
 	# ## extensionMap ##
 	# Provides a map of original to resulting extension
 	extensionMap:
+		".js": ".js"
+		".css": ".css"
+		".html": ".html"
 		".coffee" : ".js"
 		".kup": ".html"
 		".less": ".css"
