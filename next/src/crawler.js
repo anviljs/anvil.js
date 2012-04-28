@@ -7,8 +7,13 @@ var crawlerFactory = function( _, fs, path, scheduler ) {
 	Crawler.prototype.crawl = function( directory, onComplete ) {
 		var self = this,
 			fileList = [],
+<<<<<<< HEAD
 			onContents = function( error, contents ) {
 				self.onContents( error, contents, fileList, onComplete );
+=======
+			onContents = function( error, contents ) { 
+				self.onComplete( error, contents, fileList, onComplete ); 
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 			};
 
 		if( directory && directory !== "" ) {
@@ -70,7 +75,11 @@ var crawlerFactory = function( _, fs, path, scheduler ) {
 			this.classifyHandles( qualified, onQualified );
 		} else {
 			onComplete( fileList );
+<<<<<<< HEAD
 		}
+=======
+		}				
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	};
 
 	Crawler.prototype.onQualified = function( files, directories, fileList, onComplete ) {

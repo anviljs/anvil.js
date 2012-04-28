@@ -3,10 +3,17 @@ log = require( "./logMock.coffee" ).log
 FP = require( "./fsMock.coffee" ).fsProvider
 
 path = require "path"
+<<<<<<< HEAD
 Scheduler = require( "../src/scheduler.js" )( _ )
 fp = new FP()
 scheduler = new Scheduler()
 Combiner = require( "../src/combiner.js" )( _, fp, scheduler )
+=======
+Scheduler = require( "../src/scheduler.js")( _ )
+fp = new FP()
+scheduler = new Scheduler()
+Combiner = require( "../src/combiner.js")( _, fp, scheduler )
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 
 require "should"
 
@@ -213,7 +220,11 @@ describe "when adding files for tests", ->
 
 describe "when getting imports for coffeescript", ->
 
+<<<<<<< HEAD
 	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	coffeeFiles = [ oneCoffee, twoCoffee, threeCoffee ]
 	findImport = ( file, done ) ->
 		combine.findImports file, coffeeFiles, done
@@ -237,7 +248,11 @@ describe "when getting imports for coffeescript", ->
 		twoCoffee.imports.length.should.equal 0
 
 describe "when getting dependencies for coffeescript", ->
+<<<<<<< HEAD
 	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	coffeeFiles = [ oneCoffee, twoCoffee, threeCoffee ]
 	
 	before () ->
@@ -254,7 +269,11 @@ describe "when getting dependencies for coffeescript", ->
 		threeCoffee.dependents.should.equal 0
 
 describe "when combining coffee files", ->
+<<<<<<< HEAD
 	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	coffeeFiles = [ oneCoffee, twoCoffee, threeCoffee ]
 
 	wrapper = ( f, done ) ->
@@ -269,7 +288,11 @@ describe "when combining coffee files", ->
 			done()
 
 describe "when combining js files", ->
+<<<<<<< HEAD
 	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	jsFiles = [ fourJs, fiveJs, sixJs ]
 
 	before ( done ) ->
@@ -282,7 +305,11 @@ describe "when combining js files", ->
 
 describe "when getting imports for css", ->
 
+<<<<<<< HEAD
 	combine = new Combiner cssFindPatterns, cssReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, cssFindPatterns, cssReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	cssFiles = [ oneCss, twoCss, ignored ]
 	findImport = ( file, done ) ->
 		combine.findImports file, cssFiles, done
@@ -300,7 +327,11 @@ describe "when getting imports for css", ->
 		twoCoffee.imports.length.should.equal 0
 
 describe "when getting dependencies for css", ->
+<<<<<<< HEAD
 	combine = new Combiner cssFindPatterns, cssReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, cssFindPatterns, cssReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	cssFiles = [ oneCss, twoCss, ignored ]
 	
 	before () ->
@@ -314,7 +345,11 @@ describe "when getting dependencies for css", ->
 		twoCss.dependents.should.equal 1
 
 describe "when combining css files", ->
+<<<<<<< HEAD
 	combine = new Combiner cssFindPatterns, cssReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, cssFindPatterns, cssReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	cssFiles = [ oneCss, twoCss, ignored ]
 
 	before ( done ) ->
@@ -328,7 +363,11 @@ describe "when combining css files", ->
 
 describe "when getting imports for html", ->
 
+<<<<<<< HEAD
 	combine = new Combiner htmlFindPatterns, htmlReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, htmlFindPatterns, htmlReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	htmlFiles = [ htmlFile ]
 	findImport = ( file, done ) ->
 		combine.findImports file, all, done
@@ -349,7 +388,11 @@ describe "when getting imports for html", ->
 		htmlFile.imports[1].name.should.equal "six.js"
 
 describe "when combining html with other resources", ->
+<<<<<<< HEAD
 	combine = new Combiner htmlFindPatterns, htmlReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, htmlFindPatterns, htmlReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	htmlFiles = [ htmlFile ]
 
 	before ( done ) ->
@@ -361,7 +404,11 @@ describe "when combining html with other resources", ->
 			done()
 
 describe "when combining files with indented import statements", ->
+<<<<<<< HEAD
 	combine = new Combiner sourceFindPatterns, sourceReplacePatterns
+=======
+	combine = new Combiner fp, scheduler, sourceFindPatterns, sourceReplacePatterns
+>>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	coffeeFiles = [ indentHost, indentChild, indentGrandChild ]
 
 	wrapper = ( f, done ) ->
