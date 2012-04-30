@@ -159,7 +159,8 @@ class Combiner
 						whiteSpace = capture[1]
 						# apply indentation to all lines of the new content
 						newContent = "#{ whiteSpace }" + newContent.replace ///\n///g, "\n#{ whiteSpace }"
-					done( current.replace fullPattern, newContent )
+					sanitized = current.replace( fullPattern, newContent.replace( "\$", "dollarh" ) ).replace( "dollarh", "$" )
+					done sanitized
 			pipe content, steps, ( result ) ->
 				onComplete result
 

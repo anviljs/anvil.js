@@ -1,14 +1,12 @@
 // # Cli
 // Provides the command line interface for interacting with Anvil and related modules
-var cliFactory = function( _, Anvil, Configuration, Build ) {
+var cliFactory = function( _, Anvil, Configuration ) {
 
 	// ## constructor
 	// Create the initial instance where all we really have is the
 	// configuration module to get us started.
 	var Cli = function() {
 		this.configuration = new Configuration();
-		this.build = {};
-		this.plugins = {};
 		_.bindAll( this );
 	};
 
