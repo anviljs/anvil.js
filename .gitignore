@@ -4,5 +4,3 @@ test/node_modules/
 index.html
 .DS_Store
 tmp
-lib/
-next/
