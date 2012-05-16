@@ -1,6 +1,6 @@
 # docco --
 # See http://jashkenas.github.com/docco/
-docco = require "docco"
+#docco = require "docco"
 
 # ape --
 # See 
@@ -15,10 +15,10 @@ class Documenter
 		self = this
 		_.bindAll( this )
 		if @config.docs
-			if @config.docs.generator == "docco"
-				@generator = @runDocco
-			else 
-				@generator = @runApe
+			#if @config.docs.generator == "docco"
+			#	@generator = @runDocco
+			#else 
+			@generator = @runApe
 		else
 			@generator = () -> 
 				callback = Array.prototype.slice.call arguments, 4
@@ -53,8 +53,8 @@ class Documenter
 
 	# ## runDoco ##
 	# Wraps the document generation function in docco to a standard call format
-	runDocco: ( language, extension, newFile, code, onComplete ) ->
-		docco.generate_doc_from_string newFile, code, extension, ( result ) -> onComplete result
+	#runDocco: ( language, extension, newFile, code, onComplete ) ->
+	#	docco.generate_doc_from_string newFile, code, extension, ( result ) -> onComplete result
 
 	# ## runApe ##
 	# Wraps the document generation function in docco to a standard call format

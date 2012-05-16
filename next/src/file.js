@@ -58,6 +58,17 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		crawler.crawl( fullPath, onFiles );
 	};
 
+	FileProvider.prototype.metadata = function( fullPath, onStat ) {
+		fullPath = this.buildPath( fullPath );
+		try {
+			return fs.stat( fullPath, function( stat ) {
+				onStat( { lastModified: stat.mtime } );
+			} );
+		} catch ( err ) {
+			onStat( { error: err } );
+		}
+	}
+
 	FileProvider.prototype.pathExists = function( fullPath ) {
 		fullPath = this.buildPath( fullPath );
 		path.existsSync( fullPath );
