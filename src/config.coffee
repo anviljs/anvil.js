@@ -81,7 +81,7 @@ class Configuration
 		self = this
 		command = new Commander()
 		command
-			.version("0.7.6")
+			.version("0.7.7")
 			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
 			.option( "--ci", "Run a continuous integration build" )
 			.option( "--host", "Setup a static HTTP host" )
