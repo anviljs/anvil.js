@@ -86,8 +86,8 @@ class Anvil
 						# filter out all files that were combined into another file
 						final = _.filter( list, ( x ) -> x.dependents == 0 )
 						# if documentation should be generated, do that now
-						#if self.config.docs
-						#	self.documenter.generate final
+						if self.config.docs
+							self.documenter.generate final
 						# compiles the combined results
 						self.log.onStep "Compiling #{ type } files"
 						forAll final, compiler.compile, ( compiled ) ->

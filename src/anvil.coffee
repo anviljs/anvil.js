@@ -14,6 +14,3 @@
 ###import "socketServer.coffee" ###
 ###import "host.coffee" ###
 ###import "cli.coffee" ###
-
-
-# this is a test

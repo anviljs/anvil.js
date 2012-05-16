@@ -12,15 +12,9 @@ var combinerFactory = function( _, fp, scheduler ) {
 			imported;
 
 		if( !file.combined && file.imports.length > 0 ) {
-<<<<<<< HEAD
 			_.each( file.imports, function( imported ) {
 				steps.push( this.getStep( imported ) );
 			}, this );
-=======
-			for( imported in file.imports ) {
-				steps.push( this.getStep( imported ) );
-			}
->>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 			fp.read( [ file.workingPath, file.name ], function( main ) {
 				scheduler.pipeline( main, steps, function( result ) {
 					fp.write( [ file.workingPath, file.name ], result, onComplete );
@@ -59,35 +53,23 @@ var combinerFactory = function( _, fp, scheduler ) {
 			onImports = function() {
 				self.onImports( list, onComplete );
 			};
-<<<<<<< HEAD
-=======
-
->>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 		scheduler.parallel( list, findImports, onImports );
 	};
 
 	Combiner.prototype.findDependents = function( file, list ) {
 		var imported = function( importFile ) { return file.name === importFile.name; },
 			item;
-<<<<<<< HEAD
 		_.each( list, function( item ) {
 			if( _.any( item.imports, imported ) ) {
 				file.dependents++;
 			}
 		} );
-=======
-		for( item in list ) {
-			if( _.any( item.imports, imported ) ) {
-				file.dependents++;
-			}
-		}
->>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 	};
 
 	Combiner.prototype.findImports = function( file, list, onComplete ) {
 		var self = this,
 			imports = [];
-<<<<<<< HEAD
+		file.imports = imports;
 		fp.read( [file.workingPath, file.name ], function( content ) {
 			_.each( self.findPatterns, function( pattern ) {
 				imports = imports.concat( content.match( pattern ) );
@@ -100,22 +82,6 @@ var combinerFactory = function( _, fp, scheduler ) {
 				var importedFile = _.find( list, function( i ) { return i.name === importName; } );
 				file.imports.push( importedFile );
 			} );
-=======
-
-		fp.read( [file.workingPath, file.name ], function( content ) {
-			var pattern, imported, importName;
-
-			for( pattern in self.findPatterns ) {
-				imports = imports.concat( content.match( pattern ) );
-			}
-			imports = _.filter( imports, function( x ) { return x; } );
-
-			for( imported in imports ) {
-				importName = imported.match( /['\"].*['\"]/ )[ 0 ].replace( /['\"]/g, "" );
-				importedFile = _.find( list, function( i ) { return i.name == importName; } );
-				file.imports.push( importedFile );
-			}
->>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 			onComplete();
 		} );
 	};
@@ -128,20 +94,9 @@ var combinerFactory = function( _, fp, scheduler ) {
 	};
 
 	Combiner.prototype.onImports = function( list, onComplete ) {
-<<<<<<< HEAD
 		_.each( list, function( file ) {
 			this.findDependents( file, list );
 		}, this );
-=======
-		var findDependents =  _.bind( function( file, done ) {
-				self.findDependents( file, list, done );
-			} ),
-			file;
-
-		for( file in list ) {
-			findDependents( file, list );
-		}
->>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 		scheduler.parallel( list, this.combineFile, onComplete );
 	};
 
@@ -154,11 +109,7 @@ var combinerFactory = function( _, fp, scheduler ) {
 			var steps = [],
 				pattern;
 
-<<<<<<< HEAD
 			_.each( self.replacePatterns, function( pattern ) {
-=======
-			for( pattern in self.replacePatterns ) {
->>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 				steps.push( function( current, done ) {
 					var stringified = pattern.toString().replace( /replace/, source ),
 						trimmed = stringified.substring( 1, stringified.length - 2 ),
@@ -166,22 +117,15 @@ var combinerFactory = function( _, fp, scheduler ) {
 						capture = newPattern.exec( content ),
 						whiteSpace;
 
+						newContent = newContent.replace( "\$", "dollahr" )
 						if( capture && capture.length > 1 ) {
-<<<<<<< HEAD
 							whiteSpace = capture[ 1 ];
-=======
-							whiteSpace = capture[1];
->>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 							newContent = whiteSpace + newContent.replace( /\n/g, "\n" + whiteSpace );
 						}
-						done( current.replace( newPattern, newContent ) );
+						done( current.replace( newPattern, newContent ).replace( "dollahr", "$" ) );
 				} );
 				scheduler.pipeline( content, steps, onComplete );
-<<<<<<< HEAD
 			} );
-=======
-			}
->>>>>>> cde07deb6764f425121700d935e8059d133d5e4f
 		} );
 	};
 

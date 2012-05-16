@@ -26,6 +26,7 @@ class FileMock
 			throw new Error "Cannot read file #{ @name }"
 
 	write: ( content, onComplete ) ->
+		@lastModified = new Date();
 		self = this
 		if @available
 			setTimeout( () ->
@@ -71,6 +72,11 @@ class FSMock
 					( name.indexOf filePath ) >= 0
 				).value()
 		onFiles files
+
+	metadata: ( fullPath, onStat ) ->
+		fullPath = this.buildPath( fullPath )
+		file = @files[ fullPath ]
+		onStat( { lastModified: stat.mtime } )
 
 	pathExists: ( pathSpec ) -> 
 		pathSpec = this.buildPath pathSpec
