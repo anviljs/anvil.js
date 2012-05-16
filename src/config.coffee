@@ -90,7 +90,7 @@ class Configuration
 			.option( "--site [project]", "Create a site project at the folder [project]" )
 			.option( "--sitefile [file name]", "Create a new site build file named [file name]" )
 			.option( "--mocha", "Run specifications using Mocha" )
-			.option( "--docco", "Create annotated source using docco" )
+			#.option( "--docco", "Create annotated source using docco" )
 			.option( "--ape", "Create annotated source using ape" )
 			.option( "-q, --quiet", "Only print completion and error messages" )
 
