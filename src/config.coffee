@@ -414,7 +414,7 @@ class Configuration
 			propertyPath = source["#{ property }-file"]
 			propertyValue = source[ property ]
 			if propertyPath and @fp.pathExists propertyPath
-				aggregation[ property ] = ( done ) -> 
+				aggregation[ property ] = ( done ) ->
 					fp.read propertyPath, ( content ) ->
 						done content
 			else if propertyValue

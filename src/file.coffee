@@ -76,6 +76,11 @@ class FSProvider
 	copy: ( from, to, onComplete ) ->
 		from = this.buildPath from
 		to = this.buildPath to
+		toDir = to.substring( 0, to.lastIndexOf( '/' ) )
+		toDirSplit = toDir.split( '/' )
+		for dir, i in toDirSplit
+			curDir = toDirSplit.slice( 0, i + 1 ).join( '/' )
+			fs.mkdirSync curDir unless i < 1 or path.existsSync curDir
 		readStream = undefined
 		writeStream = fs.createWriteStream( to )
 		( readStream = fs.createReadStream( from ) ).pipe( writeStream )
