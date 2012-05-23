@@ -76,8 +76,6 @@ class FSProvider
 	copy: ( from, to, onComplete ) ->
 		from = this.buildPath from
 		to = this.buildPath to
-		toDir = to.substring( 0, to.lastIndexOf( '/' ) )
-		fs.mkdirSync toDir unless path.existsSync toDir
 		readStream = undefined
 		writeStream = fs.createWriteStream( to )
 		( readStream = fs.createReadStream( from ) ).pipe( writeStream )

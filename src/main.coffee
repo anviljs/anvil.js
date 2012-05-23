@@ -129,10 +129,7 @@ class Anvil
 	copyFiles: ( files, onComplete ) ->
 		fp = @fp
 		copy = ( file, done ) -> 
-			src = config.source or "src"
-			srcPath = path.normalize( "#{ process.cwd() }/#{ src }" )
-			dstPath = path.normalize( "#{ process.cwd() }/#{ file.workingPath }" )
-			fp.copy file.fullPath, file.fullPath.replace( srcPath, dstPath ), done
+			fp.copy file.fullPath, [ file.workingPath, file.name ], done
 		@scheduler.parallel files, copy, onComplete
 
 
