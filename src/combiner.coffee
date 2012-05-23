@@ -75,6 +75,7 @@ class Combiner
 	# * _onComplete {Function}_: callback to invoke on completion
 	findImports: ( file, list, onComplete ) ->
 		self = this
+		src = config.source or 'src'
 		imports = []
 		@fp.read [ file.workingPath, file.name ], ( content ) ->
 			# find the import statements in the file contents using @findPatterns
@@ -85,8 +86,9 @@ class Combiner
 			# find the matching file metadata for the import
 			for imported in imports
 				importName = ( imported.match ///['\"].*['\"]/// )[ 0 ].replace(///['\"]///g, "" )
+				importPath = "#{ process.cwd() }/#{ src }/#{ importName }".replace( /\/+/g, '/' )
 				importedFile = _.find( list, ( i ) -> 
-					i.name == importName )
+					i.name == importName or i.fullPath == importPath )
 				file.imports.push importedFile
 			onComplete()
 
