@@ -88,7 +88,8 @@ class Combiner
 				importName = ( imported.match ///['\"].*['\"]/// )[ 0 ].replace(///['\"]///g, "" )
 				importPath = "#{ process.cwd() }/#{ src }/#{ importName }".replace( /\/+/g, '/' )
 				importedFile = _.find( list, ( i ) -> 
-					i.name == importName or i.fullPath == importPath )
+					i.fullPath == importPath )
+				importedFile.name = importName
 				file.imports.push importedFile
 			onComplete()
 
@@ -100,7 +101,7 @@ class Combiner
 	# * _onComplete {Function}_: callback to invoke on completion
 	findDependents: ( file, list ) ->
 		imported = ( importFile ) ->
-			file.name == importFile.name
+			file.fullPath == importFile.fullPath
 		for item in list
 			if _.any item.imports, imported then file.dependents++
 
