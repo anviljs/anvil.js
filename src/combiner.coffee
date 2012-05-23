@@ -77,7 +77,7 @@ class Combiner
 		self = this
 		src = config.source or 'src'
 		imports = []
-		@fp.read [ file.workingPath, file.name ], ( content ) ->
+		@fp.read file.fullPath, ( content ) ->
 			# find the import statements in the file contents using @findPatterns
 			for pattern in self.findPatterns
 				imports = imports.concat content.match pattern
