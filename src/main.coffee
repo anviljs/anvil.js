@@ -129,7 +129,8 @@ class Anvil
 	copyFiles: ( files, onComplete ) ->
 		fp = @fp
 		copy = ( file, done ) -> 
-			fp.copy file.fullPath, [ file.workingPath, file.name ], done
+			fp.ensurePath file.workingPath, () -> 
+				fp.copy file.fullPath, [ file.workingPath, file.name ], done
 		@scheduler.parallel files, copy, onComplete
 
 
@@ -152,7 +153,7 @@ class Anvil
 	# * _onComplete {Function}_: the function to invoke with a completed list of file metadata
 	prepFiles: ( type, onComplete ) ->
 		self = this
-		working = @config.working
+		workingBase = @config.working
 		typePath = @config[ type ]
 		output = @config.output[ type ]
 		output = if _.isArray( output ) then output else [ output ]
@@ -161,6 +162,8 @@ class Anvil
 			log.onEvent "Found #{ files.length } #{ type } files ..."
 			list = for file in files
 						name = path.basename file
+						relative = path.dirname( file.replace( typePath, "") )
+						working = self.fp.buildPath( workingBase, relative )
 						{
 							dependents: 0
 							ext: () -> path.extname this.name
@@ -169,7 +172,7 @@ class Anvil
 							name: name
 							originalName: name
 							outputPaths: output
-							relativePath: file.replace typePath, ""
+							relativePath: relative
 							workingPath: working
 						}
 			filtered = _.filter list, ( x ) -> _.any self.extensions, ( y ) -> y == x.ext()

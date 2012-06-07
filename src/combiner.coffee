@@ -1,4 +1,5 @@
 _ = require "underscore"
+path = require "path"
 
 # ## Combiner ##
 # Combines imports with the files importing them
@@ -86,7 +87,10 @@ class Combiner
 			for imported in imports
 				importName = ( imported.match ///['\"].*['\"]/// )[ 0 ].replace(///['\"]///g, "" )
 				importedFile = _.find( list, ( i ) -> 
-					i.name == importName )
+					relativeImportPath = path.relative( path.dirname( file.fullPath ), path.dirname( i.fullPath ) )
+					relativeImport = self.fp.buildPath( [ relativeImportPath, i.name ] )
+					console.log "relative #{ relativeImport } actual #{ importName }"
+					relativeImport == importName )
 				file.imports.push importedFile
 			onComplete()
 
@@ -98,7 +102,7 @@ class Combiner
 	# * _onComplete {Function}_: callback to invoke on completion
 	findDependents: ( file, list ) ->
 		imported = ( importFile ) ->
-			file.name == importFile.name
+			file.fullPath == importFile.fullPath
 		for item in list
 			if _.any item.imports, imported then file.dependents++
 
@@ -116,7 +120,7 @@ class Combiner
 				# creates a closure around a specific import to prevent
 				# access to a changing variable
 				steps = for imported in file.imports
-						self.getStep imported
+						self.getStep file, imported
 				fp.read [ file.workingPath, file.name ], ( main ) ->
 					pipe main, steps, ( result ) ->
 						fp.write [ file.workingPath, file.name ], result, () -> onComplete()
@@ -128,29 +132,33 @@ class Combiner
 	# ## getStep ##
 	# This is insane but it works - creating a closure around
 	# a specific import to prevent accessing a changing variable.
-	# * _import {String}_: the imported file to create the closure around
-	getStep: ( imported ) -> 
+	# * _file {Object}_ : the file we're importing into
+	# * _import {Object}_: the imported file to create the closure around
+	getStep: ( file, imported ) -> 
 		self = this
-		( text, onDone ) -> self.replace text, imported, onDone
+		( text, onDone ) -> self.replace text, file, imported, onDone
 
 	# ## replace ##
 	# create a replacement regex that will take the _imported_ content and replace the
 	# matched patterns within the main file's _content_
 	# ### Args:
 	# * _content {Object}_: the content of the main file
+	# * _file {Object}_ : the file we're importing into
 	# * _imported {Object}_: file metadata for the imported
 	# * _onComplete {Function}_: callback to invoke on completion
-	replace: ( content, imported, onComplete ) ->
+	replace: ( content, file, imported, onComplete ) ->
 		patterns = @replacePatterns
 		pipe = @scheduler.pipeline
 		source = imported.name
 		working = imported.workingPath
+		relativeImportPath = path.relative( path.dirname( file.fullPath ), path.dirname( imported.fullPath ) )
+		relativeImport = @fp.buildPath( [ relativeImportPath, imported.name ] )
 		@fp.read [ working, source ], ( newContent ) ->
 			steps = for pattern in patterns
 				# creates a function that will replace the import statement
 				# with a specific file's contents
 				( current, done ) ->
-					stringified = pattern.toString().replace ///replace///, source
+					stringified = pattern.toString().replace ///replace///, relativeImport
 					stringified = stringified.substring( 1, stringified.length - 2 )
 					fullPattern = new RegExp stringified, "g"					
 					capture = fullPattern.exec( content )
