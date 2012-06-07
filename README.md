@@ -225,3 +225,15 @@ or by adding a "mocha" configuration block to your build.json file.
 You can tell anvil to run in quiet mode (it will still print errors (red) and step completions (green) )
 
     anvil -q
+
+# Contributors
+
+Special thanks to the following individuals who have contributed source code or ideas to help make Anvil.js less buggy and more useful:
+
+ * Jim Cowart
+ * Aaron McCall
+ * Mike Stenhouse
+ * Robert Messerle
+ * Mike Hostetler
+ * Doug Neiner
+ * Derick Bailey

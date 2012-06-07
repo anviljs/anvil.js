@@ -1,7 +1,7 @@
 {
     "name": "anvil.js",
     "description": "A continuous integration tool for JS, CSS and HTML.",
-    "version": "0.7.7",
+    "version": "0.7.8",
     "authors": ["Alex Robson <@A_Robson>"],
     "keywords": ["build","compile","static","ci"],
     "main": "./lib/anvil.js",

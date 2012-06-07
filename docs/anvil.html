@@ -131,7 +131,7 @@ extensionLookup =
 		self = <span class="keyword">this</span>
 		command = <span class="keyword">new</span> Commander<span class="params">()</span>
 		command
-			.version<span class="params">(<span class="string">"0.7.6"</span>)</span>
+			.version<span class="params">(<span class="string">"0.7.7"</span>)</span>
 			.option<span class="params">( <span class="string">"-b, --build [build file]"</span>, <span class="string">"Use a custom build file"</span>, <span class="string">"./build.json"</span> )</span>
 			.option<span class="params">( <span class="string">"--ci"</span>, <span class="string">"Run a continuous integration build"</span> )</span>
 			.option<span class="params">( <span class="string">"--host"</span>, <span class="string">"Setup a static HTTP host"</span> )</span>
@@ -825,6 +825,7 @@ marked.setOptions { sanitize: <span class="literal">false</span> }
 <span class="reserved">export</span>s.compiler = Compiler
 
 _ = require <span class="string">"underscore"</span>
+path = require <span class="string">"path"</span>
 </code></pre></td></tr><tr class="block"><td class="comment"><h2>Combiner</h2>
 
 <p>Combines imports with the files importing them</p></td><td class="code"><pre><code><span class="keyword">class</span> Combiner
@@ -898,7 +899,9 @@ _ = require <span class="string">"underscore"</span>
 			<span class="reserved">import</span>s = _.filter <span class="reserved">import</span>s, <span class="params">( x )</span> <span class="function">-></span> x</code></pre></td></tr><tr class="block"><td class="comment"><p>strip out all the raw file names from the import statements<br />find the matching file metadata for the import</p></td><td class="code"><pre><code>			for imported in imports
 				importName = ( imported.match ///['\"].*['\"]/// )[ 0 ].replace(///['\"]///g, "" )
 				importedFile = _.find( list, ( i ) -> 
-					i.name == importName )
+					relativeImportPath = path.relative( path.dirname( file.fullPath ), path.dirname( i.fullPath ) )
+					relativeImport = self.fp.buildPath( [ relativeImportPath, i.name ] )
+					relativeImport == importName )
 				file.imports.push importedFile
 			onComplete()
 </code></pre></td></tr><tr class="block"><td class="comment"><h2>fileDependents</h2>
@@ -913,7 +916,7 @@ _ = require <span class="string">"underscore"</span>
 <li><em>onComplete {Function}</em>: callback to invoke on completion</li>
 </ul></td><td class="code"><pre><code>	findDependents: <span class="params">( file, list )</span> <span class="function">-></span>
 		<span class="reserved">import</span>ed = <span class="params">( importFile )</span> <span class="function">-></span>
-			file.name == <span class="reserved">import</span>File.name
+			file.fullPath == <span class="reserved">import</span>File.fullPath
 		<span class="keyword">for</span> item <span class="keyword">in</span> list
 			<span class="keyword">if</span> _.any item.<span class="reserved">import</span>s, <span class="reserved">import</span>ed <span class="keyword">then</span> file.dependents++
 </code></pre></td></tr><tr class="block"><td class="comment"><h2>combine</h2>
@@ -931,7 +934,7 @@ _ = require <span class="string">"underscore"</span>
 			pipe = @scheduler.pipeline
 			fp = @fp
 			<span class="keyword">if</span> file.<span class="reserved">import</span>s.length > <span class="number">0</span></code></pre></td></tr><tr class="block"><td class="comment"><p>creates a closure around a specific import to prevent<br />access to a changing variable</p></td><td class="code"><pre><code>				steps = <span class="keyword">for</span> <span class="reserved">import</span>ed <span class="keyword">in</span> file.<span class="reserved">import</span>s
-						self.getStep <span class="reserved">import</span>ed
+						self.getStep file, <span class="reserved">import</span>ed
 				fp.read [ file.workingPath, file.name ], <span class="params">( main )</span> <span class="function">-></span>
 					pipe main, steps, <span class="params">( result )</span> <span class="function">-></span>
 						fp.write [ file.workingPath, file.name ], result, <span class="params">()</span> <span class="function">-></span> onComp<span class="reserved">let</span>e<span class="params">()</span>
@@ -941,9 +944,9 @@ _ = require <span class="string">"underscore"</span>
 			onComp<span class="reserved">let</span>e<span class="params">()</span>
 </code></pre></td></tr><tr class="block"><td class="comment"><h2>getStep</h2>
 
-<p>This is insane but it works - creating a closure around<br />a specific import to prevent accessing a changing variable.<br />* <em>import {String}</em>: the imported file to create the closure around</p></td><td class="code"><pre><code>	getStep: <span class="params">( imported )</span> <span class="function">-></span> 
+<p>This is insane but it works - creating a closure around<br />a specific import to prevent accessing a changing variable.<br />* <em>file {Object}</em> : the file we're importing into<br />* <em>import {Object}</em>: the imported file to create the closure around</p></td><td class="code"><pre><code>	getStep: <span class="params">( file, imported )</span> <span class="function">-></span> 
 		self = <span class="keyword">this</span>
-		<span class="params">( text, onDone )</span> <span class="function">-></span> self.replace text, <span class="reserved">import</span>ed, onDone
+		<span class="params">( text, onDone )</span> <span class="function">-></span> self.replace text, file, <span class="reserved">import</span>ed, onDone
 </code></pre></td></tr><tr class="block"><td class="comment"><h2>replace</h2>
 
 <p>create a replacement regex that will take the <em>imported</em> content and replace the<br />matched patterns within the main file's <em>content</em></p>
@@ -952,21 +955,24 @@ _ = require <span class="string">"underscore"</span>
 
 <ul>
 <li><em>content {Object}</em>: the content of the main file</li>
+<li><em>file {Object}</em> : the file we're importing into</li>
 <li><em>imported {Object}</em>: file metadata for the imported</li>
 <li><em>onComplete {Function}</em>: callback to invoke on completion</li>
-</ul></td><td class="code"><pre><code>	replace: <span class="params">( content, imported, onComplete )</span> <span class="function">-></span>
+</ul></td><td class="code"><pre><code>	replace: <span class="params">( content, file, imported, onComplete )</span> <span class="function">-></span>
 		patterns = @replacePatterns
 		pipe = @scheduler.pipeline
 		source = <span class="reserved">import</span>ed.name
 		working = <span class="reserved">import</span>ed.workingPath
+		relativeImportPath = path.relative<span class="params">( path.dirname( file.fullPath )</span>, path.dirname<span class="params">( imported.fullPath )</span> )
+		relativeImport = @fp.buildPath<span class="params">( [ relativeImportPath, imported.name ] )</span>
 		@fp.read [ working, source ], <span class="params">( newContent )</span> <span class="function">-></span>
 			steps = <span class="keyword">for</span> pattern <span class="keyword">in</span> patterns</code></pre></td></tr><tr class="block"><td class="comment"><p>creates a function that will replace the import statement<br />with a specific file's contents</p></td><td class="code"><pre><code>				<span class="params">( current, done )</span> <span class="function">-></span>
-					stringified = pattern.toString<span class="params">()</span>.replace ///replace///, source
+					stringified = pattern.toString<span class="params">()</span>.replace ///replace///, relativeImport
 					stringified = stringified.substring<span class="params">( <span class="number">1</span>, stringified.length - <span class="number">2</span> )</span>
 					fullPattern = <span class="keyword">new</span> RegExp stringified, <span class="string">"g"</span>					
 					capture = fullPattern.exec<span class="params">( content )</span>
 					<span class="keyword">if</span> capture <span class="keyword">and</span> capture.length > <span class="number">1</span></code></pre></td></tr><tr class="block"><td class="comment"><p>capture the indentation of the import</p></td><td class="code"><pre><code>						whiteSpace = capture[<span class="number">1</span>]</code></pre></td></tr><tr class="block"><td class="comment"><p>apply indentation to all lines of the new content</p></td><td class="code"><pre><code>						newContent = <span class="string">"<span class="subst">#{ whiteSpace }</span>"</span> + newContent.replace ///\n///g, <span class="string">"\n<span class="subst">#{ whiteSpace }</span>"</span>
-					sanitized = current.replace<span class="params">( fullPattern, newContent.replace( <span class="string">"\$"</span>, <span class="string">"$"</span> )</span> ).replace<span class="params">( <span class="string">"$"</span>, <span class="string">"$"</span> )</span>
+					sanitized = current.replace<span class="params">( fullPattern, newContent.replace( <span class="string">"\$"</span>, <span class="string">"dollarh"</span> )</span> ).replace<span class="params">( <span class="string">"dollarh"</span>, <span class="string">"$"</span> )</span>
 					done sanitized
 			pipe content, steps, <span class="params">( result )</span> <span class="function">-></span>
 				onComp<span class="reserved">let</span>e result
@@ -1313,7 +1319,8 @@ pro = require<span class="params">( <span class="string">"uglify-js"</span> )</s
 <p>Copies the source files to the working path before beginning any processing<br />* <em>files {Array}</em>: the list of files to copy<br />* <em>onComplete {Function}</em>: the function to call once all files have been copied</p></td><td class="code"><pre><code>	copyFiles: <span class="params">( files, onComplete )</span> <span class="function">-></span>
 		fp = @fp
 		copy = <span class="params">( file, done )</span> <span class="function">-></span> 
-			fp.copy file.fullPath, [ file.workingPath, file.name ], done
+			fp.ensurePath file.workingPath, <span class="params">()</span> <span class="function">-></span> 
+				fp.copy file.fullPath, [ file.workingPath, file.name ], done
 		@scheduler.parallel files, copy, onComp<span class="reserved">let</span>e
 
 </code></pre></td></tr><tr class="block"><td class="comment"><h2>cleanWorking</h2>
@@ -1329,7 +1336,7 @@ pro = require<span class="params">( <span class="string">"uglify-js"</span> )</s
 
 <p>Determine the list of files that belong to this particular resource type<br />and create metadata objects that describe the file and provide necessary<br />metadata to the rest of the processes.<br />* <em>type {String}</em>: ('source', 'style', 'markup') <br />* <em>onComplete {Function}</em>: the function to invoke with a completed list of file metadata</p></td><td class="code"><pre><code>	prepFiles: <span class="params">( type, onComplete )</span> <span class="function">-></span>
 		self = <span class="keyword">this</span>
-		working = @config.working
+		workingBase = @config.working
 		typePath = @config[ type ]
 		output = @config.output[ type ]
 		output = <span class="keyword">if</span> _.isArray<span class="params">( output )</span> <span class="keyword">then</span> output <span class="keyword">else</span> [ output ]
@@ -1338,6 +1345,8 @@ pro = require<span class="params">( <span class="string">"uglify-js"</span> )</s
 			log.onEvent <span class="string">"Found <span class="subst">#{ files.length }</span> <span class="subst">#{ type }</span> files ..."</span>
 			list = <span class="keyword">for</span> file <span class="keyword">in</span> files
 						name = path.basename file
+						relative = path.dirname<span class="params">( file.replace( typePath, <span class="string">""</span>)</span> )
+						working = self.fp.buildPath<span class="params">( workingBase, relative )</span>
 						{
 							dependents: <span class="number">0</span>
 							ext: <span class="params">()</span> <span class="function">-></span> path.extname <span class="keyword">this</span>.name
@@ -1346,7 +1355,7 @@ pro = require<span class="params">( <span class="string">"uglify-js"</span> )</s
 							name: name
 							originalName: name
 							outputPaths: output
-							relativePath: file.replace typePath, <span class="string">""</span>
+							relativePath: relative
 							workingPath: working
 						}
 			filtered = _.filter list, <span class="params">( x )</span> <span class="function">-></span> _.any self.extensions, <span class="params">( y )</span> <span class="function">-></span> y == x.ext<span class="params">()</span>
@@ -1658,5 +1667,4 @@ express = require <span class="string">'express'</span>
 	cli = <span class="keyword">new</span> Cli<span class="params">()</span>
 	cli.run<span class="params">()</span>
 
-
-</code></pre></td></tr><tr class="block"><td class="comment"><p>this is a test</p></td><td class="code"></td></tr></table></body>
+</code></pre></td></tr></table></body>
