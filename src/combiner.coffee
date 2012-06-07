@@ -89,7 +89,6 @@ class Combiner
 				importedFile = _.find( list, ( i ) -> 
 					relativeImportPath = path.relative( path.dirname( file.fullPath ), path.dirname( i.fullPath ) )
 					relativeImport = self.fp.buildPath( [ relativeImportPath, i.name ] )
-					console.log "relative #{ relativeImport } actual #{ importName }"
 					relativeImport == importName )
 				file.imports.push importedFile
 			onComplete()

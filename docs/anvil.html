@@ -901,7 +901,6 @@ path = require <span class="string">"path"</span>
 				importedFile = _.find( list, ( i ) -> 
 					relativeImportPath = path.relative( path.dirname( file.fullPath ), path.dirname( i.fullPath ) )
 					relativeImport = self.fp.buildPath( [ relativeImportPath, i.name ] )
-					console.log "relative #{ relativeImport } actual #{ importName }"
 					relativeImport == importName )
 				file.imports.push importedFile
 			onComplete()
@@ -973,7 +972,7 @@ path = require <span class="string">"path"</span>
 					fullPattern = <span class="keyword">new</span> RegExp stringified, <span class="string">"g"</span>					
 					capture = fullPattern.exec<span class="params">( content )</span>
 					<span class="keyword">if</span> capture <span class="keyword">and</span> capture.length > <span class="number">1</span></code></pre></td></tr><tr class="block"><td class="comment"><p>capture the indentation of the import</p></td><td class="code"><pre><code>						whiteSpace = capture[<span class="number">1</span>]</code></pre></td></tr><tr class="block"><td class="comment"><p>apply indentation to all lines of the new content</p></td><td class="code"><pre><code>						newContent = <span class="string">"<span class="subst">#{ whiteSpace }</span>"</span> + newContent.replace ///\n///g, <span class="string">"\n<span class="subst">#{ whiteSpace }</span>"</span>
-					sanitized = current.replace<span class="params">( fullPattern, newContent.replace( <span class="string">"\$"</span>, <span class="string">"$"</span> )</span> ).replace<span class="params">( <span class="string">"$"</span>, <span class="string">"$"</span> )</span>
+					sanitized = current.replace<span class="params">( fullPattern, newContent.replace( <span class="string">"\$"</span>, <span class="string">"dollarh"</span> )</span> ).replace<span class="params">( <span class="string">"dollarh"</span>, <span class="string">"$"</span> )</span>
 					done sanitized
 			pipe content, steps, <span class="params">( result )</span> <span class="function">-></span>
 				onComp<span class="reserved">let</span>e result
