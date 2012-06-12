@@ -1,6 +1,6 @@
 _ = require "underscore"
 path = require "path"
-Commander = require( "Commander" ).Command
+Commander = require( "commander" ).Command
 
 # Configuration container
 config = { }
