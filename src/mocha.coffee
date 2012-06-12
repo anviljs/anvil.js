@@ -1,10 +1,10 @@
-mocha = require "mocha"
+Mocha = require "mocha"
 _ = require "underscore"
-reporters = mocha.reporters
-interfaces = mocha.interfaces
-Context = mocha.Context
-Runner = mocha.Runner
-Suite = mocha.Suite
+reporters = Mocha.reporters
+interfaces = Mocha.interfaces
+Context = Mocha.Context
+Runner = Mocha.Runner
+Suite = Mocha.Suite
 path = require "path"
 
 ###
@@ -21,7 +21,6 @@ class MochaRunner
 		self = this
 		if @config.spec
 			forAll = @scheduler.parallel
-			filesIn = @fp.getFiles
 
 			opts = @config.mocha or=
 				growl: true
@@ -32,44 +31,23 @@ class MochaRunner
 
 			reporterName = opts.reporter.toLowerCase().replace( ///([a-z])///, ( x ) -> x.toUpperCase() )
 			uiName = opts.ui.toLowerCase()
-
-			suite = new Suite '', new Context
-			Base = reporters.Base
-			Reporter = reporters[reporterName]
-			ui = interfaces[uiName]( suite )
-			if opts.colors then Base.useColors = true
-			if opts.slow then Base.slow = opts.slow
-			if opts.timeout then suite.timeout opts.timeout
+			mocha = new Mocha( {
+				ui: uiName
+				ignoreLeaks: true
+				colors: opts.colors
+				growl: opts.growl
+				slow: opts.slow
+				timeout: opts.timeout	
+			} )
+			mocha.reporter(reporterName)
 
 			specs = if _.isString @config.spec then [ @config.spec ] else @config.spec
 
 			forAll specs, @fp.getFiles, ( lists ) ->
-				self.cleanUp()
 				files = _.flatten lists
 				for file in files
-					suite.emit 'pre-require', global, file
-					suite.emit 'require', require file, file
-					suite.emit 'post-require', global, file
+					delete require.cache[ file ]
+					mocha.addFile file
 
-				suite.emit 'run'
-				runner = new Runner suite
-				reporter = new Reporter runner
-				if opts.ignoreLeaks then runner.ignoreLeaks = true
-				runner.run () -> 
-					cachedFiles = _.flatten require.cache
-					sourcePath = path.resolve self.config.source
-					pathLength = sourcePath.length
-					for file in cachedFiles
-						modulePath = file.filename.substring 0, pathLength
-						if sourcePath == modulePath
-							delete require.cache[ file ]
+				mocha.run () ->
 					self.onComplete()
-
-	cleanUp: () ->
-		cachedFiles = _.flatten require.cache
-		sourcePath = path.resolve @config.source
-		pathLength = sourcePath.length
-		for file in cachedFiles
-			modulePath = file.filename.substring 0, pathLength
-			if sourcePath == modulePath
-				delete require.cache[ file ]
