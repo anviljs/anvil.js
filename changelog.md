@@ -1,5 +1,11 @@
 # Anvil.js Change Log
 
+## 0.7.9
+
+* #38 - Improved support for Mocha and fixed a continuous integration related bug by using its new JS API and simplifying the clean up approach used between builds. (thanks @madcapnmckay)
+
+* #39 - Fixed a capitalization issue with the require statement for commander. (thanks @tutukin)
+
 ## 0.7.8
 
 Added support for relative import statements. (thanks @robertmesserle for helping with ideas and pushing me to get this done). Don't prefix the import path with a ./ or /, Anvil won't recognize that as a match.

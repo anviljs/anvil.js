@@ -59,7 +59,8 @@ log = <span class="keyword">new</span> Log<span class="params">()</span>
 <span class="reserved">export</span>s.log = log
 _ = require <span class="string">"underscore"</span>
 path = require <span class="string">"path"</span>
-Commander = require<span class="params">( <span class="string">"Commander"</span> )</span>.Command
+Commander = require<span class="params">( <span class="string">"commander"</span> )</span>.Command
+
 </code></pre></td></tr><tr class="block"><td class="comment"><p>Configuration container</p></td><td class="code"><pre><code>config = { }
 </code></pre></td></tr><tr class="block"><td class="comment"><p>Configuration defaults</p></td><td class="code"><pre><code>siteConfig =
 	<span class="string">"source"</span>: <span class="string">"src"</span>
@@ -972,7 +973,7 @@ path = require <span class="string">"path"</span>
 					fullPattern = <span class="keyword">new</span> RegExp stringified, <span class="string">"g"</span>					
 					capture = fullPattern.exec<span class="params">( content )</span>
 					<span class="keyword">if</span> capture <span class="keyword">and</span> capture.length > <span class="number">1</span></code></pre></td></tr><tr class="block"><td class="comment"><p>capture the indentation of the import</p></td><td class="code"><pre><code>						whiteSpace = capture[<span class="number">1</span>]</code></pre></td></tr><tr class="block"><td class="comment"><p>apply indentation to all lines of the new content</p></td><td class="code"><pre><code>						newContent = <span class="string">"<span class="subst">#{ whiteSpace }</span>"</span> + newContent.replace ///\n///g, <span class="string">"\n<span class="subst">#{ whiteSpace }</span>"</span>
-					sanitized = current.replace<span class="params">( fullPattern, newContent.replace( <span class="string">"\$"</span>, <span class="string">"dollarh"</span> )</span> ).replace<span class="params">( <span class="string">"dollarh"</span>, <span class="string">"$"</span> )</span>
+					sanitized = current.replace<span class="params">( fullPattern, newContent.replace( <span class="string">"\$"</span>, <span class="string">"$"</span> )</span> ).replace<span class="params">( <span class="string">"$"</span>, <span class="string">"$"</span> )</span>
 					done sanitized
 			pipe content, steps, <span class="params">( result )</span> <span class="function">-></span>
 				onComp<span class="reserved">let</span>e result
@@ -1413,13 +1414,13 @@ pro = require<span class="params">( <span class="string">"uglify-js"</span> )</s
 				@watchers.pop<span class="params">()</span>.close<span class="params">()</span>
 			@onChange<span class="params">()</span>
 
-mocha = require <span class="string">"mocha"</span>
+Mocha = require <span class="string">"mocha"</span>
 _ = require <span class="string">"underscore"</span>
-reporters = mocha.reporters
-interfaces = mocha.interfaces
-Context = mocha.Context
-Runner = mocha.Runner
-Suite = mocha.Suite
+reporters = Mocha.reporters
+interfaces = Mocha.interfaces
+Context = Mocha.Context
+Runner = Mocha.Runner
+Suite = Mocha.Suite
 path = require <span class="string">"path"</span>
 </code></pre></td></tr><tr class="block"><td class="comment"><pre><code>This class is an adaptation of the code found in _mocha
 from TJ Holowaychuk's Mocha repository:
@@ -1433,7 +1434,6 @@ from TJ Holowaychuk's Mocha repository:
 		self = <span class="keyword">this</span>
 		<span class="keyword">if</span> @config.spec
 			forAll = @scheduler.parallel
-			filesIn = @fp.getFiles
 
 			opts = @config.mocha <span class="keyword">or</span>=
 				growl: <span class="literal">true</span>
@@ -1444,47 +1444,26 @@ from TJ Holowaychuk's Mocha repository:
 
 			reporterName = opts.reporter.toLowerCase<span class="params">()</span>.replace<span class="params">( ///([a-z])</span>///, <span class="params">( x )</span> <span class="function">-></span> x.toUpperCase<span class="params">()</span> )
 			uiName = opts.ui.toLowerCase<span class="params">()</span>
-
-			suite = <span class="keyword">new</span> Suite <span class="string">''</span>, <span class="keyword">new</span> Context
-			Base = reporters.Base
-			Reporter = reporters[reporterName]
-			ui = interfaces[uiName]<span class="params">( suite )</span>
-			<span class="keyword">if</span> opts.colors <span class="keyword">then</span> Base.useColors = <span class="literal">true</span>
-			<span class="keyword">if</span> opts.slow <span class="keyword">then</span> Base.slow = opts.slow
-			<span class="keyword">if</span> opts.timeout <span class="keyword">then</span> suite.timeout opts.timeout
+			mocha = <span class="keyword">new</span> Mocha<span class="params">( {
+				ui: uiName
+				ignoreLeaks: <span class="literal">true</span>
+				colors: opts.colors
+				growl: opts.growl
+				slow: opts.slow
+				timeout: opts.timeout	
+			} )</span>
+			mocha.reporter<span class="params">(reporterName)</span>
 
 			specs = <span class="keyword">if</span> _.isString @config.spec <span class="keyword">then</span> [ @config.spec ] <span class="keyword">else</span> @config.spec
 
 			forAll specs, @fp.getFiles, <span class="params">( lists )</span> <span class="function">-></span>
-				self.cleanUp<span class="params">()</span>
 				files = _.flatten lists
 				<span class="keyword">for</span> file <span class="keyword">in</span> files
-					suite.emit <span class="string">'pre-require'</span>, global, file
-					suite.emit <span class="string">'require'</span>, require file, file
-					suite.emit <span class="string">'post-require'</span>, global, file
+					de<span class="reserved">let</span>e require.cache[ file ]
+					mocha.addFile file
 
-				suite.emit <span class="string">'run'</span>
-				runner = <span class="keyword">new</span> Runner suite
-				reporter = <span class="keyword">new</span> Reporter runner
-				<span class="keyword">if</span> opts.ignoreLeaks <span class="keyword">then</span> runner.ignoreLeaks = <span class="literal">true</span>
-				runner.run <span class="params">()</span> <span class="function">-></span> 
-					cachedFiles = _.flatten require.cache
-					sourcePath = path.resolve self.config.source
-					pathLength = sourcePath.length
-					<span class="keyword">for</span> file <span class="keyword">in</span> cachedFiles
-						modulePath = file.filename.substring <span class="number">0</span>, pathLength
-						<span class="keyword">if</span> sourcePath == modulePath
-							de<span class="reserved">let</span>e require.cache[ file ]
+				mocha.run <span class="params">()</span> <span class="function">-></span>
 					self.onComp<span class="reserved">let</span>e<span class="params">()</span>
-
-	cleanUp: <span class="params">()</span> <span class="function">-></span>
-		cachedFiles = _.flatten require.cache
-		sourcePath = path.resolve @config.source
-		pathLength = sourcePath.length
-		<span class="keyword">for</span> file <span class="keyword">in</span> cachedFiles
-			modulePath = file.filename.substring <span class="number">0</span>, pathLength
-			<span class="keyword">if</span> sourcePath == modulePath
-				de<span class="reserved">let</span>e require.cache[ file ]
 </code></pre></td></tr><tr class="block"><td class="comment"><h2>SocketServer</h2>
 
 <p>Class to manage client notifications via socket.io</p></td><td class="code"><pre><code><span class="keyword">class</span> SocketServer
