@@ -90,7 +90,10 @@ class Combiner
 					relativeImportPath = path.relative( path.dirname( file.fullPath ), path.dirname( i.fullPath ) )
 					relativeImport = self.fp.buildPath( [ relativeImportPath, i.name ] )
 					relativeImport == importName )
-				file.imports.push importedFile
+				if not self.fp.pathExists [ file.workingPath, importName ]
+					log.onError "Could not find import file #{ importName } from #{ file.name }"
+				else
+					file.imports.push importedFile
 			onComplete()
 
 	# ## fileDependents ##
