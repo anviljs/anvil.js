@@ -71,7 +71,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 
 	FileProvider.prototype.pathExists = function( fullPath ) {
 		fullPath = this.buildPath( fullPath );
-		path.existsSync( fullPath );
+		fs.existsSync( fullPath );
 	};
 
 	FileProvider.prototype.read = function( fullPath, onContent ) {
