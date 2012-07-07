@@ -38,7 +38,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 
 	FileProvider.prototype.ensurePath = function( fullPath, onComplete ) {
 		fullPath = this.buildPath( fullPath );
-		path.exists( fullPath, function( exists ) {
+		fs.exists( fullPath, function( exists ) {
 			if( !exists ) {
 				mkdir( fullPath, "0755", function( error ) {
 					if( error ) {
