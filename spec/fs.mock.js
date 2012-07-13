@@ -37,6 +37,7 @@ var fsFactory = function( _, path ) {
 	var FileSystemMock = function() {
 		this.files = {};
 		this.paths = {};
+		this.watchers = {};
 	};
 
 	FileSystemMock.prototype.buildPath = function( pathSpec ) {
@@ -65,15 +66,43 @@ var fsFactory = function( _, path ) {
 		onComplete();
 	};
 
-	FileSystemMock.prototype.getFiles = function( pathSpec, onComplete ) {
+
+	FileSystemMock.prototype.buildFileData = function( file ) {
+		var projectBase = path.resolve( "./" );
+		return {
+			name: path.basename( file ),
+			dependents: 0,
+			extension: function() { return path.extname( this.name ); },
+			fullPath: file,
+			imports: [],
+			originalName: name,
+			originalPath: file,
+			outputPaths: output,
+			relativePath: path.dirname( file.replace( projectBase, "" ) ),
+			workingPath: this.buildPath( anvil.config.workingPath, this.relativePath )
+		};
+	};
+
+	FileSystemMock.prototype.getFiles = function( pathSpec, onComplete, filter ) {
 		var fullPath = this.buildPath( pathSpec );
+		filter = filter || [];
 		var files = _.chain( this.files )
 						.keys()
+						.reject( function( name ) {
+							return _.any( filter, function( avoid ) { return name.indexOf( avoid ) >= 0; } );
+						} )
 						.filter( function( name ) {
 							return ( name.indexOf( fullPath ) ) >= 0;
 						} )
 						.value();
-		onComplete( files );
+		var directories = _.chain( this.directories )
+							.keys()
+							.without( filter )
+							.filter( function( name ) {
+								return( name.indexOf( fullPath ) ) >= 0;
+							} )
+							.value();
+		onComplete( _.map( files, self.buildFileData ), directories );
 	};
 
 	FileSystemMock.prototype.metadata = function( pathSpec, onComplete ) {
@@ -120,6 +149,38 @@ var fsFactory = function( _, path ) {
 	FileSystemMock.prototype.reset = function() {
 		this.files = {};
 		this.paths = {};
+	};
+
+	FileSystemMock.prototype.raiseEvent = function( fileEvent, pathSpec ) {
+		pathSpec = this.buildPath( pathSpec );
+		var watcher = this.watchers[ pathSpec ];
+		if( watcher ) {
+			watcher.handler( fileEvent, pathSpec );
+		}
+	};
+
+	FileSystemMock.prototype.watch = function( pathSpec, onEvent ) {
+		var self = this;
+		pathSpec = this.buildPath( pathSpec );
+		var watcher = {
+			close: function() {
+				delete self.watchers[ pathspec ];
+			},
+			handler: onEvent
+		};
+		this.watchers[ pathSpec ] = watcher;
+		return watcher;
+	};
+
+	FileSystemMock.prototype.write = function( pathSpec, content, onComplete ) {
+		pathSpec = this.buildPath( pathSpec );
+		fs.writeFile( pathSpec, content, "utf8", function( error ) {
+			if( !error ) {
+				onComplete();
+			} else {
+				onComplete( error );
+			}
+		} );
 	};
 
 	return new FileSystemMock();

@@ -57,9 +57,29 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		} );
 	};
 
-	FileSystem.prototype.getFiles = function( pathSpec, onFiles ) {
+	FileSystem.prototype.buildFileData = function( file ) {
+		var projectBase = path.resolve( "./" );
+		return {
+			name: path.basename( file ),
+			dependents: 0,
+			extension: function() { return path.extname( this.name ); },
+			fullPath: file,
+			imports: [],
+			originalName: name,
+			originalPath: file,
+			outputPaths: output,
+			relativePath: path.dirname( file.replace( projectBase, "" ) ),
+			workingPath: this.buildPath( anvil.config.workingPath, this.relativePath )
+		};
+	};
+
+	FileSystem.prototype.getFiles = function( pathSpec, onFiles, filter ) {
+		var self = this;
+		filter = filter || [];
 		pathSpec = this.buildPath( pathSpec );
-		crawler.crawl( pathSpec, onFiles );
+		crawler.crawl( pathSpec, function( files, directories ) {
+			onFiles( _.map( files, self.buildFileData ), directories );
+		}, filter );
 	};
 
 	FileSystem.prototype.metadata = function( pathSpec, onStat ) {
@@ -113,6 +133,11 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		} );
 	};
 
+	FileSystem.prototype.watch = function( pathSpec, onEvent ) {
+		pathSpec = this.buildPath( pathSpec );
+		return fs.watch( pathSpec, onEvent );
+	};
+
 	FileSystem.prototype.write = function( pathSpec, content, onComplete ) {
 		pathSpec = this.buildPath( pathSpec );
 		fs.writeFile( pathSpec, content, "utf8", function( error ) {
@@ -128,4 +153,3 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 };
 
 module.exports = fileFactory;
-

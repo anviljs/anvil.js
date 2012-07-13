@@ -6,6 +6,7 @@ var anvilFactory = function( _, scheduler, fs, log, events, bus ) {
 		this.pluginCount = 0;
 		this.configuredPlugins = 0;
 		this.config = {};
+		this.project = {};
 		this.bus = bus;
 		this.events = events;
 		this.fs = fs;

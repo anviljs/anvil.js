@@ -1,0 +1,4 @@
+{
+	"name": "combiner",
+	"main": "./plugin.js"
+}
