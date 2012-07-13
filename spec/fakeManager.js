@@ -1,8 +1,11 @@
-var fakeManagerFactory = function( _ ) {
+var fakeManagerFactory = function( _, anvil ) {
 	
 	var fakeManager = {
 		plugins: [],
 		getPlugins: function() {
+			_.each( this.plugins, function( plugin ) {
+				anvil.events.raise( "plugin.loaded", plugin.instance );
+			} );
 			return this.plugins;
 		}
 	};
@@ -18,7 +21,7 @@ var fakeManagerFactory = function( _ ) {
 
 		configure: function( config, command, done ) {
 			this.config = command.pa;
-			config.activtyOrder = [ "test1" ];
+			anvil.config.activityOrder = [ "test1" ];
 			done();
 		},
 
@@ -49,6 +52,10 @@ var fakeManagerFactory = function( _ ) {
 			done();
 		}
 	};
+
+	_.bindAll( pluginA );
+	_.bindAll( pluginB );
+	_.bindAll( pluginC );
 
 	fakeManager.plugins = [
 		{ name: "pluginA", instance: pluginA },

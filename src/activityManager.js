@@ -32,42 +32,57 @@ var activityManagerFactory = function( _, machina, anvil ) {
 		pipelines: {},
 		activityIndex: 0,
 
+		handleEvent: function( eventName ) {
+			var self = this;
+			anvil.events.on( eventName, function() {
+				var args = Array.prototype.slice.call( arguments );
+				args.unshift( eventName );
+				self.handle.apply( self, args );
+			} );
+		},
+
 		runActivity: function() {
-			var self = this,
-				activity = anvil.config.activityOrder[ this.activityIndex ],
-				done = function() {
-					self.activityIndex++;
-					if( self.activityIndex >= activities.length ) {
-						self.transition( "finished" );
-					} else {
-						self.transition( anvil.config.activityOrder[ self.activityIndex ] );
-					}
-				};
-			anvil.scheduler.pipeline( {}, this.pipelines[ activity ], done );
+			try {
+				var self = this,
+					activity = anvil.config.activityOrder[ this.activityIndex ],
+					done = function() {
+						self.activityIndex++;
+						if( self.activityIndex >= anvil.config.activityOrder.length ) {
+							self.transition( "finished" );
+						} else {
+							self.transition( anvil.config.activityOrder[ self.activityIndex ] );
+						}
+					};
+				anvil.scheduler.pipeline( undefined, this.pipelines[ activity ], done );
+			} catch ( err ) {
+				console.log( err );
+			}
 		},
 
 		states: {
 			"waiting": {
 				_onEnter: function() {
-					var self = this;
-					_.each( anvil.config.activityOrder, function( activity ) {
-						self.activities[ activity ] = [];
-					} );
-					anvil.events.on( "plugins.configured", this.handle );
-					anvil.events.on( "plugin.loaded", this.handle );
-					anvil.events.on( "rebuild", this.handle );
+					this.handleEvent( "plugins.configured" );
+					this.handleEvent( "plugin.loaded" );
+					this.handleEvent( "rebuild" );
+					this.handleEvent( "config" );
 				},
 				"plugin.loaded": function( plugin ) {
-					var plugins = this.activities[ plugin.activity ];
+					var plugins;
+					if( !this.activities[ plugin.activity ] ) {
+						plugins = [];
+						this.activities[ plugin.activity ] = plugins;
+					} else {
+						plugins = this.activities[ plugin.activity ];
+					}
 					if( plugins ) {
 						plugins.push( plugin );
 					}
 				},
 				"plugins.configured": function() {
 					var self = this;
-					_.each( self.activities, function( activity ) {
-						var sorted = sort( self.activities[ activity ] );
-						self.activities[ activity ] = sorted;
+					_.each( self.activities, function( plugins, activity ) {
+						var sorted = sort( plugins );
 						self.pipelines[ activity ] = _.pluck( sorted, "run" );
 						self.states[ activity ] = {
 							_onEnter: self.runActivity
@@ -89,8 +104,8 @@ var activityManagerFactory = function( _, machina, anvil ) {
 
 	};
 
-	//_.bindAll( activityManager );
-	var machine = machina.Fsm( activityManager );
+	var machine = new machina.Fsm( activityManager );
+	//_.bindAll( machine );
 	return machine;
 };
 

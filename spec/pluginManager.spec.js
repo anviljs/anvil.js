@@ -11,7 +11,7 @@ var events = require( "../src/eventAggregator.js" )( _ );
 var bus = require( "../src/bus.js")( _, postal );
 var anvil = require( "../src/anvil.js" )( _, scheduler, fs, log, events, bus );
 
-var pluginManager = require( "../src/pluginManager.js" )( _, anvil );
+var pluginManager = require( "../src/pluginManager.js" )( _, anvil, true );
 
 describe( "when getting the list of loaded plugins", function() {
 	var list = pluginManager.getPlugins();

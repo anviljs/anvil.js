@@ -11,12 +11,12 @@ var scheduler = require( "../src/scheduler.js" )( _ );
 var events = require( "../src/eventAggregator.js" )( _ );
 var bus = require( "../src/bus.js")( _, postal );
 var anvil = require( "../src/anvil.js" )( _, scheduler, fs, log, events, bus );
-var manager = require( "./fakeManager.js" )( _ );
+var manager = require( "./fakeManager.js" )( _, anvil );
 var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
 var activityManager = require( "../src/activityManager.js" )( _, machina, anvil );
 
-describe( "when starting system", function() {
+describe( "when using activity manager during system start", function() {
 
 	var buildComplete = false;
 	before( function( done ) {
@@ -32,7 +32,7 @@ describe( "when starting system", function() {
 	} );
 
 	it( "should have run all plugins", function() {
-		_.all( manager.plugins, function( plugin ) { return plugin.ran; } ).should.be.true;
+		_.all( manager.plugins, function( plugin ) { return plugin.instance.ran; } ).should.be.true;
 	} );
 
 } );

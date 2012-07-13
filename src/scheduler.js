@@ -54,7 +54,11 @@ var schedulerFactory = function( _ ) {
 	Scheduler.prototype.pipeline = function( initial, transforms, onComplete ) {
 		var current = initial,
 			iterate = function iterate() {
-				transforms.shift()( current, done );
+				if( current != undefined ) {
+					transforms.shift()( current, done );
+				} else {
+					transforms.shift()( done );
+				}
 			},
 			done = function done( result ) {
 				current = result;

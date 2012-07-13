@@ -1,15 +1,15 @@
 var path = require("path");
 var fs = require("fs");
-// load the plugins list from either the installed anvil instance OR
-// assume this is active development and use a local path
-var dataPath = path.join(path.dirname(fs.realpathSync(__filename, "./")), "../plugins.json");
-var dataExists = path.existsSync( dataPath );
-var plugins = dataExists ? require( dataPath ) : require( "./spec/plugins.json" );
-var installPath = path.join(path.dirname(fs.realpathSync(__filename, "./")), "../plugins/");
-var installPathExists = path.existsSync( installPath );
-installPath = installPathExists ? installPath : "./spec/plugins/";
 
-var pluginManagerFactory = function( _, anvil ) {
+var pluginManagerFactory = function( _, anvil, testing ) {
+
+
+	var dataPath = path.join(path.dirname(fs.realpathSync(__filename, "./")), "../plugins.json");
+	var dataExists = path.existsSync( dataPath );
+	var plugins = testing ? require( path.resolve( "./spec/plugins.json" ) ) : require( dataPath );
+	var installPath = path.join(path.dirname(fs.realpathSync(__filename, "./")), "../plugins/");
+	var installPathExists = path.existsSync( installPath );
+	installPath = testing ? path.resolve( "./spec/plugins/" ) : installPath;
 
 	var PluginManager = function() {
 		this.installPath = installPath;
@@ -22,7 +22,7 @@ var pluginManagerFactory = function( _, anvil ) {
 				instance = require( path.resolve( pluginPath ) )( _, anvil ),
 				metadata = { instance: instance, name: plugin };
 			list.push( metadata );
-			anvil.events.raise( "plugin.loaded", metadata );
+			anvil.events.raise( "plugin.loaded", instance );
 		} );
 		return list;
 	};
