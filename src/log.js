@@ -1,32 +1,33 @@
-var logFactory = function( options ) {
-	return {
-		onDebug: function( x ) {
-			if( options.debug ) {
-				console.log( x.purple );
-			}
-		},
-		onEvent: function( x ) {
-			if( !options.quiet ) {
-				console.log( "\t" + x );
-			}
-		},
-		onStep: function( x ) {
-			if( !options.quiet ) {
-				console.log( x.blue );
-			}
-		},
-		onComplete: function( x ) {
-			console.log( x.green );
-		},
-		onWarning: function( x ) {
-			if( !options.quiet ) {
-				console.log( x.orange );
-			}
-		},
-		onError: function( x ) {
-			console.log( ("\t" + x).red );
-		}
+var logFactory = function( _, anvil ) {
+	
+	var Log = function() {
 	};
+
+	Log.prototype.debug = function( x ) {
+		anvil.events.raise( "log.debug", x );
+	};
+
+	Log.prototype.event = function( x ) {
+		anvil.events.raise( "log.event", x );
+	};
+
+	Log.prototype.step = function( x ) {
+		anvil.events.raise( "log.step", x );
+	};
+
+	Log.prototype.complete = function( x ) {
+		anvil.events.raise( "log.complete", x );
+	};
+
+	Log.prototype.warning = function( x ) {
+		anvil.events.raise( "log.warning", x );
+	};
+
+	Log.prototype.error = function( x ) {
+		anvil.events.raise( "log.error", x );
+	};
+
+	return new Log();
 };
 
 module.exports = logFactory;

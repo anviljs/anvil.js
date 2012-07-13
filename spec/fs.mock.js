@@ -42,7 +42,7 @@ var fsFactory = function( _, path ) {
 	FileSystemMock.prototype.buildPath = function( pathSpec ) {
 		var hasLocalPrefix;
 		if( _( pathSpec ).isArray() ) {
-			hasLocalPrefix = pathSpec[0].match( /$[.\/]/ );
+			hasLocalPrefix = pathSpec[0].match( /^[.]\// );
 			pathSpec = path.join.apply( {}, pathSpec );
 		}
 		return hasLocalPrefix ? "./" + pathSpec : pathSpec;

@@ -1,10 +1,10 @@
-var ciPluginFactory = function( _, anvil, scheduler, fs, log ) {
+var ciPluginFactory = function( _, anvil ) {
 
 	var CiPlugin = function() {
 
 	};
 
-	return new CiPlugin();	
+	return new CiPlugin();
 };
 
 module.exports = ciPluginFactory;

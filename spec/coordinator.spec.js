@@ -11,25 +11,24 @@ var scheduler = require( "../src/scheduler.js" )( _ );
 var events = require( "../src/eventAggregator.js" )( _ );
 var bus = require( "../src/bus.js")( _, postal );
 var anvil = require( "../src/anvil.js" )( _, scheduler, fs, log, events, bus );
+var manager = require( "./fakeManager.js" )( _, anvil );
+var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
+var coordinator = require( "../src/coordinator.js" )( _, anvil );
 
-var mockPluginManager = {
-	installPath: "../spec/plugins",
-	getPlugins: function() {
-		return [
-			{ name: "testPlugin", instance: { test: function() { return "hello anvil!"; } } }
-		];
-	}
-};
+describe( "when initiating activity coordination", function() {
 
-var pluginLocator = require( "../src/pluginLocator.js" )( _, mockPluginManager, anvil );
 
-describe( "when loading configured plugins", function() {
+	it( "should signal plugins registered for activity", function() {
 
-	pluginLocator.loadPlugins();
+	} );
 
-	it( "should correctly store instance of plugin", function() {
-		pluginLocator.instances[ "testPlugin" ].test().should.equal( "hello anvil!" );
+	it( "should order plugins by dependencies", function() {
+
+	} );
+
+	it( "should execute plugins in order", function() {
+
 	} );
 
 } );

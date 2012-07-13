@@ -1,6 +1,6 @@
 require( "should" );
 
-var _ = require( "underscore" );
+ _ = require( "underscore" );
 var commander = require( "commander" );
 var machina = require( "machina" );
 var postal = require( "postal" );
@@ -14,26 +14,25 @@ var anvil = require( "../src/anvil.js" )( _, scheduler, fs, log, events, bus );
 var manager = require( "./fakeManager.js" )( _ );
 var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
+var activityManager = require( "../src/activityManager.js" )( _, machina, anvil );
 
-describe( "when setting up configuration and plugins", function() {
+describe( "when starting system", function() {
 
-	var configCompleted = false;
-
+	var buildComplete = false;
 	before( function( done ) {
-		events.on( "plugins.configured", function() {
-			configCompleted = true;
+		events.on( "build.done", function() {
+			buildComplete = true;
 			done();
 		} );
 		config.initialize( [ "node", "anvil", "--pa", "test" ] );
 	} );
-	
-	it( "should configure all plugins", function() {
-		configCompleted.should.be.true;
+
+	it( "should complete build", function() {
+		buildComplete.should.be.true;
 	} );
 
-	it( "should dispatch completed commander to plugins", function() {
-		console.log( JSON.stringify( locator.instances[ "pluginA" ] ) );
-		locator.instances[ "pluginA" ].config.should.equal( "test" );
+	it( "should have run all plugins", function() {
+		_.all( manager.plugins, function( plugin ) { return plugin.ran; } ).should.be.true;
 	} );
 
 } );

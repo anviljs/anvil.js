@@ -8,7 +8,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		var hasLocalPrefix;
 		pathSpec = pathSpec || "";
 		if( _.isArray( pathSpec ) ) {
-			hasLocalPrefix = pathSpec[0].match( /$[.\/]/ );
+			hasLocalPrefix = pathSpec[0].match( /^[.]\// );
 			pathSpec = path.join.apply( {}, pathSpec );
 		}
 		return hasLocalPrefix ? "./" + pathSpec : pathSpec;

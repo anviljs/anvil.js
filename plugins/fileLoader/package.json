@@ -1,4 +1,4 @@
 {
-	"name": "testPlugin",
+	"name": "fileLoader",
 	"main": "./plugin.js"
 }

@@ -1,8 +1,12 @@
 var should = require( "should" );
 
-var pluginFactory = function( _, anvil, scheduler, fs, log ) {
+var pluginFactory = function( _, anvil ) {
 
 	var TestPlugin = function() {
+		
+	};
+
+	TestPlugin.prototype.onConfig = function( config, commander, done ) {
 		
 	};
 
