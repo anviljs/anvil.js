@@ -6,7 +6,7 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 
 	FSCrawler.prototype.crawl = function( directory, onComplete, filter ) {
 		var self = this,
-			directoryList = [],
+			directoryList = [ path.resolve( "./" ) ],
 			fileList = [];
 
 			filter = _.map( filter, function( path ) { path.resolve( path ); } );

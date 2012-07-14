@@ -38,6 +38,7 @@ var fsFactory = function( _, path ) {
 		this.files = {};
 		this.paths = {};
 		this.watchers = {};
+		_.bindAll( this );
 	};
 
 	FileSystemMock.prototype.buildPath = function( pathSpec ) {
@@ -72,14 +73,14 @@ var fsFactory = function( _, path ) {
 		return {
 			name: path.basename( file ),
 			dependents: 0,
-			extension: function() { return path.extname( this.name ); },
+			extension: function() { return path.extname( this.fullPath ); },
 			fullPath: file,
 			imports: [],
-			originalName: name,
+			originalName: this.name,
 			originalPath: file,
-			outputPaths: output,
+			outputPaths: [],
 			relativePath: path.dirname( file.replace( projectBase, "" ) ),
-			workingPath: this.buildPath( anvil.config.workingPath, this.relativePath )
+			workingPath: this.buildPath( "./.anvil/tmp", this.relativePath )
 		};
 	};
 
@@ -95,14 +96,15 @@ var fsFactory = function( _, path ) {
 							return ( name.indexOf( fullPath ) ) >= 0;
 						} )
 						.value();
-		var directories = _.chain( this.directories )
+		var directories = _.chain( this.paths )
 							.keys()
 							.without( filter )
 							.filter( function( name ) {
 								return( name.indexOf( fullPath ) ) >= 0;
 							} )
 							.value();
-		onComplete( _.map( files, self.buildFileData ), directories );
+		directories.unshift( path.resolve( "./" ) );
+		onComplete( _.map( files, this.buildFileData ), directories );
 	};
 
 	FileSystemMock.prototype.metadata = function( pathSpec, onComplete ) {
@@ -174,13 +176,12 @@ var fsFactory = function( _, path ) {
 
 	FileSystemMock.prototype.write = function( pathSpec, content, onComplete ) {
 		pathSpec = this.buildPath( pathSpec );
-		fs.writeFile( pathSpec, content, "utf8", function( error ) {
-			if( !error ) {
-				onComplete();
-			} else {
-				onComplete( error );
-			}
-		} );
+		var file = this.files[ pathSpec ];
+		if( !file ) {
+			file = new FileMock( pathSpec );
+			this.files[ pathSpec ] = file;
+		}
+		file.write( content, onComplete );
 	};
 
 	return new FileSystemMock();

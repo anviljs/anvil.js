@@ -44,15 +44,21 @@ var activityManagerFactory = function( _, machina, anvil ) {
 		runActivity: function() {
 			try {
 				var self = this,
-					activity = anvil.config.activityOrder[ this.activityIndex ],
+					order = anvil.config.activityOrder,
+					activity = order[ this.activityIndex ],
+					totalActivities = anvil.config.activityOrder.length,
 					done = function() {
-						self.activityIndex++;
-						if( self.activityIndex >= anvil.config.activityOrder.length ) {
+						var nextActivity = order[ ++self.activityIndex ];
+						while( !self.states[ nextActivity ] && self.activityIndex < totalActivities ) {
+							nextActivity = order[ ++self.activityIndex ];
+						}
+						if( self.activityIndex >= totalActivities ) {
 							self.transition( "finished" );
 						} else {
-							self.transition( anvil.config.activityOrder[ self.activityIndex ] );
+							self.transition( nextActivity );
 						}
 					};
+				
 				anvil.scheduler.pipeline( undefined, this.pipelines[ activity ], done );
 			} catch ( err ) {
 				console.log( err );
@@ -83,7 +89,13 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					var self = this;
 					_.each( self.activities, function( plugins, activity ) {
 						var sorted = sort( plugins );
-						self.pipelines[ activity ] = _.pluck( sorted, "run" );
+						self.pipelines[ activity ] = _.map( sorted, function( plugin ) {
+							if( plugin.run ) {
+								return function( done ) { plugin.run.apply( plugin, [ done ] ); };
+							} else {
+								return function( done ) { done(); };
+							}
+						} );
 						self.states[ activity ] = {
 							_onEnter: self.runActivity
 						};

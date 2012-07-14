@@ -13,6 +13,7 @@ var fileLoaderFactory = function( _, anvil ) {
 
 		},
 		watchers: [],
+		initialState: "waiting",
 
 		buildDone: function() {
 			this.handle( "build.done" );
@@ -51,7 +52,7 @@ var fileLoaderFactory = function( _, anvil ) {
 		states: {
 			"waiting": {
 				_onEnter: function() {
-					_.bindAll( this );
+					console.log( "starting file loader" );
 				},
 				"build.done": function() {
 					self.transition( "watching" );
@@ -60,9 +61,11 @@ var fileLoaderFactory = function( _, anvil ) {
 
 			"scanning": {
 				_onEnter: function() {
+					console.log( "scanning" );
 					var self = this;
 					this.excluded.push( anvil.config.output );
 					anvil.fs.getFiles( this.basePath, function( files, directories ) {
+						console.log( files.length + " files found in " + directories.length + " directories" );
 						anvil.project.files = files;
 						anvil.project.directories = directories;
 						self.callback();
@@ -73,17 +76,19 @@ var fileLoaderFactory = function( _, anvil ) {
 
 			"watching": {
 				_onEnter: function() {
+					console.log( "watching files" );
 					this.watchAll();
 				},
 				"file.change": function( fileEvent, file, path ) {
 					this.unwatchAll();
-					anvil.events.raise( "file.change", path );
+					anvil.events.raise( "file.changed", path );
 				}
 			}
 		}
 	};
-
-	return new machina.Fsm( loader );
+	
+	var machine = new machina.Fsm( loader );
+	return machine;
 };
 
-module.exports = fileFactory;
+module.exports = fileLoaderFactory;
