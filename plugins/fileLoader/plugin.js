@@ -52,7 +52,7 @@ var fileLoaderFactory = function( _, anvil ) {
 		states: {
 			"waiting": {
 				_onEnter: function() {
-					console.log( "starting file loader" );
+					
 				},
 				"build.done": function() {
 					self.transition( "watching" );
@@ -61,7 +61,6 @@ var fileLoaderFactory = function( _, anvil ) {
 
 			"scanning": {
 				_onEnter: function() {
-					console.log( "scanning" );
 					var self = this;
 					this.excluded.push( anvil.config.output );
 					anvil.fs.getFiles( this.basePath, function( files, directories ) {
@@ -76,7 +75,6 @@ var fileLoaderFactory = function( _, anvil ) {
 
 			"watching": {
 				_onEnter: function() {
-					console.log( "watching files" );
 					this.watchAll();
 				},
 				"file.change": function( fileEvent, file, path ) {

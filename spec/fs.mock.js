@@ -1,6 +1,7 @@
 var fsFactory = function( _, path ) {
 
 	var FileMock = function( fullPath ) {
+		this.fullPath = fullPath;
 		this.delay = 0;
 		this.available = true;
 	};
@@ -50,14 +51,28 @@ var fsFactory = function( _, path ) {
 		return hasLocalPrefix ? "./" + pathSpec : pathSpec;
 	};
 
+	FileSystemMock.prototype.copy = function( from, to, onComplete ) {
+		from = this.buildPath( from );
+		to = this.buildPath( to );
+		var toDir = path.dirname( to ),
+			self = this;
+		this.ensurePath( to, function() {
+			self.read( from, function( content) {
+				self.write( to, content, function() {
+					onComplete( to );
+				} );
+			} );
+		} );
+	};
+
 	FileSystemMock.prototype[ "delete" ] = function( pathSpec, onDeleted ) {
-		var fullPath = this.buildPath( pathSpec );
-		var file = this.files[ fullPath ];
+		pathSpec = this.buildPath( pathSpec );
+		var file = this.files[ pathSpec ];
 		if( file ) {
-			delete this.files[ filePath ];
+			delete this.files[ pathSpec ];
 			file[ "delete" ]( onDeleted );
 		} else {
-			throw new Error( "Cannot delete " + filePath + "; no such file" );
+			throw new Error( "Cannot delete " + pathSpec + "; no such file" );
 		}
 	};
 
@@ -137,14 +152,14 @@ var fsFactory = function( _, path ) {
 	};
 
 	FileSystemMock.prototype.read = function( pathSpec, onComplete ) {
-		var fullPath = this.buildPath( pathSpec );
-		var file = this.files[ filePath ];
+		pathSpec = this.buildPath( pathSpec );
+		var file = this.files[ pathSpec ];
 		if( file ) {
 			file.read( function( content ) {
 				onComplete( content );
 			} );
 		} else {
-			throw new Error( "Cannot read " + fullPath + "; it does not exist" );
+			throw new Error( "Cannot read " + pathSpec + "; it does not exist" );
 		}
 	};
 
@@ -176,12 +191,16 @@ var fsFactory = function( _, path ) {
 
 	FileSystemMock.prototype.write = function( pathSpec, content, onComplete ) {
 		pathSpec = this.buildPath( pathSpec );
-		var file = this.files[ pathSpec ];
+		var self = this,
+			file = this.files[ pathSpec ];
 		if( !file ) {
 			file = new FileMock( pathSpec );
 			this.files[ pathSpec ] = file;
 		}
-		file.write( content, onComplete );
+		file.write( content, function() {
+			self.raiseEvent( "change", pathSpec );
+			onComplete();
+		} );
 	};
 
 	return new FileSystemMock();
