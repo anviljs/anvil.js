@@ -4,11 +4,9 @@ var fs = require("fs");
 var pluginManagerFactory = function( _, anvil, testing ) {
 
 
-	var dataPath = path.join(path.dirname(fs.realpathSync(__filename, "./")), "../plugins.json");
-	var dataExists = path.existsSync( dataPath );
-	var plugins = testing ? require( path.resolve( "./spec/plugins.json" ) ) : require( dataPath );
+	var dataPath = testing ? path.resolve( "./spec/plugins.json" ) : path.resolve( "./plugins.json" );
+	var plugins = require( dataPath );
 	var installPath = path.join(path.dirname(fs.realpathSync(__filename, "./")), "../plugins/");
-	var installPathExists = path.existsSync( installPath );
 	installPath = testing ? path.resolve( "./spec/plugins/" ) : installPath;
 
 	var PluginManager = function() {
