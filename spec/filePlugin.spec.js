@@ -52,7 +52,7 @@ describe( "when spinning up system for build", function() {
 	it( "should raise file change event on file change", function( done ) {
 		anvil.events.on( "file.changed", function( fileEvent, file ) {
 			fileEvent.should.equal( "change" );
-			file.should.equal( "test.js" );
+			file.should.equal( "./test.js" );
 			done();	
 		} );
 		fs.raiseEvent( "change", "./test.js" );

@@ -45,7 +45,7 @@ var fileLoaderFactory = function( _, anvil ) {
 
 		unwatchAll: function() {
 			while( this.watchers.length > 0 ) {
-				watchers.pop().close();
+				this.watchers.pop().close();
 			}
 		},
 
@@ -81,7 +81,7 @@ var fileLoaderFactory = function( _, anvil ) {
 				},
 				"file.change": function( fileEvent, file, path ) {
 					this.unwatchAll();
-					anvil.events.raise( "file.changed", path );
+					anvil.events.raise( "file.changed", fileEvent, path );
 				}
 			}
 		}

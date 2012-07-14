@@ -166,7 +166,7 @@ var fsFactory = function( _, path ) {
 		pathSpec = this.buildPath( pathSpec );
 		var watcher = {
 			close: function() {
-				delete self.watchers[ pathspec ];
+				delete self.watchers[ pathSpec ];
 			},
 			handler: onEvent
 		};
