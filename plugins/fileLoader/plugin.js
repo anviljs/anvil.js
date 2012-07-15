@@ -5,12 +5,11 @@ var fileLoaderFactory = function( _, anvil ) {
 	var loader = {
 		name: "fileLoader",
 		activity: "identify",
-		basePath: "./",
 		commander: [],
 		prerequisites: [],
-		excluded: [ "./.git", "./.anvil" ],
+		excluded: [],
 		config: {
-
+			excluded: []
 		},
 		watchers: [],
 		initialState: "waiting",
@@ -24,6 +23,13 @@ var fileLoaderFactory = function( _, anvil ) {
 		},
 
 		callback: function() {},
+
+		configure: function( config, command, done ) {
+			var exclude = config.fileLoader.excluded;
+			exclude = exclude.concat( this.excluded );
+			done();
+		},
+
 		run: function( done ) {
 			this.callback = done;
 			this.transition( "scanning" );
@@ -63,7 +69,7 @@ var fileLoaderFactory = function( _, anvil ) {
 				_onEnter: function() {
 					var self = this;
 					this.excluded.push( anvil.config.output );
-					anvil.fs.getFiles( this.basePath, anvil.config.working, function( files, directories ) {
+					anvil.fs.getFiles( anvil.config.source, anvil.config.working, function( files, directories ) {
 						anvil.project.files = files;
 						anvil.project.directories = directories;
 						anvil.log.event( "found " + directories.length + " directories with " + files.length + " files" );

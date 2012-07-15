@@ -11,6 +11,7 @@ var configFactory = function( _, commander, path, anvil ) {
 			"push"
 		],
 		working: "./.anvil/tmp",
+		source: "./src",
 		output: [ "./build" ],
 		log: {
 			options: {

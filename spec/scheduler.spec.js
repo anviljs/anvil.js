@@ -45,6 +45,7 @@ describe( "when running calls in parallel", function() {
 
 	it( "should return collection (in any order)", function( done ) {
 		scheduler.parallel( start, call, function( result ) {
+			console.log( result );
 			_.difference( result, expected ).length.should.equal( 0 );
 			done();
 		} );

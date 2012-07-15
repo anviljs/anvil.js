@@ -8,7 +8,6 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 		var self = this,
 			directoryList = [ path.resolve( "./" ) ],
 			fileList = [];
-			filter = _.map( filter, function( item ) { path.resolve( item ); } );
 
 		if( directory && directory !== "" ) {
 			directory = path.resolve( directory );
@@ -16,27 +15,38 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 				if( !err && contents.length > 0 ) {
 					qualified = [];
 					_.each( contents, function( item ) {
-						qualified.push( path.resolve( directory ), item );
+						qualified.push( path.resolve( directory, item ) );
 					} );
 					self.classifyHandles( qualified, function( files, directories ) {
 						fileList = fileList.concat( files );
-						directories = _.without( directories, filter );
+						
+						//directories = _.without( directories, filter );
+						
+						directories = _.reject( directories, function( directory ) {
+							return _.any( filter, function( exclusion ) { return exclusion === directory; } );
+						} );
+
 						directoryList = directoryList.concat( directories );
 						if( directories.length > 0 ) {
-							scheduler.parallel( directories, self.crawl, function( files ) {
-								fileList = fileList.concat( _.flatten( files ) );
-								onComplete( fileList, directoryList );
-							} );
+							scheduler.parallel( directories,
+								function( directory, done ) {
+									self.crawl( directory, done, filter );
+								},
+								function( files ) {
+									fileList = fileList.concat( _.flatten( files ) );
+									onComplete( fileList, directoryList, filter );
+								}
+							);
 						} else {
-							onComplete( fileList, directoryList );
+							onComplete( fileList, directoryList, filter );
 						}
 					} );
 				} else {
-					onComplete( fileList, directoryList );
+					onComplete( fileList, directoryList, filter );
 				}
 			} );
 		} else {
-			onComplete( fileList, directoryList );
+			onComplete( fileList, directoryList, filter );
 		}
 	};
 
@@ -48,10 +58,11 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 				_.each( classified, function( item ) {
 					if( item.isDirectory ) {
 						directories.push( item.file );
-					} else {
+					} else if( !item.err ) {
 						files.push( item.file );
 					}
 				} );
+
 				onComplete( files, directories );
 			} );
 		} else {

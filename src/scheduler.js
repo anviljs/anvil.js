@@ -22,9 +22,8 @@ var schedulerFactory = function( _ ) {
 			onComplete( [] );
 		}
 
-		_.each( list, function( input ) {
+		_.each( list, function( input, index ) {
 			task( input, function( result ) { callback( result, index ); } );
-			index++;
 		} );
 	};
 

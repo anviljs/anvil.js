@@ -19,8 +19,9 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		to = this.buildPath( to );
 		var toDir = path.dirname( to ),
 			readStream, writeStream;
-		this.ensurePath( to, function() {
-			writeStream = fs.createWriterStream( to );
+		this.ensurePath( toDir, function() {
+			var writeStream = fs.createWriteStream( to ),
+				readStream;
 			( readStream = fs.createReadStream( from ) ).pipe( writeStream );
 			readStream.on( "end", function() {
 				if( writeStream ) {
@@ -57,8 +58,8 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		} );
 	};
 
-	FileSystem.prototype.buildFileData = function( workingBase, file ) {
-		var projectBase = path.resolve( "./" );
+	FileSystem.prototype.buildFileData = function( baseline, workingBase, file ) {
+		var projectBase = path.resolve( baseline );
 		file = path.resolve( file );
 		return {
 			name: path.basename( file ),
@@ -66,9 +67,8 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 			extension: function() { return path.extname( this.name ); },
 			fullPath: file,
 			imports: [],
-			originalName: name,
+			originalName: this.name,
 			originalPath: file,
-			outputPaths: output,
 			relativePath: path.dirname( file.replace( projectBase, "" ) ),
 			workingPath: path.resolve( this.buildPath( [ workingBase, path.dirname( file.replace( projectBase, "" ) ) ] ) )
 		};
@@ -77,11 +77,17 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 	FileSystem.prototype.getFiles = function( pathSpec, workingPath, onFiles, filter ) {
 		var self = this;
 		filter = filter || [];
-		pathSpec = this.buildPath( pathSpec );
-		crawler.crawl( pathSpec, function( files, directories ) {
-			onFiles( _.map( files, function( file ) {
-				return self.buildFileData( workingPath, file );
-			} ), directories );
+		filter = _.map( filter, function( directory ) {
+			return path.resolve( self.buildPath( directory ) );
+		} );
+		pathSpec = path.resolve( this.buildPath( pathSpec ) );
+
+		crawler.crawl( pathSpec,
+			function( files, directories ) {
+				onFiles(
+					_.map( files, function( file ) { return self.buildFileData( pathSpec, workingPath, file ); } ),
+					directories
+				);
 		}, filter );
 	};
 
