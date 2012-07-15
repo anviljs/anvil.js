@@ -27,7 +27,6 @@ var configFactory = function( _, commander, path, anvil ) {
 	};
 
 	Config.prototype.getConfiguration = function( buildFile, onConfig ) {
-		console.log( "loading configuration" );
 		var self = this,
 			calls = {
 				user: function( done ) {

@@ -1,4 +1,4 @@
 {
-	"name": "combiner",
+	"name": "output",
 	"main": "./plugin.js"
 }
