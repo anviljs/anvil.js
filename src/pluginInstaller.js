@@ -7,10 +7,10 @@ var pluginInstallerFactory = function( pluginManager, log ) {
 		var child = child_process.spawn( "npm", [ "install", pluginName ], { cwd: process.cwd() + "/plugins" } );
 		child.on( "exit", function( code ) {
 			if( code === 0 ) {
-				console.log( "Installation of " + pluginName + " completed successfully." );
+				anvil.log.complete( "Installation of " + pluginName + " completed successfully." );
 				onComplete();
 			} else {
-				console.log( "Installation of " + pluginName + " has failed" );
+				anvil.log.error( "Installation of " + pluginName + " has failed" );
 				onComplete( { plugin: pluginName, code: code } );
 			}
 		} );

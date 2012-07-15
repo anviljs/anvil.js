@@ -21,6 +21,7 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 				metadata = { instance: instance, name: plugin };
 			list.push( metadata );
 			anvil.events.raise( "plugin.loaded", instance );
+			anvil.log.debug( "loaded plugin " + plugin );
 		} );
 		return list;
 	};

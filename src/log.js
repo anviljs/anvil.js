@@ -1,4 +1,4 @@
-var logFactory = function( _, anvil ) {
+var logFactory = function( anvil ) {
 	
 	var Log = function() {
 	};
@@ -27,7 +27,9 @@ var logFactory = function( _, anvil ) {
 		anvil.events.raise( "log.error", x );
 	};
 
-	return new Log();
+	var log = new Log();
+	anvil.log = log;
+	return log;
 };
 
 module.exports = logFactory;

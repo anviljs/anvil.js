@@ -57,7 +57,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		} );
 	};
 
-	FileSystem.prototype.buildFileData = function( file ) {
+	FileSystem.prototype.buildFileData = function( workingBase, file ) {
 		var projectBase = path.resolve( "./" );
 		file = path.resolve( file );
 		return {
@@ -70,16 +70,18 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 			originalPath: file,
 			outputPaths: output,
 			relativePath: path.dirname( file.replace( projectBase, "" ) ),
-			workingPath: this.buildPath( anvil.config.workingPath, this.relativePath )
+			workingPath: path.resolve( this.buildPath( [ workingBase, path.dirname( file.replace( projectBase, "" ) ) ] ) )
 		};
 	};
 
-	FileSystem.prototype.getFiles = function( pathSpec, onFiles, filter ) {
+	FileSystem.prototype.getFiles = function( pathSpec, workingPath, onFiles, filter ) {
 		var self = this;
 		filter = filter || [];
 		pathSpec = this.buildPath( pathSpec );
 		crawler.crawl( pathSpec, function( files, directories ) {
-			onFiles( _.map( files, self.buildFileData ), directories );
+			onFiles( _.map( files, function( file ) {
+				return self.buildFileData( workingPath, file );
+			} ), directories );
 		}, filter );
 	};
 

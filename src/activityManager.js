@@ -61,7 +61,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 				
 				anvil.scheduler.pipeline( undefined, this.pipelines[ activity ], done );
 			} catch ( err ) {
-				console.log( err );
+				anvil.log.error( " error running activity " + anvil.config.activityOrder[ this.activityIndex ] + " : " + err );
 			}
 		},
 
@@ -105,6 +105,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 			},
 			"finished": {
 				_onEnter: function() {
+					anvil.log.complete( "build completed" );
 					anvil.events.raise( "build.done" );
 				},
 				"rebuild": function() {

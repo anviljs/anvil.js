@@ -5,3 +5,5 @@ index.html
 .DS_Store
 tmp
 lib/
+build/
+.anvil/

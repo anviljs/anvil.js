@@ -13,7 +13,7 @@ var consoleLogFactory = function( _, anvil ) {
 	};
 
 	ConsoleLogger.prototype.log = function( level, x ) {
-		if( options[ level ] ) {
+		if( anvil.config.log.options[ level ] ) {
 			console.log( x );
 		}
 	};
@@ -23,7 +23,7 @@ var consoleLogFactory = function( _, anvil ) {
 	};
 
 	ConsoleLogger.prototype.onDebug = function( x ) {
-		this.log( "debug", x.purple );
+		this.log( "debug", x.magenta );
 	};
 
 	ConsoleLogger.prototype.onEvent = function( x ) {
@@ -39,7 +39,7 @@ var consoleLogFactory = function( _, anvil ) {
 	};
 
 	ConsoleLogger.prototype.onWarning = function( x ) {
-		this.log( "warning", x.orange );
+		this.log( "warning", x.yellow );
 	};
 
 	ConsoleLogger.prototype.onError = function( x ) {

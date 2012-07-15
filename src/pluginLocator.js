@@ -48,11 +48,11 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 					self.instances[ plugin.name ]= plugin.instance;
 					self.count++;
 				} catch ( Err ) {
-					console.log( "Beds were shat in the loading of " + plugin.name + ": " + Err );
+					anvil.log.error( "An error occurred loading plugin '" + plugin.name + "': " + Err );
 				}
 			} );
 		} catch ( Err ) {
-			console.log( "attempt to load plugins was an abismal fail: " + Err );
+			anvil.log.error( "Attempt to load plugins was an abismal fail: " + Err );
 		}
 		anvil.events.raise( "commander.configured" );
 	};

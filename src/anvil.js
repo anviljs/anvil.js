@@ -1,4 +1,4 @@
-var anvilFactory = function( _, scheduler, fs, log, events, bus ) {
+var anvilFactory = function( _, scheduler, fs, events, bus ) {
 	
 	var Anvil = function() {
 		_.bindAll( this );
@@ -19,7 +19,6 @@ var anvilFactory = function( _, scheduler, fs, log, events, bus ) {
 		this.bus = bus;
 		this.events = events;
 		this.fs = fs;
-		this.log = log;
 		this.scheduler = scheduler;
 
 		events.on( "all.stop", function( exitCode ) {
@@ -39,6 +38,7 @@ var anvilFactory = function( _, scheduler, fs, log, events, bus ) {
 
 	Anvil.prototype.onPluginsConfigured = function() {
 		this.pluginConfigurationCompleted = true;
+		this.log.event( "all plugins are configured" );
 		events.raise( "plugins.configured" );
 	};
 

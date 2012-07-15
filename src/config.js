@@ -5,11 +5,26 @@ var configFactory = function( _, commander, path, anvil ) {
 			"identify",
 			"pull",
 			"combine",
-			"transform",
+			"pre-process",
 			"compile",
+			"post-process",
 			"push"
-		]
+		],
+		working: "./.anvil/tmp",
+		output: [ "./build" ],
+		log: {
+			options: {
+				debug: true,
+				"event": true,
+				step: true,
+				complete: true,
+				warning: true,
+				error: true
+			}
+		}
 	};
+
+	anvil.config = defaultConfig;
 
 	var Config = function() {
 		_.bindAll( this );
@@ -72,7 +87,7 @@ var configFactory = function( _, commander, path, anvil ) {
 		try {
 			commander.parse( this.args );
 		} catch ( Err ) {
-			console.log( "Error processing arguments: " + Err );
+			anvil.log.error( "Error processing arguments: " + Err );
 		}
 		this.getConfiguration( commander.build, function( config ) {
 			anvil.onConfig( config );

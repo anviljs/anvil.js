@@ -63,7 +63,7 @@ var fileLoaderFactory = function( _, anvil ) {
 				_onEnter: function() {
 					var self = this;
 					this.excluded.push( anvil.config.output );
-					anvil.fs.getFiles( this.basePath, function( files, directories ) {
+					anvil.fs.getFiles( this.basePath, anvil.config.working, function( files, directories ) {
 						anvil.project.files = files;
 						anvil.project.directories = directories;
 						self.callback();

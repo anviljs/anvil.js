@@ -1,30 +1,41 @@
-var log = {
+var logFactory = function( anvil ) {
 
-	debugLog: [],
-	infoLog: [],
-	eventLog: [],
-	warningLog: [],
-	errorLog: [],
+	var log = {
 
-	debug: function( text ) {
-		debugLog.push( text );
-	},
+		debugLog: [],
+		infoLog: [],
+		eventLog: [],
+		completeLog: [],
+		warningLog: [],
+		errorLog: [],
 
-	info: function( text ) {
-		infoLog.push( text );
-	},
+		debug: function( text ) {
+			this.debugLog.push( text );
+		},
 
-	event: function( text, color ) {
-		eventLog.push( text );
-	},
+		info: function( text ) {
+			this.infoLog.push( text );
+		},
 
-	warn: function( text ) {
-		warnLog.push( text );
-	},
+		event: function( text ) {
+			this.eventLog.push( text );
+		},
 
-	error: function( text ) {
-		errorLog.push( text );
-	}
+		complete: function( text ) {
+			this.completeLog.push( text );
+		},
+
+		warn: function( text ) {
+			this.warnLog.push( text );
+		},
+
+		error: function( text ) {
+			this.errorLog.push( text );
+		}
+	};
+
+	anvil.log = log;
+	return log;
 };
 
-module.exports = log;
+module.exports = logFactory;

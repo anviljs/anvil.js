@@ -5,12 +5,12 @@ var commander = require( "commander" );
 var machina = require( "machina" );
 var postal = require( "postal" );
 var path = require( "path" );
-var log = require( "./log.mock.js" );
 var fs = require( "./fs.mock.js" )( _, path );
 var scheduler = require( "../src/scheduler.js" )( _ );
 var events = require( "../src/eventAggregator.js" )( _ );
 var bus = require( "../src/bus.js")( _, postal );
-var anvil = require( "../src/anvil.js" )( _, scheduler, fs, log, events, bus );
+var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
+var log = require( "./log.mock.js" )( anvil );
 var manager = require( "../src/pluginManager.js" )( _, anvil );
 var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
@@ -121,6 +121,12 @@ describe( "when scanning project directory with file plugin", function() {
 
 		it( "should have combined e.js", function() {
 			fs.files[ root + "/.anvil/tmp/parent/e.js" ].content.should.equal( js4.source );
+		} );
+
+		it( "should have written files to output", function() {
+			fs.files[ root + "/build/a.js" ].should.be.ok;
+			fs.files[ root + "/build/test.js" ].should.be.ok;
+			fs.files[ root + "/build/parent/e.js" ].should.be.ok;
 		} );
 	} );
 } );

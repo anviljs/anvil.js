@@ -23,7 +23,6 @@ var eventAggregatorFactory = function( _ ) {
 			try {
 				handler.apply( undefined, args );
 			} catch( error ) {
-				console.log( "Error in handler for " + eventName + " : " + error );
 				// we don't need to do anything,
 				// but there's no reason to blow up
 				// just because a subscriber did

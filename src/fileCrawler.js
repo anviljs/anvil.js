@@ -8,8 +8,7 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 		var self = this,
 			directoryList = [ path.resolve( "./" ) ],
 			fileList = [];
-
-			filter = _.map( filter, function( path ) { path.resolve( path ); } );
+			filter = _.map( filter, function( item ) { path.resolve( item ); } );
 
 		if( directory && directory !== "" ) {
 			directory = path.resolve( directory );
