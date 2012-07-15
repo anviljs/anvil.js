@@ -21,6 +21,9 @@ var combinerFactory = function( _, anvil ) {
 			_.each( files, function( other ) {
 				var dependsOn = isADependency( file, other.dependencies );
 				if( dependsOn ) {
+					if( file.state != "done" ) {
+						other.state = "inProcess";
+					}
 					visit( files, other, list );
 				}
 			} );
@@ -117,36 +120,47 @@ var combinerFactory = function( _, anvil ) {
 			imports = [],
 			ext = file.extension(),
 			pattern = this.getPattern( ext );
-		anvil.fs.read( [ file.workingPath, file.name ], function( content ) {
-			imports = imports.concat( content.match( pattern.find ) );
-			imports = _.filter( imports, function( x ) { return x; } );
-			_.each( imports, function( imported ) {
-				importName = imported.match( /[\"'].*[\"']/ )[ 0 ].replace( /[\"']/g, "" );
-				importName = importName.match( /^[.]{1,2}[\/]/ ) ?
-								importName : "./" + importName;
-				importedFile = _.find( list,
-					function( i ) {
-						var relativeImportPath = path.relative(
-								path.dirname( file.fullPath ),
-								path.dirname( i.fullPath ) ),
-							relativeImport = anvil.fs.buildPath( [ relativeImportPath, i.name ] );
-						relativeImport = relativeImport.match( /^[.]{1,2}[\/]/ ) ?
-							relativeImport : "./" + relativeImport;
-						return relativeImport === importName;
-					} );
-				if( importedFile ) {
-					file.imports.push( importedFile );
-				}
+		if( file.state != "done" )
+		{
+			anvil.fs.read( [ file.workingPath, file.name ], function( content ) {
+				imports = imports.concat( content.match( pattern.find ) );
+				imports = _.filter( imports, function( x ) { return x; } );
+				_.each( imports, function( imported ) {
+					importName = imported.match( /[\"'].*[\"']/ )[ 0 ].replace( /[\"']/g, "" );
+					importName = importName.match( /^[.]{1,2}[\/]/ ) ?
+									importName : "./" + importName;
+					importedFile = _.find( list,
+						function( i ) {
+							var relativeImportPath = path.relative(
+									path.dirname( file.fullPath ),
+									path.dirname( i.fullPath ) ),
+								relativeImport = anvil.fs.buildPath( [ relativeImportPath, i.name ] );
+							relativeImport = relativeImport.match( /^[.]{1,2}[\/]/ ) ?
+								relativeImport : "./" + relativeImport;
+							return relativeImport === importName;
+						} );
+					if( importedFile ) {
+						file.imports.push( importedFile );
+					}
+				} );
+				done();
 			} );
+		} else {
 			done();
-		} );
+		}
 	};
 
 	Combiner.prototype.getStep = function( file, imported ) {
 		var self = this;
 		return function( text, done ) {
-			self.replace( text, file, imported, done );
+			if( file.state != "done" || imported != "done" ) {
+				anvil.log.debug( "combining '" + imported.fullPath + "' into '" + imported.fullPath + "'");
+				self.replace( text, file, imported, done );
+			} else {
+				done();
+			}
 		};
+		
 	};
 
 	Combiner.prototype.replace = function( content, file, imported, done ) {

@@ -5,10 +5,13 @@ var fileLoaderFactory = function( _, anvil ) {
 	var loader = {
 		name: "fileLoader",
 		activity: "identify",
-		commander: [],
+		commander: [
+			[ "--ci", "continuously build on file changes" ]
+		],
 		prerequisites: [],
 		excluded: [],
 		config: {
+			continuous: false,
 			excluded: []
 		},
 		watchers: [],
@@ -27,6 +30,9 @@ var fileLoaderFactory = function( _, anvil ) {
 		configure: function( config, command, done ) {
 			var exclude = config.fileLoader.excluded;
 			exclude = exclude.concat( this.excluded );
+			if( command.ci ) {
+				this.config.continuous = true;
+			}
 			done();
 		},
 
@@ -82,10 +88,13 @@ var fileLoaderFactory = function( _, anvil ) {
 
 			"watching": {
 				_onEnter: function() {
-					this.watchAll();
+					if( this.config.continuous ) {
+						this.watchAll();
+					}
 				},
 				"file.change": function( fileEvent, file, path ) {
 					this.unwatchAll();
+					anvil.log.event( "detected file system event '" + fileEvent + "' in '" + path + "'" );
 					anvil.events.raise( "file.changed", fileEvent, path );
 				}
 			}

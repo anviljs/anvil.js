@@ -5,7 +5,7 @@ var outputFactory = function( _, anvil ) {
 	var Output = function() {
 		_.bindAll( this );
 		this.activity = "push";
-		this.name = "";
+		this.name = "output";
 		this.commander = [];
 		this.config = {};
 		this.dependencies = [];
@@ -23,7 +23,12 @@ var outputFactory = function( _, anvil ) {
 		var toCopy = _.filter( anvil.project.files, function( file ) {
 			return file.dependents === 0;
 		} );
-		anvil.scheduler.parallel( toCopy, this.copy, done );
+		anvil.scheduler.parallel( toCopy, this.copy, function() {
+			_.each( anvil.project.files, function( file ) {
+				file.state = "done";
+			} );
+			done();
+		} );
 	};
 
 	return new Output();

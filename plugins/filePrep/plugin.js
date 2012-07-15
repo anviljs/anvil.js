@@ -13,7 +13,9 @@ var filePrepFactory = function( _, anvil ) {
 			var file = _.find( anvil.project.files, function( file ) {
 				return file.originalPath == path;
 			} );
+			file.state = "inProcess";
 			self.copy( file, function() {} );
+			anvil.events.raise( "rebuild", "combine" );
 		} );
 	};
 

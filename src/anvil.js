@@ -38,7 +38,7 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 
 	Anvil.prototype.onPluginsConfigured = function() {
 		this.pluginConfigurationCompleted = true;
-		this.log.event( "all plugins are configured" );
+		this.log.complete( "plugin configuration complete" );
 		events.raise( "plugins.configured" );
 	};
 

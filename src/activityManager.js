@@ -111,9 +111,10 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					anvil.log.complete( "build completed" );
 					anvil.events.raise( "build.done" );
 				},
-				"rebuild": function() {
-					this.activityIndex = 0;
-					this.transition( _.first( anvil.config.activityOrder ) );
+				"rebuild": function( startingWith ) {
+					this.activityIndex = _.indexOf( anvil.config.activityOrder, startingWith );
+					anvil.log.step( this.activityIndex === 0 ? "rebuilding project" : "starting incremental build" );
+					this.transition( startingWith );
 				}
 			}
 		}

@@ -84,7 +84,7 @@ describe( "when scanning project directory with file plugin", function() {
 				done();
 			} );
 			anvil.config.source = "./";
-			config.initialize( [ "node", "anvil" ] );
+			config.initialize( [ "node", "anvil", "--ci" ] );
 		} );
 
 		it( "should complete build", function() {
