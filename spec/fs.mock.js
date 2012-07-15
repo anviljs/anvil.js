@@ -85,6 +85,7 @@ var fsFactory = function( _, path ) {
 
 	FileSystemMock.prototype.buildFileData = function( file ) {
 		var projectBase = path.resolve( "./" );
+		file = path.resolve( file );
 		return {
 			name: path.basename( file ),
 			dependents: 0,
@@ -95,12 +96,12 @@ var fsFactory = function( _, path ) {
 			originalPath: file,
 			outputPaths: [],
 			relativePath: path.dirname( file.replace( projectBase, "" ) ),
-			workingPath: this.buildPath( "./.anvil/tmp", this.relativePath )
+			workingPath: path.resolve( this.buildPath( [ "./.anvil/tmp", path.dirname( file.replace( projectBase, "" ) ) ] ) )
 		};
 	};
 
 	FileSystemMock.prototype.getFiles = function( pathSpec, onComplete, filter ) {
-		var fullPath = this.buildPath( pathSpec );
+		var fullPath = path.resolve( this.buildPath( pathSpec ) );
 		filter = filter || [];
 		var files = _.chain( this.files )
 						.keys()

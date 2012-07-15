@@ -31,7 +31,9 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 		handle( "build.failed", plugin.buildFailed );
 		handle( "build.start", plugin.startBuild );
 		handle( "build.stop", plugin.stopBuild );
-
+		if( !_.isEmpty( plugin.config ) ) {
+			anvil.config[ plugin.name ] = plugin.config;
+		}
 		_.each( plugin.commander, function( options ) {
 			anvil.commander.option.apply( anvil.commander, options );
 		} );
@@ -50,7 +52,7 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 				}
 			} );
 		} catch ( Err ) {
-			console.log( "FAH! " + Err );
+			console.log( "attempt to load plugins was an abismal fail: " + Err );
 		}
 		anvil.events.raise( "commander.configured" );
 	};

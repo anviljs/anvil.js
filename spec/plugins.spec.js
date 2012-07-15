@@ -16,12 +16,63 @@ var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
 var activityManager = require( "../src/activityManager.js" )( _, machina, anvil );
 
+var root = path.resolve( "./" );
+var combinedA = "var a = 'a';" +
+"\nvar f = function() {" +
+"\n   var b = 'b';" +
+"\n};";
+
+var js1 = {
+	path: root,
+	name: "a.js",
+	source: "var a = 'a';" +
+			"\nvar f = function() {" +
+			"\n   // import( 'b.js' )" +
+			"\n};"
+};
+
+var js2 = {
+	path: root,
+	name: "b.js",
+	source: "var b = 'b';"
+};
+
+var js3 = {
+	path: root,
+	name: "test.js",
+	source: "var x = 'test';"
+};
+
+var js4 = {
+	path: root + "/parent/sibling1/",
+	name: "c.js",
+	source: "var c = 'this is contrived!';"
+};
+
+var js5 = {
+	path: root + "/parent/sibling2/",
+	name: "d.js",
+	source: "// import( '../sibling1/c.js' )"
+};
+
+var js6 = {
+	path: root + "/parent/",
+	name: "e.js",
+	source: "// import( './sibling2/d.js' )"
+};
+
+files = [
+	js1, js2, js3, js4, js5, js6
+];
+
+var write = function( file, done ) {
+	fs.write( [ file.path, file.name ], file.source, done );
+};
+
 describe( "when scanning project directory with file plugin", function() {
 	
 	before( function( done ) {
-		fs.write( "./test.js", "var x = 'test';", function() {
-			done();
-		} );
+		anvil.scheduler.parallel( files, write, function() { done(); } );
 	} );
 
 	describe( "when spinning up system for build", function() {
@@ -40,30 +91,36 @@ describe( "when scanning project directory with file plugin", function() {
 		} );
 
 		it( "should have loaded all files", function() {
-			anvil.project.files.length.should.equal( 1 );
-		} );
-
-		it( "should have created file metadata", function() {
-			var file = anvil.project.files[ 0 ];
-			file.name.should.equal( "test.js" );
+			anvil.project.files.length.should.be.greaterThan( 1 );
 		} );
 
 		it( "should raise file change event on file change", function( done ) {
 			anvil.events.on( "file.changed", function( fileEvent, file ) {
 				fileEvent.should.equal( "change" );
-				file.should.equal( "./test.js" );
+				file.should.equal( root + "/test.js" );
 				done();
 			} );
-			fs.write( "./test.js", "this is new content", function() {} );
+			fs.write( root + "/test.js", "this is new content", function() {} );
 		} );
 
 		it( "should copy files to working path", function() {
-			fs.files[ "./.anvil/tmp/test.js" ].should.be.ok;
+			fs.files[ root + "/.anvil/tmp/test.js" ].should.be.ok;
 		} );
 
 		it( "should have rewritten changed content to working folder", function() {
-			fs.files[ "./.anvil/tmp/test.js" ].content.should.equal( "this is new content" );
+			fs.files[ root + "/.anvil/tmp/test.js" ].content.should.equal( "this is new content" );
 		} );
 
+		it( "should have combined a.js", function() {
+			fs.files[ root + "/.anvil/tmp/a.js" ].content.should.equal( combinedA );
+		} );
+
+		it( "should have combined d.js", function() {
+			fs.files[ root + "/.anvil/tmp/parent/sibling2/d.js" ].content.should.equal( js4.source );
+		} );
+
+		it( "should have combined e.js", function() {
+			fs.files[ root + "/.anvil/tmp/parent/e.js" ].content.should.equal( js4.source );
+		} );
 	} );
 } );

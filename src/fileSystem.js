@@ -59,6 +59,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 
 	FileSystem.prototype.buildFileData = function( file ) {
 		var projectBase = path.resolve( "./" );
+		file = path.resolve( file );
 		return {
 			name: path.basename( file ),
 			dependents: 0,

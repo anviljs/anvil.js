@@ -64,7 +64,6 @@ var fileLoaderFactory = function( _, anvil ) {
 					var self = this;
 					this.excluded.push( anvil.config.output );
 					anvil.fs.getFiles( this.basePath, function( files, directories ) {
-						console.log( files.length + " files found in " + directories.length + " directories" );
 						anvil.project.files = files;
 						anvil.project.directories = directories;
 						self.callback();

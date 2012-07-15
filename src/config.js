@@ -43,7 +43,7 @@ var configFactory = function( _, commander, path, anvil ) {
 				}
 			};
 		anvil.scheduler.mapped( calls, function( result ) {
-			onConfig( _.extend( defaultConfig, result.user, result.local, anvil.config ) );
+			onConfig( _.extend( defaultConfig, anvil.config, result.user, result.local ) );
 		} );
 	};
 

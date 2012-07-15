@@ -6,7 +6,16 @@ var anvilFactory = function( _, scheduler, fs, log, events, bus ) {
 		this.pluginCount = 0;
 		this.configuredPlugins = 0;
 		this.config = {};
-		this.project = {};
+		this.project = {
+			files: [],
+			directories: [],
+			getFile: function( spec ) {
+				spec = fs.buildPath( spec );
+				_.first( this.files, function( file ) {
+					return file.fullPath === spec;
+				} );
+			}
+		};
 		this.bus = bus;
 		this.events = events;
 		this.fs = fs;
