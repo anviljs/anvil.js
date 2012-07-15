@@ -14,14 +14,12 @@ var configFactory = function( _, commander, path, anvil ) {
 		source: "./src",
 		output: [ "./build" ],
 		log: {
-			options: {
-				debug: true,
-				"event": true,
-				step: true,
-				complete: true,
-				warning: true,
-				error: true
-			}
+			debug: true,
+			"event": true,
+			step: true,
+			complete: true,
+			warning: true,
+			error: true
 		}
 	};
 

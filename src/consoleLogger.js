@@ -3,7 +3,6 @@ var consoleLogFactory = function( _, anvil ) {
 	var ConsoleLogger = function() {
 		_.bindAll( this );
 
-		anvil.events.on( "log.options", this.onOptions );
 		anvil.events.on( "log.debug", this.onDebug );
 		anvil.events.on( "log.event", this.onEvent );
 		anvil.events.on( "log.step", this.onStep );
@@ -13,13 +12,9 @@ var consoleLogFactory = function( _, anvil ) {
 	};
 
 	ConsoleLogger.prototype.log = function( level, x ) {
-		if( anvil.config.log.options[ level ] ) {
+		if( anvil.config.log[ level ] ) {
 			console.log( x );
 		}
-	};
-
-	ConsoleLogger.prototype.onOptions = function( options ) {
-		this.options = options;
 	};
 
 	ConsoleLogger.prototype.onDebug = function( x ) {
