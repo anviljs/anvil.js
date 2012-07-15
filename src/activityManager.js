@@ -58,7 +58,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 							self.transition( nextActivity );
 						}
 					};
-				
+				anvil.log.step( "starting activity, " + activity );
 				anvil.scheduler.pipeline( undefined, this.pipelines[ activity ], done );
 			} catch ( err ) {
 				anvil.log.error( " error running activity " + anvil.config.activityOrder[ this.activityIndex ] + " : " + err );
@@ -91,7 +91,10 @@ var activityManagerFactory = function( _, machina, anvil ) {
 						var sorted = sort( plugins );
 						self.pipelines[ activity ] = _.map( sorted, function( plugin ) {
 							if( plugin.run ) {
-								return function( done ) { plugin.run.apply( plugin, [ done ] ); };
+								return function( done ) {
+									anvil.log.event( "running plugin: '" + plugin.name + "'" );
+									plugin.run.apply( plugin, [ done ] );
+								};
 							} else {
 								return function( done ) { done(); };
 							}

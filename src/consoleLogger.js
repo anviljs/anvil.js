@@ -27,7 +27,7 @@ var consoleLogFactory = function( _, anvil ) {
 	};
 
 	ConsoleLogger.prototype.onEvent = function( x ) {
-		this.log( "event", x );
+		this.log( "event", "\t" + x );
 	};
 
 	ConsoleLogger.prototype.onStep = function( x ) {

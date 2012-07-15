@@ -3,7 +3,7 @@ var logFactory = function( anvil ) {
 	var log = {
 
 		debugLog: [],
-		infoLog: [],
+		stepLog: [],
 		eventLog: [],
 		completeLog: [],
 		warningLog: [],
@@ -13,8 +13,8 @@ var logFactory = function( anvil ) {
 			this.debugLog.push( text );
 		},
 
-		info: function( text ) {
-			this.infoLog.push( text );
+		step: function( text ) {
+			this.stepLog.push( text );
 		},
 
 		event: function( text ) {
