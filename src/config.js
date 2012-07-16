@@ -10,9 +10,9 @@ var configFactory = function( _, commander, path, anvil ) {
 			"post-process",
 			"push"
 		],
-		working: "./.anvil/tmp",
-		source: "./src",
-		output: [ "./build" ],
+		working: path.resolve( "./.anvil/tmp" ),
+		source: path.resolve( "./src" ),
+		output: [ path.resolve( "./build" ) ],
 		log: {
 			debug: true,
 			"event": true,

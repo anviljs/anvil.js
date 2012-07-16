@@ -16,7 +16,6 @@ var fsFactory = function( _, path ) {
 	FileMock.prototype.read = function( onContent ) {
 		var self = this;
 		if( this.available ) {
-			this.available = false;
 			setTimeout( function() {
 				onContent( self.content );
 				self.available = true;
@@ -83,18 +82,17 @@ var fsFactory = function( _, path ) {
 	};
 
 
-	FileSystemMock.prototype.buildFileData = function( workingBase, file ) {
-		var projectBase = path.resolve( "./" );
+	FileSystemMock.prototype.buildFileData = function( baseline, workingBase, file ) {
+		var projectBase = path.resolve( baseline );
 		file = path.resolve( file );
 		return {
 			name: path.basename( file ),
 			dependents: 0,
-			extension: function() { return path.extname( this.fullPath ); },
+			extension: function() { return path.extname( this.name ); },
 			fullPath: file,
 			imports: [],
 			originalName: this.name,
 			originalPath: file,
-			outputPaths: [],
 			relativePath: path.dirname( file.replace( projectBase, "" ) ),
 			workingPath: path.resolve( this.buildPath( [ workingBase, path.dirname( file.replace( projectBase, "" ) ) ] ) )
 		};
@@ -122,7 +120,7 @@ var fsFactory = function( _, path ) {
 							.value();
 		directories.unshift( path.resolve( "./" ) );
 		onComplete( _.map( files, function( file ) {
-			return self.buildFileData( workingPath, file );
+			return self.buildFileData( pathSpec, workingPath, file );
 		} ), directories );
 	};
 
@@ -163,8 +161,19 @@ var fsFactory = function( _, path ) {
 				onComplete( content );
 			} );
 		} else {
-			throw new Error( "Cannot read " + pathSpec + "; it does not exist" );
+			onComplete( "", "Cannot read " + pathSpec + "; it does not exist" );
 		}
+	};
+
+	FileSystemMock.prototype.rename = function( from, to, done ) {
+		from = this.buildPath( from );
+		to = this.buildPath( to );
+		var self = this;
+		var file = this.files[ from ];
+		file.fullPath = to;
+		this.files[ to ] = file;
+		delete this.files[ from ];
+		done();
 	};
 
 	FileSystemMock.prototype.reset = function() {

@@ -96,19 +96,34 @@ When you use Anvil to compile your project, it will traverse all the files in yo
 
 ## Combining source files, Concatenation Style
 
-Anvil allows you to combine source files by listing the order of concatenation in a YAML format
+Anvil provides you with two ways to drive concatenation: yaml lists or individual yaml files
 
-    file1.js
-        file1a.js
-        file1b.js
-        file1c.js
+### YAML lists
+Anvil allows you to combine source files by listing the order of concatenation in a YAML format. Note: the paths must all be absolute OR relative to the top level of your source folder.
 
-    file2.js
-        file2a.js
-        file2b.js
-        file2c.js
+    ./file1.js:
+        - ./file1a.js
+        - ./file1b.js
+        - ./file1c.js
+
+    file2.js:
+        - ./file2a.js
+        - ./file2b.js
+        - ./file2c.js
 
 In this example, Anvil will create file1 and file2 by concatenating the three files below each. This approach only supports 1 level of parent/child relationships (you really shouldn't need more than 1 level)
+
+
+### YAML files
+If you want to use this approach, just create a YAML file with the list of files that should be used to create it in the order to concatenate them. The name of the file should be the name you want after YAML extension has been removed.
+
+file1.js.yaml's contents:
+
+    - ./file1a.js    
+    - ./file1b.js    
+    - ./file1c.js    
+    
+This would produce file1.js.yaml and concat each of the three listed files together to create its contents. The difference in the paths here is that they must be relative to the placement of file1.js.yaml.
 
 ## Building With Specific Build Files
 
@@ -157,7 +172,9 @@ Anvil uses color-coded messages to let you see what's happening during the build
 
 By default anvil will print everything but debug messages unless you provide a --debug argument or add this to your build.json :
 
-    ""
+    "log": {
+        "debug": true
+    }
 
 You can tell anvil to run in quiet mode (it will still print errors (red) and step completions (green) )
 

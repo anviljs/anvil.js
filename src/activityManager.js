@@ -8,6 +8,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 
 	var sort = function( plugins ) {
 		var newList = [];
+		_.each( plugins, function( plugin ) { plugin.visited = false; } );
 		_.each( plugins, function( plugin ) { visit( plugins, plugin, newList ); } );
 		return newList;
 	};
@@ -39,6 +40,17 @@ var activityManagerFactory = function( _, machina, anvil ) {
 				args.unshift( eventName );
 				self.handle.apply( self, args );
 			} );
+		},
+
+		addPluginToActivity: function( plugin, activity ) {
+			var plugins;
+			if( !this.activities[ activity ] ) {
+				plugins = [];
+				this.activities[ activity ] = plugins;
+			} else {
+				plugins = this.activities[ activity ];
+			}
+			plugins.push( plugin );
 		},
 
 		runActivity: function() {
@@ -74,15 +86,13 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					this.handleEvent( "config" );
 				},
 				"plugin.loaded": function( plugin ) {
-					var plugins;
-					if( !this.activities[ plugin.activity ] ) {
-						plugins = [];
-						this.activities[ plugin.activity ] = plugins;
+					var self = this;
+					if( plugin.activities ) {
+						_.each( plugin.activities, function( activity ) {
+							self.addPluginToActivity( plugin, activity );
+						} );
 					} else {
-						plugins = this.activities[ plugin.activity ];
-					}
-					if( plugins ) {
-						plugins.push( plugin );
+						this.addPluginToActivity( plugin, plugin.activity );
 					}
 				},
 				"plugins.configured": function() {
@@ -93,7 +103,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 							if( plugin.run ) {
 								return function( done ) {
 									anvil.log.event( "running plugin: '" + plugin.name + "'" );
-									plugin.run.apply( plugin, [ done ] );
+									plugin.run.apply( plugin, [ done, activity ] );
 								};
 							} else {
 								return function( done ) { done(); };
@@ -122,7 +132,6 @@ var activityManagerFactory = function( _, machina, anvil ) {
 	};
 
 	var machine = new machina.Fsm( activityManager );
-	//_.bindAll( machine );
 	return machine;
 };
 

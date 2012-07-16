@@ -35,6 +35,7 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 			anvil.config[ plugin.name ] = plugin.config;
 		}
 		_.each( plugin.commander, function( options ) {
+
 			anvil.commander.option.apply( anvil.commander, options );
 		} );
 	};

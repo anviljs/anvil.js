@@ -109,13 +109,24 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 
 	FileSystem.prototype.read = function( pathSpec, onContent ) {
 		pathSpec = this.buildPath( pathSpec );
-		fs.readFile( pathSpec, "utf8", function( error, content ) {
-			if( error ) {
-				onContent( "", error );
-			} else {
-				onContent( content );
-			}
-		} );
+		try {
+			fs.readFile( pathSpec, "utf8", function( error, content ) {
+				if( error ) {
+					onContent( "", error );
+				} else {
+					onContent( content );
+				}
+			} );
+		} catch ( err ) {
+			onContent( "", err );
+		}
+	};
+
+	FileSystem.prototype.rename = function( from, to, done ) {
+		from = this.buildPath( from );
+		to = this.buildPath( to );
+		var self = this;
+		fs.rename( from, to, done );
 	};
 
 	FileSystem.prototype.readSync = function( pathSpec ) {

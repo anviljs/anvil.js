@@ -61,8 +61,67 @@ var js6 = {
 	source: "// import( './sibling2/d.js' )"
 };
 
+var js7 = {
+	path: root + "/parts/",
+	name: "f.js",
+	source: "var a = '1';"
+};
+
+var js8 = {
+	path: root + "/parts/",
+	name: "g.js",
+	source: "var b = '2';"
+};
+
+var js9 = {
+	path: root + "/parts/",
+	name: "h.js",
+	source: "var c = '3';"
+};
+
+var js10 = {
+	path: root + "/parts/",
+	name: "i.js",
+	source: "var a = 1;"
+};
+var js11 = {
+	path: root + "/parts/",
+	name: "j.js",
+	source: "var b = 2;"
+};
+var js12 = {
+	path: root + "/parts/",
+	name: "k.js",
+	source: "var c = 3;"
+};
+var js13 = {
+	path: root + "/parts/",
+	name: "l.js",
+	source: "var d = 4;"
+};
+
+var yaml1 = {
+	path: root,
+	name: "./cat1.js.yaml",
+	source: "- ./parts/f.js\n" +
+			"- ./parts/g.js\n" +
+			"- ./parts/h.js"
+};
+
+var concatList = {
+	path: "/special/",
+	name: "concat.yaml",
+	source: "./cat2.js:\n" +
+			"	- ./parts/i.js\n" +
+			"	- ./parts/j.js\n" +
+			"./cat3.js:\n" +
+			"	- ./parts/k.js\n" +
+			"	- ./parts/l.js\n"
+};
+
 files = [
-	js1, js2, js3, js4, js5, js6
+	js1, js2, js3, js4, js5, js6, js7, js8, js9, js10, js11, js12, js13,
+	yaml1, concatList
 ];
 
 var write = function( file, done ) {
@@ -84,7 +143,7 @@ describe( "when scanning project directory with file plugin", function() {
 				done();
 			} );
 			anvil.config.source = "./";
-			config.initialize( [ "node", "anvil", "--ci" ] );
+			config.initialize( [ "node", "anvil", "--ci", "--concat", "/special/concat.yaml" ] );
 		} );
 
 		it( "should complete build", function() {
@@ -128,6 +187,18 @@ describe( "when scanning project directory with file plugin", function() {
 			fs.files[ root + "/build/a.js" ].should.be.ok;
 			fs.files[ root + "/build/test.js" ].should.be.ok;
 			fs.files[ root + "/build/parent/e.js" ].should.be.ok;
+		} );
+
+		it( "should transform concat yaml files", function() {
+			fs.files[ root + "/build/cat1.js" ].should.be.ok;
+			fs.files[ root + "/build/cat1.js" ].content.should.equal( "var a = '1';\nvar b = '2';\nvar c = '3';" );
+		} );
+
+		it( "should create files from yaml list file", function() {
+			fs.files[ root + "/build/cat2.js" ].should.be.ok;
+			fs.files[ root + "/build/cat2.js" ].content.should.equal( "var a = 1;\nvar b = 2;" );
+			fs.files[ root + "/build/cat3.js" ].should.be.ok;
+			fs.files[ root + "/build/cat3.js" ].content.should.equal( "var c = 3;\nvar d = 4;" );
 		} );
 	} );
 } );

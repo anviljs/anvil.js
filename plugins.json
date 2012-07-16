@@ -1,1 +1,1 @@
-{ "list":[ "fileLoader", "filePrep", "combiner", "output" ] }
+{ "list":[ "fileLoader", "filePrep", "combiner", "concat", "output" ] }

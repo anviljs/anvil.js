@@ -37,23 +37,28 @@ var combinerFactory = function( _, anvil ) {
 		this.name = "combiner";
 		this.activity = "combine";
 		this.commander = [];
-		this.dependencies = [];
+		this.dependencies = [ "concat" ];
 		this.config = {
 			patterns: [
 				{
-					extensions: [ "html" ],
+					extensions: [ ".html" ],
 					find: /[<][!][-]{2}.?import[(]?.?[\"'].*[\"'].?[)]?.?[-]{2}[>]/g,
 					replace: /([ \t]*)[<][!][-]{2}.?import[(]?.?[\"']replace[\"'].?[)] ?.?[-]{2}[>]/g
 				},
 				{
-					extensions: [ ".js", "coffee" ],
+					extensions: [ ".js", ".coffee" ],
 					find: /([\/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([\#]{0,3})/g,
 					replace: /([ \t]*)([\/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[\#]{0,3}/g
 				},
 				{
-					extensions: [ "css", "less", "styl" ],
+					extensions: [ ".css", ".less", ".styl" ],
 					find: /([\/]{2}|[\/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][\/])?/g,
 					replace: /([ \t]*)([\/]{2}|[\/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][\/])?/g
+				},
+				{
+					extensions: [ ".yaml", ".yml" ],
+					find: /([ \t]*)[-][ ]?import[:][ ]*[\"'].*[\"']/g,
+					replace: /([ \t]*)[-][ ]?import[:][ ]*[\"']replace[\"']/g
 				}
 			]
 		};
@@ -82,37 +87,41 @@ var combinerFactory = function( _, anvil ) {
 					self.combine( file, done );
 				};
 			} );
-
+			
 			anvil.scheduler.pipeline( undefined, sorted, done );
 		} );
 	};
 
 	Combiner.prototype.combine = function( file, done ) {
 		var self = this;
-		if( file.imports.length > 0 ) {
-			var steps = _.map( file.imports, function( imported ) {
-				return self.getStep( file, imported );
-			} );
-			var fileSpec = [ file.workingPath, file.name ];
-			anvil.fs.read( fileSpec, function( main ) {
-				anvil.scheduler.pipeline( main, steps, function( result ) {
-					anvil.fs.write( fileSpec, result, done );
+		try {
+			if( file.imports.length > 0 ) {
+				var steps = _.map( file.imports, function( imported ) {
+					return self.getStep( file, imported );
 				} );
-			} );
-		} else {
-			done();
-		}
+				var fileSpec = [ file.workingPath, file.name ];
+				anvil.fs.read( fileSpec, function( main ) {
+					anvil.scheduler.pipeline( main, steps, function( result ) {
+						anvil.fs.write( fileSpec, result, function() { done(); } );
+					} );
+				} );
+			} else {
+				done();
+			}
+		} catch ( err ) { console.log( "err " + err ); }
 	};
 
 	Combiner.prototype.findDependents = function( file, list ) {
 		var imported = function( importFile ) {
 			return file.fullPath === importFile.fullPath;
 		};
-		_.each( list, function( item ) {
-			if( _.any( item.imports, imported ) ) {
-				file.dependents++;
-			}
-		} );
+		try {
+			_.each( list, function( item ) {
+				if( _.any( item.imports, imported ) ) {
+					file.dependents++;
+				}
+			} );
+		} catch ( err ) { console.log( "err " + err ); }
 	};
 
 	Combiner.prototype.findImports = function( file, list, done ) {
@@ -120,9 +129,10 @@ var combinerFactory = function( _, anvil ) {
 			imports = [],
 			ext = file.extension(),
 			pattern = this.getPattern( ext );
+		
 		if( file.state != "done" )
 		{
-			anvil.fs.read( [ file.workingPath, file.name ], function( content ) {
+			anvil.fs.read( [ file.workingPath, file.name ], function( content, err ) {
 				imports = imports.concat( content.match( pattern.find ) );
 				imports = _.filter( imports, function( x ) { return x; } );
 				_.each( imports, function( imported ) {
@@ -174,22 +184,26 @@ var combinerFactory = function( _, anvil ) {
 						), imported.name ] ),
 			relativeImport = anvil.fs.buildPath( [ imported.workingPath, imported.name ] );
 
-		anvil.fs.read( [ working, source ], function( newContent ) {
-			var stringified = pattern.toString().replace( /replace/, "([.][\/])?" + importAlias ),
-				trimmed = stringified.substring( 1, stringified.length - 2 ),
-				fullPattern = new RegExp( trimmed, "g" ),
-				capture = fullPattern.exec( content ),
-				sanitized = newContent.replace( "$", "dollarh" ),
-				whiteSpace, replaced;
+		try {
+			anvil.fs.read( [ working, source ], function( newContent ) {
+				var stringified = pattern.toString().replace( /replace/, "([.][\/])?" + importAlias ),
+					trimmed = stringified.substring( 1, stringified.length - 2 ),
+					fullPattern = new RegExp( trimmed, "g" ),
+					capture = fullPattern.exec( content ),
+					sanitized = newContent.replace( "$", "dollarh" ),
+					whiteSpace, replaced;
 
-			if( capture && capture.length > 1 ) {
-				whiteSpace = capture[1];
-				sanitized = whiteSpace + sanitized.replace( /\n/g, ( "\n" + whiteSpace ) );
-			}
+				if( capture && capture.length > 1 ) {
+					whiteSpace = capture[1];
+					sanitized = whiteSpace + sanitized.replace( /\n/g, ( "\n" + whiteSpace ) );
+				}
 
-			replaced = content.replace( fullPattern, sanitized ).replace( "dollarh", "$" );
-			done( replaced );
-		} );
+				replaced = content.replace( fullPattern, sanitized ).replace( "dollarh", "$" );
+				done( replaced );
+			} );
+		} catch ( err ) {
+			console.log( "err " + err );
+		}
 	};
 
 	return new Combiner();
