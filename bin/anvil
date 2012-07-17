@@ -1,2 +1,4 @@
 #!/usr/bin/env node
-require("../build/cli.js")();
+var path = require("path");
+var buildPath = path.relative( path.dirname(__filename ), "build");
+require( buildPath + "/cli.js")();
