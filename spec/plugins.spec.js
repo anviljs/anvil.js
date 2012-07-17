@@ -5,6 +5,7 @@ var commander = require( "commander" );
 var machina = require( "machina" );
 var postal = require( "postal" );
 var path = require( "path" );
+var realFS = require( "fs" );
 var fs = require( "./fs.mock.js" )( _, path );
 var scheduler = require( "../src/scheduler.js" )( _ );
 var events = require( "../src/eventAggregator.js" )( _ );
@@ -119,9 +120,24 @@ var concatList = {
 			"	- ./parts/l.js\n"
 };
 
+var tokenized = {
+	path: root,
+	name: "tokenized.js",
+	source: "// author: {{{author}}}\n" +
+			"// project: {{{name}}}\n" +
+			"// version: {{{version}}}\n" +
+			" var a = '{{{key}}}';"
+};
+
+var valueFile = {
+	path: "./",
+	name: "values.yaml",
+	source: "key: this value"
+};
+
 files = [
 	js1, js2, js3, js4, js5, js6, js7, js8, js9, js10, js11, js12, js13,
-	yaml1, concatList
+	yaml1, concatList, tokenized, valueFile
 ];
 
 var write = function( file, done ) {
@@ -131,7 +147,15 @@ var write = function( file, done ) {
 describe( "when scanning project directory with file plugin", function() {
 	
 	before( function( done ) {
-		anvil.scheduler.parallel( files, write, function() { done(); } );
+		anvil.scheduler.parallel( files, write, function() {
+			realFS.readFile( "./package.json", "utf8", function( error, content ) {
+				if( !error ) {
+					fs.write( "./package.json", content, done );
+				} else {
+					done();
+				}
+			} );
+		} );
 	} );
 
 	describe( "when spinning up system for build", function() {
@@ -143,7 +167,7 @@ describe( "when scanning project directory with file plugin", function() {
 				done();
 			} );
 			anvil.config.source = "./";
-			config.initialize( [ "node", "anvil", "--ci", "--concat", "/special/concat.yaml" ] );
+			config.initialize( [ "node", "anvil", "--ci", "--concat", "/special/concat.yaml", "--values", "./values.yaml" ] );
 		} );
 
 		it( "should complete build", function() {
@@ -199,6 +223,14 @@ describe( "when scanning project directory with file plugin", function() {
 			fs.files[ root + "/build/cat2.js" ].content.should.equal( "var a = 1;\nvar b = 2;" );
 			fs.files[ root + "/build/cat3.js" ].should.be.ok;
 			fs.files[ root + "/build/cat3.js" ].content.should.equal( "var c = 3;\nvar d = 4;" );
+		} );
+
+		it( "should replace tokens in files", function() {
+			fs.files[ root + "/build/tokenized.js" ].should.be.ok;
+			fs.files[ root + "/build/tokenized.js" ].content.should.equal( "// author: Alex Robson <alex@sharplearningcurve.com> (http://sharplearningcurve.com)\n" +
+			"// project: anvil.js\n" +
+			"// version: 0.8.0\n" +
+			" var a = 'this value';" );
 		} );
 	} );
 } );
