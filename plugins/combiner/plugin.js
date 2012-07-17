@@ -102,26 +102,30 @@ var combinerFactory = function( _, anvil ) {
 				var fileSpec = [ file.workingPath, file.name ];
 				anvil.fs.read( fileSpec, function( main ) {
 					anvil.scheduler.pipeline( main, steps, function( result ) {
-						anvil.fs.write( fileSpec, result, function() { done(); } );
+						if( result ) {
+							anvil.fs.write( fileSpec, result, function() { done(); } );
+						} else {
+							done();
+						}
 					} );
 				} );
 			} else {
 				done();
 			}
-		} catch ( err ) { console.log( "err " + err ); }
+		} catch ( err ) {
+			anvil.log.error( "Error combining imports for '" + file.fullPath + "/" + file.name + "'" );
+		}
 	};
 
 	Combiner.prototype.findDependents = function( file, list ) {
 		var imported = function( importFile ) {
 			return file.fullPath === importFile.fullPath;
 		};
-		try {
-			_.each( list, function( item ) {
-				if( _.any( item.imports, imported ) ) {
-					file.dependents++;
-				}
-			} );
-		} catch ( err ) { console.log( "err " + err ); }
+		_.each( list, function( item ) {
+			if( _.any( item.imports, imported ) ) {
+				file.dependents++;
+			}
+		} );
 	};
 
 	Combiner.prototype.findImports = function( file, list, done ) {
@@ -202,7 +206,8 @@ var combinerFactory = function( _, anvil ) {
 				done( replaced );
 			} );
 		} catch ( err ) {
-			console.log( "err " + err );
+			anvil.log.error( "Error replacing import statements for '" + file.fullPath + "/" + file.name + "'" );
+			done();
 		}
 	};
 

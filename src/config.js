@@ -33,6 +33,14 @@ var configFactory = function( _, commander, path, anvil ) {
 
 	Config.prototype.initialize = function( argList ) {
 		this.args = argList;
+
+		if( _.any( argList, function( arg ) { return arg === "-q" || arg === "--quiet"; } ) ) {
+			var log = anvil.config.log;
+			log.debug = false;
+			log["event"] = false;
+			log.warning = false;
+		}
+
 		commander
 			.version("0.8.0")
 			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
