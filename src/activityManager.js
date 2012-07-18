@@ -53,6 +53,11 @@ var activityManagerFactory = function( _, machina, anvil ) {
 			plugins.push( plugin );
 		},
 
+		onBuildStop: function( reason ) {
+			console.log.error( "The build has stopped because: " + reason );
+			transition( "interrupted" );
+		},
+
 		runActivity: function() {
 			try {
 				var self = this,
@@ -84,6 +89,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					this.handleEvent( "plugin.loaded" );
 					this.handleEvent( "rebuild" );
 					this.handleEvent( "config" );
+					this.handleEvent( "build.stop" );
 				},
 				"plugin.loaded": function( plugin ) {
 					var self = this;
@@ -97,6 +103,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 				},
 				"plugins.configured": function() {
 					var self = this;
+					
 					_.each( self.activities, function( plugins, activity ) {
 						var sorted = sort( plugins );
 						self.pipelines[ activity ] = _.map( sorted, function( plugin ) {
@@ -110,7 +117,8 @@ var activityManagerFactory = function( _, machina, anvil ) {
 							}
 						} );
 						self.states[ activity ] = {
-							_onEnter: self.runActivity
+							_onEnter: self.runActivity,
+							"build.stop": self.onBuildStop
 						};
 					} );
 					this.transition( _.first( anvil.config.activityOrder ) );
@@ -125,6 +133,13 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					this.activityIndex = _.indexOf( anvil.config.activityOrder, startingWith );
 					anvil.log.step( this.activityIndex === 0 ? "rebuilding project" : "starting incremental build" );
 					this.transition( startingWith );
+				}
+			},
+			"interrupted": {
+				"rebuild": function() {
+					var start = anvil.config.activityOrder[ 0 ];
+					anvil.log.step( "restarting previously failed build" );
+					this.transition( start );
 				}
 			}
 		}

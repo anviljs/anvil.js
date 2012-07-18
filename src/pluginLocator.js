@@ -12,12 +12,17 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 		var remaining = this.count;
 		var configDone = function() {
 			if( --remaining === 0 ) {
+				console.log( "configurePlugins finished" );
 				done();
 			}
 		};
 		_.each( this.instances, function( plugin ) {
 			if( plugin.configure ) {
-				plugin.configure( anvil.config, anvil.commander, configDone );
+				try {
+					plugin.configure( anvil.config, anvil.commander, configDone );
+				} catch( err ) {
+					console.log( "urrer: " + err );
+				}
 			} else {
 				configDone();
 			}
@@ -35,7 +40,6 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 			anvil.config[ plugin.name ] = plugin.config;
 		}
 		_.each( plugin.commander, function( options ) {
-
 			anvil.commander.option.apply( anvil.commander, options );
 		} );
 	};

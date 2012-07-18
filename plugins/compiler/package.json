@@ -1,0 +1,4 @@
+{
+	"name": "compiler",
+	"main": "./plugin.js"
+}

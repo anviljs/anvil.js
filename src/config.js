@@ -12,6 +12,7 @@ var configFactory = function( _, commander, path, anvil ) {
 		],
 		working: path.resolve( "./.anvil/tmp" ),
 		source: path.resolve( "./src" ),
+		spec: path.resolve( "./spec" ),
 		output: [ path.resolve( "./build" ) ],
 		log: {
 			debug: true,

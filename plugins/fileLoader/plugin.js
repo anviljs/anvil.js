@@ -36,6 +36,28 @@ var fileLoaderFactory = function( _, anvil ) {
 			done();
 		},
 
+		loadSource: function( done ) {
+			anvil.fs.getFiles( anvil.config.source, anvil.config.working, function( files, directories ) {
+				anvil.project.files = files;
+				anvil.project.directories = directories;
+				anvil.log.event( "found " + directories.length + " directories with " + files.length + " files" );
+				done();
+			}, this.excluded );
+		},
+
+		loadSpecs: function( done ) {
+			try {
+				anvil.fs.getFiles( anvil.config.spec, anvil.config.working, function( files, directories ) {
+					anvil.project.specs = files;
+					anvil.project.directories = anvil.project.directories.concat( directories );
+					anvil.log.event( "found " + files.length + " spec files" );
+					done();
+				} );
+			} catch ( err ) {
+				console.log( "poop mountains of poo! " + err );
+			}
+		},
+
 		run: function( done ) {
 			this.callback = done;
 			this.transition( "scanning" );
@@ -44,6 +66,7 @@ var fileLoaderFactory = function( _, anvil ) {
 		watchAll: function() {
 			var self = this;
 			_.each( anvil.project.files, function( file ) { self.watch( file.fullPath ); } );
+			_.each( anvil.project.specs, function( file ) { self.watch( file.fullPath ); } );
 			_.each( anvil.project.directories, function( directory ) { self.watch( directory, true ); } );
 		},
 
@@ -75,14 +98,12 @@ var fileLoaderFactory = function( _, anvil ) {
 				_onEnter: function() {
 					var self = this;
 					this.excluded.push( anvil.config.output );
-					anvil.fs.getFiles( anvil.config.source, anvil.config.working, function( files, directories ) {
-						anvil.project.files = files;
-						anvil.project.directories = directories;
-						anvil.log.event( "found " + directories.length + " directories with " + files.length + " files" );
-						anvil.log.debug( "directories found: " + directories );
-						self.callback();
-						self.transition( "watching" );
-					}, this.excluded );
+					this.loadSource( function() {
+						self.loadSpecs( function() {
+							self.callback();
+							self.transition( "watching" );
+						} );
+					} );
 				}
 			},
 
