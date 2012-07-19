@@ -24,7 +24,8 @@ var filePrepFactory = function( _, anvil ) {
 	};
 
 	FilePrep.prototype.copy = function( file, done ) {
-		anvil.log.event( "prepping '" + file.relativePath + "/" + file.name + "'" );
+		var path = anvil.fs.buildPath( [ file.relativePath, file.name ] );
+		anvil.log.event( "prepping '" + path + "'" );
 		anvil.fs.copy( file.originalPath, [ file.workingPath, file.name ], done );
 	};
 
