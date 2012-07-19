@@ -1,0 +1,4 @@
+{
+	"name": "fileLoader",
+	"main": "./plugin.js"
+}
