@@ -15,11 +15,11 @@ var configFactory = function( _, commander, path, anvil ) {
 		spec: "./spec",
 		output: "./lib",
 		log: {
-			debug: true,
+			debug: false,
 			"event": true,
 			step: true,
 			complete: true,
-			warning: true,
+			warning: false,
 			error: true
 		}
 	};
@@ -33,18 +33,23 @@ var configFactory = function( _, commander, path, anvil ) {
 	};
 
 	Config.prototype.initialize = function( argList ) {
+		var log = anvil.config.log;
 		this.args = argList;
 
 		if( _.any( argList, function( arg ) { return arg === "-q" || arg === "--quiet"; } ) ) {
-			var log = anvil.config.log;
 			log.debug = false;
 			log["event"] = false;
 			log.warning = false;
+		} else if ( _.any( argList, function( arg ) { return arg == "--verbose"; } ) ) {
+			log.debug = true;
+			log.warning = true;
 		}
+
 
 		commander
 			.version("0.8.0")
 			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
+			.option( "--verbose", "Include debug and warning messages in log" )
 			.option( "install [value]", "Install a plugin from npm" )
 			.option( "disable [value]", "Disable plugin" )
 			.option( "enable [value]", "Enable plugin" )
