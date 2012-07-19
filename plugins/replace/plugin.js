@@ -78,17 +78,23 @@ var replaceFactory = function( _, anvil ) {
 						tokens.push( tokenName );
 					}
 					if( tokens.length > 0 ) {
+						var hadReplacement = false;
 						_.each( tokens, function( tokenName ) {
 							var replacement = self.config.sourceData[ tokenName ],
 								stringified, trimmed, replacer;
 							if( replacement ) {
+								hadReplacement = true;
 								stringified = ( token.replace ).toString().replace( /replace/, tokenName );
 								trimmed = stringified.substring( 1, stringified.length -2 ),
 								replacer = new RegExp( trimmed, "g" );
 								content = content.replace( replacer, replacement );
 							}
 						} );
-						anvil.fs.write( [ file.workingPath, file.name ], content, done );
+						if( hadReplacement ) {
+							anvil.fs.write( [ file.workingPath, file.name ], content, done );
+						} else {
+							done();
+						}
 					} else {
 						done();
 					}

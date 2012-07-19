@@ -54,7 +54,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 		},
 
 		onBuildStop: function( reason ) {
-			console.log.error( "The build has stopped because: " + reason );
+			anvil.log.error( "The build has stopped because: " + reason );
 			transition( "interrupted" );
 		},
 

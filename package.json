@@ -7,10 +7,6 @@
     "type": "git",
     "url": "git://github.com/appendto/anvil.js.git"
   },
-  "main": "api.js",
-  "scripts": {
-    "test": "anvil --mocha"
-  },
   "engines": {
     "node": "~0.6.10"
   },

@@ -46,16 +46,12 @@ var fileLoaderFactory = function( _, anvil ) {
 		},
 
 		loadSpecs: function( done ) {
-			try {
-				anvil.fs.getFiles( anvil.config.spec, anvil.config.working, function( files, directories ) {
-					anvil.project.specs = files;
-					anvil.project.directories = anvil.project.directories.concat( directories );
-					anvil.log.event( "found " + files.length + " spec files" );
-					done();
-				} );
-			} catch ( err ) {
-				console.log( "poop mountains of poo! " + err );
-			}
+			anvil.fs.getFiles( anvil.config.spec, anvil.config.working, function( files, directories ) {
+				anvil.project.specs = files;
+				anvil.project.directories = anvil.project.directories.concat( directories );
+				anvil.log.event( "found " + files.length + " spec files" );
+				done();
+			} );
 		},
 
 		run: function( done ) {

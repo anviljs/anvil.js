@@ -23,7 +23,9 @@ var mochaRunnerFactory = function( _, anvil ) {
 		var mochaConfig = config.mocha;
 		this.reporterName = mochaConfig.reporter.toLowerCase().replace( /[a-z]/, function( letter ) { return letter.toUpperCase(); } );
 		this.ui = mochaConfig.ui.toLowerCase();
-		anvil.events.on( "build.done", this.test );
+		if( command.mocha ) {
+			anvil.events.on( "build.done", this.test );	
+		}
 		done();
 	};
 
@@ -41,7 +43,6 @@ var mochaRunnerFactory = function( _, anvil ) {
 				} );
 			mocha.reporter( this.reporterName );
 			_.each( anvil.project.specs, function( file ) {
-				console.log( "adding spec " + file.name );
 				var fullPath = file.fullPath;
 				delete require.cache[ fullPath ];
 				mocha.addFile( fullPath );
@@ -51,7 +52,7 @@ var mochaRunnerFactory = function( _, anvil ) {
 				anvil.log.complete( "tests complete" );
 			} );
 		} catch ( err ) {
-			console.log( "mocha err: " + err );
+			anvil.log.error( "Error starting mocha: " + err );
 		}
 	};
 

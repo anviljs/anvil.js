@@ -1,10 +1,5 @@
 {
 	"source": "src",
-	"output": "build",
-	"spec": "spec",
-	"ext": "ext",
-	"hosts": {
-		"/": "spec"
-	},
-	"working": "./tmp"
+	"output": "lib",
+	"spec": "spec"
 }

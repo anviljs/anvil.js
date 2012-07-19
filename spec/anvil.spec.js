@@ -15,6 +15,10 @@ var manager = require( "./fakeManager.js" )( _, anvil );
 var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
 
+var pluginFile = {
+
+};
+
 describe( "when setting up configuration and plugins", function() {
 
 	var configCompleted = false;

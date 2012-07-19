@@ -12,7 +12,7 @@ var outputFactory = function( _, anvil ) {
 	};
 
 	Output.prototype.copy = function( file, done ) {
-		anvil.scheduler.parallel( anvil.config.output, function( destination, copied ) {
+		anvil.scheduler.parallel( [ anvil.config.output ], function( destination, copied ) {
 			destination = path.resolve( destination );
 			anvil.log.debug( "copying " + file.name + " to " + ( destination + file.relativePath ) );
 			anvil.fs.copy( [ file.workingPath, file.name ], [ destination, file.relativePath, file.name ], copied );

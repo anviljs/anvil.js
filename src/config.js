@@ -10,10 +10,10 @@ var configFactory = function( _, commander, path, anvil ) {
 			"post-process",
 			"push"
 		],
-		working: path.resolve( "./.anvil/tmp" ),
-		source: path.resolve( "./src" ),
-		spec: path.resolve( "./spec" ),
-		output: [ path.resolve( "./build" ) ],
+		working: "./.anvil/tmp",
+		source: "./src",
+		spec: "./spec",
+		output: "./lib",
 		log: {
 			debug: true,
 			"event": true,
@@ -45,6 +45,10 @@ var configFactory = function( _, commander, path, anvil ) {
 		commander
 			.version("0.8.0")
 			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
+			.option( "install [value]", "Install a plugin from npm" )
+			.option( "disable [value]", "Disable plugin" )
+			.option( "enable [value]", "Enable plugin" )
+			.option( "uninstall [value]", "Uninstall plugin" )
 			.option( "-q, --quiet", "Only print completion and error messages" );
 		anvil.onCommander( commander );
 	};
@@ -65,11 +69,25 @@ var configFactory = function( _, commander, path, anvil ) {
 				}
 			};
 		anvil.scheduler.mapped( calls, function( result ) {
-			onConfig( _.extend( defaultConfig, anvil.config, result.user, result.local ) );
+			var config = _.extend( defaultConfig, anvil.config, result.user, result.local );
+
+			_.map( [ "working", "output", "source", "spec" ], function( property ) {
+				config[ property ] = path.resolve( config[ property ] );
+			} );
+
+			if( config.working === config.output ||
+				config.working === config.source ||
+				config.source === config.output ) {
+				anvil.log.error( "Source, working and output directories MUST be seperate directories." );
+				anvil.events.raise( "all.stop", -1 );
+			}
+
+			onConfig( config );
 		} );
 	};
 
 	Config.prototype.loadConfig = function( file, onComplete ) {
+		file = path.resolve( file );
 		if( anvil.fs.pathExists( file ) ) {
 			anvil.fs.read( file, function( content ) {
 				onComplete( JSON.parse( content ) );

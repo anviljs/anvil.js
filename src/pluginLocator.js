@@ -12,17 +12,12 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 		var remaining = this.count;
 		var configDone = function() {
 			if( --remaining === 0 ) {
-				console.log( "configurePlugins finished" );
 				done();
 			}
 		};
 		_.each( this.instances, function( plugin ) {
 			if( plugin.configure ) {
-				try {
-					plugin.configure( anvil.config, anvil.commander, configDone );
-				} catch( err ) {
-					console.log( "urrer: " + err );
-				}
+				plugin.configure( anvil.config, anvil.commander, configDone );
 			} else {
 				configDone();
 			}
