@@ -104,27 +104,25 @@ var pluginInstallerFactory = function( _, anvil ) {
 	};
 
 	PluginInstaller.prototype.install = function( pluginName, done ) {
-		try {
-			var currentPath = path.resolve( this.pluginDir, "../" ),
-				linkPath = anvil.fs.buildPath( [ this.pluginDir, pluginName ] ),
-				installPath = anvil.fs.buildPath( [ currentPath, "node_modules", pluginName ] ),
-				child = child_process.spawn( "npm", [ "install", pluginName ], { cwd: currentPath } );
-			anvil.log.step( "Installing plugin: " + pluginName );
-			child.on( "exit", function( code ) {
-				if( code === 0 ) {
-					anvil.log.complete( "Installation of '" + pluginName + "' completed successfully." );
-					anvil.fs.link( installPath, linkPath, function( err ) {
-						if( err ) {
-							anvil.log.error( "Could not link plugin path! " + err );
-						}
-						anvil.pluginManager.addPlugin( pluginName, done );
-					} );
-				} else {
-					anvil.log.error( "Installation of '" + pluginName + "' has failed" );
-					done( { plugin: pluginName, code: code } );
-				}
+		var currentPath = path.resolve( this.pluginDir, "../" ),
+			linkPath = anvil.fs.buildPath( [ this.pluginDir, pluginName ] ),
+			installPath = anvil.fs.buildPath( [ currentPath, "node_modules", pluginName ] ),
+			child = child_process.spawn( "npm", [ "install", pluginName ], { cwd: currentPath } );
+		anvil.log.step( "Installing plugin: " + pluginName );
+		child.on( "exit", function( code ) {
+			if( code === 0 ) {
+				anvil.log.complete( "Installation of '" + pluginName + "' completed successfully." );
+				anvil.fs.link( installPath, linkPath, function( err ) {
+					if( err ) {
+						anvil.log.error( "Could not link plugin path! " + err );
+					}
+					anvil.pluginManager.addPlugin( pluginName, done );
+				} );
+			} else {
+				anvil.log.error( "Installation of '" + pluginName + "' has failed" );
+				done( { plugin: pluginName, code: code } );
+			}
 		} );
-		} catch ( err ) { console.log( err ); }
 	};
 
 	PluginInstaller.prototype.list = function( ignore, done ) {

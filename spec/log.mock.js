@@ -31,6 +31,7 @@ var logFactory = function( anvil ) {
 
 		error: function( text ) {
 			this.errorLog.push( text );
+			console.log( text );
 		}
 	};
 

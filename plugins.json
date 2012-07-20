@@ -1,5 +1,6 @@
 {
     "list": [
+    	"concat",
         "combiner",
         "compiler",
         "fileLoader",
