@@ -32,6 +32,7 @@ var pluginInstallerFactory = function( _, anvil ) {
 				anvil.events.raise( "all.stop", 0 );
 			} );
 		} else {
+			console.log( config.dependencies );
 			this.checkDependencies( config.dependencies, done );
 		}
 	};
@@ -39,10 +40,9 @@ var pluginInstallerFactory = function( _, anvil ) {
 	PluginInstaller.prototype.checkDependencies = function( dependencies, done ) {
 		anvil.log.step( "checking build dependencies " );
 		var self = this;
-		anvil.fs.getFiles( this.pluginDir, this.pluginDir, function( files, directories ) {
+		this.getInstalled( function( list ) {
 			var installers = _.map( dependencies, function( dependency ) {
-				if( !_.any( directories, function( directory ) {
-					return dependency === directory.replace( self.pluginDir ); } ) ) {
+				if( !_.contains( list, dependency ) ) {
 					return function( done ) {
 						self.install( dependency, function( result ) {
 							if( !result ) {
@@ -91,7 +91,7 @@ var pluginInstallerFactory = function( _, anvil ) {
 
 	PluginInstaller.prototype.enable = function( pluginName, done ) {
 		this.getInstalled( function( list ) {
-			if( _.any( list, function( plugin ) { return plugin === pluginName; } ) ) {
+			if( _.contains( list, pluginName ) ) {
 				anvil.pluginManager.addPlugin( pluginName, function() {
 					anvil.log.complete( "Plugin '" + pluginName + "' is enabled" );
 					done();
