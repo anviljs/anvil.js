@@ -15,10 +15,10 @@ var config = require( "../src/config.js" )( _, commander, path, anvil );
 
 var mockPluginManager = {
 	installPath: "../spec/plugins",
-	getPlugins: function() {
-		return [
+	getPlugins: function( done ) {
+		done( [
 			{ name: "testPlugin", instance: { test: function() { return "hello anvil!"; } } }
-		];
+		] );
 	}
 };
 

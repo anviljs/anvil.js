@@ -12,11 +12,19 @@ All parts of the build process are implemented as plugins. Some plugins ship alo
 
 A baseline install can do the following:
 
-* Create simple directory structure / scaffolding for new projects
-* Combine resource files through a comment-based import syntax
-* Combine resource files in specified order using a concat.yaml file
+* Install, remove, enable or disable plugins
+* Automatically install any plugins your build file defines as dependencies
 * Continuously and incrementally build the project as files change
-* Test your build with Mocha
+* Create default build files based on installed plugins
+* Create scaffolding for new projects
+* Combine resource files through a comment-based import syntax
+* Combine resource files in specified order using
+    * concat yaml or json file that lists files to create from other files
+    * individual json or yaml files
+* Replace tokens (with customizable syntax) in source with 
+    * values from package.json
+    * yaml or json key/value files
+* Add file headers to final build output based on output file type
 
 ## Installation
 
@@ -31,15 +39,7 @@ Without a build file, Anvil will use its default conventions to attempt to build
     {
         "source": "src",
         "spec": "spec"
-        "output":  [ "build" ],
-        "finalize": {
-            "header|header-file": "this is some unprocessed text or a file name",
-            "footer|footer-file": "this is some unprocessed text or a file name"
-        },
-        "wrap": {
-            "prefix|prefix-file": "this is some unprocessed text or a file name",
-            "suffix|suffix-file": "this is some unprocessed text or a file name"
-        }
+        "output":  [ "build" ]
     }
 
 * source is the path where _all_ project source belongs; this can be a flat or complex hierarchy

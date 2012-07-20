@@ -2,11 +2,11 @@ var fakeManagerFactory = function( _, anvil ) {
 	
 	var fakeManager = {
 		plugins: [],
-		getPlugins: function() {
+		getPlugins: function( done ) {
 			_.each( this.plugins, function( plugin ) {
 				anvil.events.raise( "plugin.loaded", plugin.instance );
 			} );
-			return this.plugins;
+			done( this.plugins );
 		}
 	};
 

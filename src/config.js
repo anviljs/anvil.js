@@ -50,10 +50,6 @@ var configFactory = function( _, commander, path, anvil ) {
 			.version("0.8.0")
 			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
 			.option( "--verbose", "Include debug and warning messages in log" )
-			.option( "install [value]", "Install a plugin from npm" )
-			.option( "disable [value]", "Disable plugin" )
-			.option( "enable [value]", "Enable plugin" )
-			.option( "uninstall [value]", "Uninstall plugin" )
 			.option( "-q, --quiet", "Only print completion and error messages" );
 		anvil.onCommander( commander );
 	};

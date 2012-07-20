@@ -91,6 +91,16 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		}, filter );
 	};
 
+	FileSystem.prototype.link = function( from, to, done ) {
+		from = this.buildPath( from );
+		to = this.buildPath( to );
+		try {
+			fs.link( from, to, done );
+		} catch ( err ) {
+			done( err );
+		}
+	};
+
 	FileSystem.prototype.metadata = function( pathSpec, onStat ) {
 		pathSpec = this.buildPath( pathSpec );
 		try {

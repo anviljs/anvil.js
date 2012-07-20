@@ -6,7 +6,8 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 
 	FSCrawler.prototype.crawl = function( directory, onComplete, filter ) {
 		var self = this,
-			directoryList = [ path.resolve( "./" ) ],
+			base = directory,
+			directoryList = [],
 			fileList = [];
 
 		if( directory && directory !== "" ) {
@@ -20,13 +21,12 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 					self.classifyHandles( qualified, function( files, directories ) {
 						fileList = fileList.concat( files );
 						
-						//directories = _.without( directories, filter );
-						
-						directories = _.reject( directories, function( directory ) {
+						directoryList = directoryList.concat( directories );
+
+						directoryList = _.reject( directoryList, function( directory ) {
 							return _.any( filter, function( exclusion ) { return exclusion === directory; } );
 						} );
 
-						directoryList = directoryList.concat( directories );
 						if( directories.length > 0 ) {
 							scheduler.parallel( directories,
 								function( directory, done ) {

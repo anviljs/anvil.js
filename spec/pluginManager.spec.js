@@ -14,7 +14,16 @@ var log = require( "./log.mock.js" )( anvil );
 var pluginManager = require( "../src/pluginManager.js" )( _, anvil, true );
 
 describe( "when getting the list of loaded plugins", function() {
-	var list = pluginManager.getPlugins();
+	var list = [];
+
+	before( function( done ) {
+		fs.write( path.resolve( "./plugins.json" ), '{ "list": [] }', function() {
+			pluginManager.getPlugins( function( instances ) {
+				list = instances;
+				done();
+			} );
+		} );
+	} );
 
 	it( "should return the list of plugins installed", function() {
 		_.isEqual( list, [] ).should.ok;
@@ -28,8 +37,10 @@ describe( "when adding a new plugin", function() {
 
 	before( function( done ) {
 		pluginManager.addPlugin( "testPlugin", function() {
-			list = pluginManager.getPlugins();
-			done();
+			pluginManager.getPlugins( function( instances ) {
+				list = instances;
+				done();
+			} );
 		} );
 	} );
 	
@@ -46,8 +57,10 @@ describe( "when adding an existing plugin", function() {
 
 	before( function( done ) {
 		pluginManager.addPlugin( "testPlugin", function() {
-			list = pluginManager.getPlugins();
-			done();
+			pluginManager.getPlugins( function( instances ) {
+				list = instances;
+				done();
+			} );
 		} );
 	} );
 	
@@ -64,9 +77,11 @@ describe( "when removing an existing plugin", function() {
 		err;
 
 	before( function( done ) {
-		pluginManager.removePlugin( "test", function() {
-			list = pluginManager.getPlugins();
-			done();
+		pluginManager.removePlugin( "testPlugin", function() {
+			pluginManager.getPlugins( function( instances ) {
+				list = instances;
+				done();
+			} );
 		} );
 	} );
 	
@@ -84,8 +99,10 @@ describe( "when removing a missing plugin", function() {
 
 	before( function( done ) {
 		pluginManager.removePlugin( "lulzImNot4Real", function() {
-			list = pluginManager.getPlugins();
-			done();
+			pluginManager.getPlugins( function( instances ) {
+				list = instances;
+				done();
+			} );
 		} );
 	} );
 	

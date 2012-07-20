@@ -124,6 +124,12 @@ var fsFactory = function( _, path ) {
 		} ), directories );
 	};
 
+	FileSystemMock.prototype.link = function( from, to, done ) {
+		from = this.buildPath( from );
+		to = this.buildPath( to );
+		this.files[ to ] = this.files[ from ];
+	};
+
 	FileSystemMock.prototype.metadata = function( pathSpec, onComplete ) {
 		var fullPath = this.buildPath( pathSpec );
 		var file = this.files[ fullPath ];
