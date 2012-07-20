@@ -6,7 +6,7 @@ var concatFactory = function( _, anvil ) {
 		this.name = "concat";
 		this.activities = [ "combine", "pre-process" ];
 		this.commander = [
-			[ "--concat [value]", "uses a specific yaml file to drive concatenation", "./concat.yaml" ]
+			[ "--concat [value]", "uses a specific yaml or json file to drive concatenation" ]
 		];
 		this.dependencies = [];
 		this.list = {};
@@ -14,14 +14,11 @@ var concatFactory = function( _, anvil ) {
 	};
 
 	Concat.prototype.configure = function( config, command, done ) {
-		var self = this;
-		anvil.fs.read( command.concat, function( content, error ) {
-			if( !error ) {
-				content = content.replace( /\t/g, "   " );
-				self.list = yaml.load( content );
-			}
+		if( command.concat ) {
+			this.parseFile( command.concat, done );
+		} else {
 			done();
-		} );
+		}
 	};
 
 	Concat.prototype.run = function( done, activity ) {
@@ -72,6 +69,26 @@ var concatFactory = function( _, anvil ) {
 		var data = anvil.fs.buildFileData( anvil.config.source, anvil.config.working, originSpec );
 		anvil.project.files.push( data );
 		anvil.fs.write( workingSpec, content, done );
+	};
+
+	Concat.prototype.parseFile = function( file, done ) {
+		var self = this;
+		if( file.match( /[.]yaml$/ ) ) {
+			anvil.fs.read( file, function( content, error ) {
+				if( !error ) {
+					content = content.replace( /\t/g, "   " );
+					self.list = yaml.load( content );
+				}
+				done();
+			} );
+		} else {
+			anvil.fs.read( file, function( content, error ) {
+				if( !error ) {
+					self.list = JSON.parse( content );
+				}
+				done();
+			} );
+		}
 	};
 
 	Concat.prototype.process = function( done ) {
