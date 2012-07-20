@@ -36,7 +36,9 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		pathSpec = this.buildPath( pathSpec );
 		if( this.pathExists( pathSpec ) ) {
 			fs.unlink( pathSpec, function( error ) {
-				onDeleted( error );
+				if( onDeleted ) {
+					onDeleted( error );
+				}
 			} );
 		}
 	};
