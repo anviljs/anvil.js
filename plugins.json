@@ -6,7 +6,6 @@
         "filePrep",
         "output",
         "pluginInstaller",
-        "replace",
         "anvil.mocha"
     ]
 }
