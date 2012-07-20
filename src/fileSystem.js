@@ -4,6 +4,22 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		_.bindAll( this );
 	};
 
+	FileSystem.prototype.buildFileData = function( baseline, workingBase, file ) {
+		var projectBase = path.resolve( baseline );
+		file = path.resolve( file );
+		return {
+			name: path.basename( file ),
+			dependents: 0,
+			extension: function() { return path.extname( this.name ); },
+			fullPath: file,
+			imports: [],
+			originalName: this.name,
+			originalPath: file,
+			relativePath: path.dirname( file.replace( projectBase, "" ) ),
+			workingPath: path.resolve( this.buildPath( [ workingBase, path.dirname( file.replace( projectBase, "" ) ) ] ) )
+		};
+	};
+
 	FileSystem.prototype.buildPath = function( pathSpec ) {
 		var hasLocalPrefix;
 		pathSpec = pathSpec || "";
@@ -35,9 +51,19 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 	FileSystem.prototype["delete"] = function( pathSpec, onDeleted ) {
 		pathSpec = this.buildPath( pathSpec );
 		if( this.pathExists( pathSpec ) ) {
-			fs.unlink( pathSpec, function( error ) {
-				if( onDeleted ) {
-					onDeleted( error );
+			fs.stat( pathSpec, function( err, stat ) {
+				if ( stat.isDirectory() ) {
+					fs.rmdir( pathSpec, function( error ) {
+						if( onDeleted ) {
+							onDeleted( error );
+						}
+					} );
+				} else {
+					fs.unlink( pathSpec, function( error ) {
+						if( onDeleted ) {
+							onDeleted( error );
+						}
+					} );
 				}
 			} );
 		}
@@ -58,22 +84,6 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 				onComplete();
 			}
 		} );
-	};
-
-	FileSystem.prototype.buildFileData = function( baseline, workingBase, file ) {
-		var projectBase = path.resolve( baseline );
-		file = path.resolve( file );
-		return {
-			name: path.basename( file ),
-			dependents: 0,
-			extension: function() { return path.extname( this.name ); },
-			fullPath: file,
-			imports: [],
-			originalName: this.name,
-			originalPath: file,
-			relativePath: path.dirname( file.replace( projectBase, "" ) ),
-			workingPath: path.resolve( this.buildPath( [ workingBase, path.dirname( file.replace( projectBase, "" ) ) ] ) )
-		};
 	};
 
 	FileSystem.prototype.getFiles = function( pathSpec, workingPath, onFiles, filter ) {
@@ -97,7 +107,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		from = this.buildPath( from );
 		to = this.buildPath( to );
 		try {
-			fs.link( from, to, done );
+			fs.symlink( from, to, "dir", done );
 		} catch ( err ) {
 			done( err );
 		}
