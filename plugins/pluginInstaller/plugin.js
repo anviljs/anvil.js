@@ -32,7 +32,6 @@ var pluginInstallerFactory = function( _, anvil ) {
 				anvil.events.raise( "all.stop", 0 );
 			} );
 		} else {
-			console.log( config.dependencies );
 			this.checkDependencies( config.dependencies, done );
 		}
 	};
@@ -82,9 +81,9 @@ var pluginInstallerFactory = function( _, anvil ) {
 	PluginInstaller.prototype.disable = function( pluginName, done ) {
 		anvil.pluginManager.removePlugin( pluginName, function( succeeded, err ) {
 			if( succeeded && !err ) {
-				anvil.log.complete( "Plugin '" + pluginName + "'' is disabled" );
+				anvil.log.complete( "Plugin '" + pluginName + "' is disabled" );
 			} else {
-				anvil.log.error( "Disabling plugin '" + pluginName + "'' failed" );
+				anvil.log.error( "Disabling plugin '" + pluginName + "' failed" );
 			}
 		} );
 	};
@@ -113,11 +112,11 @@ var pluginInstallerFactory = function( _, anvil ) {
 		anvil.log.step( "Installing plugin: " + pluginName );
 		child.on( "exit", function( code ) {
 			if( code === 0 ) {
-				anvil.log.complete( "Installation of " + pluginName + " completed successfully." );
+				anvil.log.complete( "Installation of '" + pluginName + "' completed successfully." );
 				anvil.fs.link( installPath, linkPath );
 				anvil.pluginManager.addPlugin( pluginName, done );
 			} else {
-				anvil.log.error( "Installation of " + pluginName + " has failed" );
+				anvil.log.error( "Installation of '" + pluginName + "' has failed" );
 				done( { plugin: pluginName, code: code } );
 			}
 		} );
@@ -143,11 +142,15 @@ var pluginInstallerFactory = function( _, anvil ) {
 			child = child_process.spawn( "npm", [ "uninstall", pluginName ], { cwd: currentPath } );
 		child.on( "exit", function( code ) {
 			if( code === 0 ) {
-				anvil.log.complete( "Uninstallation of " + pluginName + " completed successfully." );
-				anvil.fs["delete"]( linkPath );
+				anvil.log.complete( "Uninstallation of '" + pluginName + "' completed successfully." );
+				anvil.fs["delete"]( linkPath, function( err ) {
+					if( err ) {
+						anvil.log.error( "Link at '" + linkPath + "' could not be deleted : " + err );
+					}
+				} );
 				anvil.pluginManager.removePlugin( pluginName, done );
 			} else {
-				anvil.log.error( "Uninstallation of " + pluginName + " has failed" );
+				anvil.log.error( "Uninstallation of '" + pluginName + "' has failed" );
 				done( { plugin: pluginName, code: code } );
 			}
 		} );
