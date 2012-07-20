@@ -113,8 +113,13 @@ var pluginInstallerFactory = function( _, anvil ) {
 		child.on( "exit", function( code ) {
 			if( code === 0 ) {
 				anvil.log.complete( "Installation of '" + pluginName + "' completed successfully." );
-				anvil.fs.link( installPath, linkPath );
-				anvil.pluginManager.addPlugin( pluginName, done );
+				anvil.fs.link( installPath, linkPath, function( err ) {
+					if( err ) {
+						anvil.log.error( "Could not link plugin path! " + err );
+					}
+					anvil.pluginManager.addPlugin( pluginName, done );
+				} );
+				
 			} else {
 				anvil.log.error( "Installation of '" + pluginName + "' has failed" );
 				done( { plugin: pluginName, code: code } );

@@ -23,8 +23,8 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 					configDone();
 				}
 			} catch ( err ) {
-				anvil.log.error( "Error configuring plugin '" + err + "' : " + err );
-				anvil.pluginManager.removePlugin( plugin, function() {
+				anvil.log.error( "Error configuring plugin '" + plugin.name + "' : " + err );
+				anvil.pluginManager.removePlugin( plugin.name, function() {
 					anvil.log.step( "Plugin '" + plugin.name + "' cannot be configured and has been disabled");
 					anvil.events.raise( "all.stop", -1 );
 				} );
@@ -58,7 +58,7 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 						self.count++;
 					} catch ( Err ) {
 						anvil.log.error( "Error initializing plugin '" + plugin.name + "': " + Err );
-						anvil.pluginManager.removePlugin( plugin, function() {
+						anvil.pluginManager.removePlugin( plugin.name, function() {
 							anvil.log.step( "Plugin '" + plugin.name + "' cannot be loaded and has been disabled");
 							anvil.events.raise( "all.stop", -1 );
 						} );
