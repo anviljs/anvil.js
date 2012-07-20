@@ -20,9 +20,7 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 					} );
 					self.classifyHandles( qualified, function( files, directories ) {
 						fileList = fileList.concat( files );
-						
 						directoryList = directoryList.concat( directories );
-
 						directoryList = _.reject( directoryList, function( directory ) {
 							return _.any( filter, function( exclusion ) { return exclusion === directory; } );
 						} );
