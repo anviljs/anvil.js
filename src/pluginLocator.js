@@ -16,10 +16,18 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 			}
 		};
 		_.each( this.instances, function( plugin ) {
-			if( plugin.configure ) {
-				plugin.configure( anvil.config, anvil.commander, configDone );
-			} else {
-				configDone();
+			try {
+				if( plugin.configure ) {
+					plugin.configure( anvil.config, anvil.commander, configDone );
+				} else {
+					configDone();
+				}
+			} catch ( err ) {
+				anvil.log.error( "Error configuring plugin '" + err + "' : " + err );
+				self.removePlugin( plugin, function() {
+					anvil.log.step( "Plugin '" + plugin + "' cannot be configured and has been disabled");
+					anvil.events.raise( "all.stop", -1 );
+				} );
 			}
 		} );
 	};
@@ -49,13 +57,17 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 						self.instances[ plugin.name ]= plugin.instance;
 						self.count++;
 					} catch ( Err ) {
-						anvil.log.error( "An error occurred loading plugin '" + plugin.name + "': " + Err );
+						anvil.log.error( "Error initializing plugin '" + plugin.name + "': " + Err );
+						self.removePlugin( plugin, function() {
+							anvil.log.step( "Plugin '" + plugin + "' cannot be loaded and has been disabled");
+							anvil.events.raise( "all.stop", -1 );
+						} );
 					}
 				} );
 				anvil.events.raise( "commander.configured" );
 			} );
 		} catch ( Err ) {
-			anvil.log.error( "Fatal: attempt to load plugins was an abismal fail: " + Err );
+			anvil.log.error( "Fatal: attempt to initialize plugins was an abismal fail: " + Err );
 			anvil.events.raise( "all.stop", -1 );
 		}
 	};
