@@ -4,9 +4,9 @@
         "compiler",
         "fileLoader",
         "filePrep",
-        "mocha",
         "output",
         "pluginInstaller",
-        "replace"
+        "replace",
+        "anvil.mocha"
     ]
 }

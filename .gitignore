@@ -3,3 +3,4 @@ node_modules/
 index.html
 .DS_Store
 .anvil/
+plugins/anvil.*

@@ -16,11 +16,10 @@ A baseline install can do the following:
 * Automatically install any plugins your build file defines as dependencies
 * Continuously and incrementally build the project as files change
 * Create default build files based on installed plugins
-* Create scaffolding for new projects
 * Combine resource files through a comment-based import syntax
 * Combine resource files in specified order using
     * concat yaml or json file that lists files to create from other files
-    * individual json or yaml files
+    * individual yaml files
 * Replace tokens (with customizable syntax) in source with 
     * values from package.json
     * yaml or json key/value files
