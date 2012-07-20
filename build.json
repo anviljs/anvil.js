@@ -2,5 +2,5 @@
 	"source": "src",
 	"spec": "spec",
 	"output": "lib",
-	"dependencies": [ "bufrda" ] 
+	"dependencies": [ "mocha" ] 
 }
