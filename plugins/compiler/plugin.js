@@ -9,6 +9,10 @@ var compilerFactory = function( _, anvil ) {
 		this.config = {
 			compilers: {}
 		};
+
+		anvil.addCompiler = function( ext, instance ) {
+			anvil.config.compiler.compilers[ ext ] = instance;
+		};
 	};
 
 	Compiler.prototype.compile = function( file, done ) {
@@ -18,7 +22,7 @@ var compilerFactory = function( _, anvil ) {
 
 		if( compiler ) {
 			var rename = compiler.rename ? compiler.rename( file.name ) : file.name;
-			anvil.fs.transform( 
+			anvil.fs.transform(
 				[ file.workingPath, file.name ],
 				compiler.compile,
 				[ file.workingPath, rename ],
