@@ -81,7 +81,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 
 	FileSystem.prototype.ensurePath = function( pathSpec, onComplete ) {
 		pathSpec = this.buildPath( pathSpec );
-		path.exists( pathSpec, function( exists ) {
+		fs.exists( pathSpec, function( exists ) {
 			if( !exists ) {
 				mkdir( pathSpec, "0755", function( error ) {
 					if( error ) {
@@ -136,7 +136,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 
 	FileSystem.prototype.pathExists = function( pathSpec ) {
 		pathSpec = this.buildPath( pathSpec );
-		return path.existsSync( pathSpec );
+		return fs.existsSync( pathSpec );
 	};
 
 	FileSystem.prototype.read = function( pathSpec, onContent ) {

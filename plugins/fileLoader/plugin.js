@@ -118,8 +118,7 @@ var fileLoaderFactory = function( _, anvil ) {
 		}
 	};
 	
-	var machine = new machina.Fsm( loader );
-	return machine;
+	return anvil.plugin( new machina.Fsm( loader ) );
 };
 
 module.exports = fileLoaderFactory;

@@ -12,6 +12,7 @@ var events = require( "../src/eventAggregator.js" )( _ );
 var bus = require( "../src/bus.js")( _, postal );
 var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
 var log = require( "./log.mock.js" )( anvil );
+var plugin = require( "../src/plugin.js" )( _, anvil );
 var manager = require( "../src/pluginManager.js" )( _, anvil );
 var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );

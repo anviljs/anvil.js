@@ -1,11 +1,10 @@
 {
     "list": [
-    	"concat",
+        "concat",
         "combiner",
         "compiler",
         "fileLoader",
         "filePrep",
-        "output",
         "pluginInstaller",
         "anvil.mocha"
     ]

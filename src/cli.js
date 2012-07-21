@@ -12,6 +12,7 @@ var files = require( "./fileSystem.js" )( _, fs, path, mkdir, crawler );
 var events = require( "./eventAggregator.js" )( _ );
 var bus = require( "./bus.js")( _, postal );
 var anvil = require( "./anvil.js" )( _, scheduler, files, events, bus );
+var plugin = require( "./plugin.js" )( _, anvil );
 var log = require( "./log.js" )( anvil );
 var consoleLog = require( "./consoleLogger.js" )( _, anvil );
 var manager = require( "./pluginManager.js" )( _, anvil );

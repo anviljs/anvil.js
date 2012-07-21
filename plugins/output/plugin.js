@@ -1,37 +1,30 @@
 var path = require( "path" );
 
 var outputFactory = function( _, anvil ) {
+	return anvil.plugin( {
+		name: "output",
+		activity: "push",
 
-	var Output = function() {
-		_.bindAll( this );
-		this.activity = "push";
-		this.name = "output";
-		this.commander = [];
-		this.config = {};
-		this.dependencies = [];
-	};
+		copy: function( file, done ) {
+			anvil.scheduler.parallel( [ anvil.config.output ], function( destination, copied ) {
+				destination = path.resolve( destination );
+				anvil.log.debug( "copying " + file.name + " to " + ( destination + file.relativePath ) );
+				anvil.fs.copy( [ file.workingPath, file.name ], [ destination, file.relativePath, file.name ], copied );
+			}, done );
+		},
 
-	Output.prototype.copy = function( file, done ) {
-		anvil.scheduler.parallel( [ anvil.config.output ], function( destination, copied ) {
-			destination = path.resolve( destination );
-			anvil.log.debug( "copying " + file.name + " to " + ( destination + file.relativePath ) );
-			anvil.fs.copy( [ file.workingPath, file.name ], [ destination, file.relativePath, file.name ], copied );
-		}, done );
-	};
-
-	Output.prototype.run = function( done ) {
-		var toCopy = _.filter( anvil.project.files, function( file ) {
-			return file.dependents === 0;
-		} );
-		anvil.scheduler.parallel( toCopy, this.copy, function() {
-			_.each( anvil.project.files, function( file ) {
-				file.state = "done";
+		run: function( done ) {
+			var toCopy = _.filter( anvil.project.files, function( file ) {
+				return file.dependents === 0;
 			} );
-			done();
-		} );
-	};
-
-	return new Output();
+			anvil.scheduler.parallel( toCopy, this.copy, function() {
+				_.each( anvil.project.files, function( file ) {
+					file.state = "done";
+				} );
+				done();
+			} );
+		}
+	} );
 };
 
 module.exports = outputFactory;
