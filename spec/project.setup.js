@@ -89,7 +89,27 @@ var factory = function( _, fs, path, scheduler, realFS ) {
 				"- ./parts/h.js"
 	};
 
-	var concatList = {
+	var yaml2 = {
+		path: source,
+		name: "./data.yaml",
+		source: "- minding\n" +
+				"- my\n" +
+				"- business"
+	};
+
+	var json1 = {
+		path: source,
+		name: "./cat4.js.json",
+		source: '{ "imports": [ "./parts/f.js", "./parts/g.js", "./parts/h.js" ] }'
+	};
+
+	var json2 = {
+		path: source,
+		name: "./cat2.js.json",
+		source: '{ "datums": [ "minding", "my", "business" ] }'
+	};
+
+	var concatList1 = {
 		path: "/special/",
 		name: "concat.yaml",
 		source: "./cat2.js:\n" +
@@ -127,7 +147,8 @@ var factory = function( _, fs, path, scheduler, realFS ) {
 
 	var files = [
 		js1, js2, js3, js4, js5, js6, js7, js8, js9, js10, js11, js12, js13,
-		yaml1, concatList, tokenized, valueFile, buildFile
+		yaml1, yaml2, json1, json2,
+		concatList1, tokenized, valueFile, buildFile
 	];
 
 	return function( done ) {

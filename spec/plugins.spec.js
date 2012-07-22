@@ -94,6 +94,11 @@ describe( "when scanning project directory with file plugin", function() {
 			fs.files[ root + "/lib/cat1.js" ].content.should.equal( "var a = '1';\nvar b = '2';\nvar c = '3';" );
 		} );
 
+		it( "should transform concat json files", function() {
+			fs.files[ root + "/lib/cat4.js" ].should.be.ok;
+			fs.files[ root + "/lib/cat4.js" ].content.should.equal( "var a = '1';\nvar b = '2';\nvar c = '3';" );
+		} );
+
 		it( "should create files from yaml list file", function() {
 			fs.files[ root + "/lib/cat2.js" ].should.be.ok;
 			fs.files[ root + "/lib/cat2.js" ].content.should.equal( "var a = 1;\nvar b = 2;" );

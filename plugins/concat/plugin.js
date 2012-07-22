@@ -20,12 +20,12 @@ var concatFactory = function( _, anvil ) {
 		},
 
 		cleanup: function( done ) {
-			var files =	_.filter( anvil.project.files, function( file ) {
-					var ext = file.extension();
-					return ext === ".yml" || ext === ".yaml";
-				} );
+			var files =	_.filter( anvil.project.files, function( file ) { return file.concat; } );
 			anvil.scheduler.parallel( files, function( file, done ) {
-				var newName = file.name.replace( ".yml", "" ).replace( ".yaml", "" );
+				var newName = file.name
+								.replace( ".yml", "" )
+								.replace( ".yaml", "" )
+								.replace( ".json", "" );
 				anvil.fs.rename(
 					[ file.workingPath, file.name ],
 					[ file.workingPath, newName ],
@@ -65,6 +65,7 @@ var concatFactory = function( _, anvil ) {
 			var originSpec = anvil.fs.buildPath( [ anvil.config.source, file.path ] );
 			var workingSpec = anvil.fs.buildPath( [ anvil.config.working, file.path ] );
 			var data = anvil.fs.buildFileData( anvil.config.source, anvil.config.working, originSpec );
+			data.concat = true;
 			anvil.project.files.push( data );
 			anvil.fs.write( workingSpec, content, done );
 		},
@@ -97,25 +98,51 @@ var concatFactory = function( _, anvil ) {
 		},
 
 		transformFiles: function( done ) {
-			var files = _.filter( anvil.project.files, function( file ) {
-					var ext = file.extension();
-					return ext === ".yml" || ext === ".yaml";
-				} );
-			anvil.scheduler.parallel( files, function( file, done) {
-				anvil.fs.read( [ file.workingPath, file.name ], function( content, error ) {
-					if( !error ) {
-						content = content.replace( /\t/g, "   " );
-						var list = yaml.load( content );
-						if( _.isArray( list ) && !list[ 0 ][ "import" ] ) {
-							content = _.map( list, function( child ) {
-								return !child.match( /import/ ) ? "- import: '" + child + "'" : child;
-							} ).join( "\n" );
-							anvil.fs.write( [ file.workingPath, file.name ], content, done );
+			var self = this;
+			anvil.scheduler.parallel( anvil.project.files, function( file, done) {
+				var ext = file.extension();
+				if( ext === ".yml" || ext === ".yaml" || ext === ".json" ) {
+					anvil.fs.read( [ file.workingPath, file.name ], function( content, error ) {
+						if( !error ) {
+							if( ext === ".yml" || ext === ".yaml" ) {
+								self.transformYaml( file, content, done );
+							} else if ( ext === ".json" ) {
+								self.transformJson( file, content, done );
+							} else {
+								done();
+							}
 						}
-					}
+						done();
+					} );
+				} else {
 					done();
-				} );
+				}
 			}, done );
+		},
+
+		transformJson: function( file, content, done ) {
+			var list = JSON.parse( content );
+			if( list.imports && _.isArray( list.imports ) ) {
+				anvil.log.debug( "transforming json to yaml imports" );
+				file.concat = true;
+				content = _.map( list.imports, function( child ) {
+					return "- import: '" + child + "'";
+				} ).join( "\n" );
+				anvil.fs.write( [ file.workingPath, file.name ], content, done );
+			}
+		},
+
+		transformYaml: function( file, content, done ) {
+			content = content.replace( /\t/g, "   " );
+			var list = yaml.load( content );
+			if( _.isArray( list ) && !list[ 0 ][ "import" ] ) {
+				anvil.log.debug( "transforming yaml imports" );
+				file.concat = true;
+				content = _.map( list, function( child ) {
+					return !child.match( /import/ ) ? "- import: '" + child + "'" : child;
+				} ).join( "\n" );
+				anvil.fs.write( [ file.workingPath, file.name ], content, done );
+			}
 		}
 	} );
 };

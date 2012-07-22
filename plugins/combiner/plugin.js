@@ -53,7 +53,7 @@ var combinerFactory = function( _, anvil ) {
 					replace: "/([ \t]*)([\/]{2}|[\/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][\/])?/g"
 				},
 				{
-					extensions: [ ".yaml", ".yml" ],
+					extensions: [ ".yaml", ".yml", ".json" ],
 					find: "/([ \t]*)[-][ ]?import[:][ ]*[\"'].*[\"']/g",
 					replace: "/([ \t]*)[-][ ]?import[:][ ]*[\"']replace[\"']/g"
 				}

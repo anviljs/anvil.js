@@ -4,7 +4,7 @@ Anvil started as a way to build a single javascript module from several source f
 
 Anvil has been rewritten as an extensible tool that uses a plugin architecture to allow developers to change pretty much everything about how it works.
 
-The new version of Anvil is not entirely backwards compatible. If you want to continue using the old version, you can still install it from npm by specifying the version number ( 0.7.9 ). If you need help converting your project to the new version, please send me an e-mail or submit an issue to the project and I'll help as I have time.
+The new version of anvil is not entirely backwards compatible. If you want to continue using the old version, you can still install it from npm by specifying the version number ( 0.7.9 ). If you need help converting your project to the new version, please send me an e-mail or submit an issue to the project and I'll help as I have time.
 
 ## What Does It Do?
 
@@ -17,12 +17,12 @@ A baseline install can do the following:
 * Continuously and incrementally build the project as files change
 * Create default build files based on installed plugins
 * Combine resource files through a comment-based import syntax
-* Combine resource files in specified order using
-    * concat yaml or json file that lists files to create from other files
-    * individual yaml files
+* Concat resource files in specified order using
+    * JSON or YAML file that lists files to create from other files
+    * individual JSON or YAML files
 * Replace tokens (with customizable syntax) in source with 
     * values from package.json
-    * yaml or json key/value files
+    * JSON or YAML key/value files
 * Add file headers to final build output based on output file type
 
 ## Installation
@@ -31,46 +31,33 @@ A baseline install can do the following:
 
 ## By Convention
 
-Without a build file, Anvil will use its default conventions to attempt to build your project.
+Without a build file, anvil will use its default conventions to attempt to build your project.
 
-## The Build File ( large example showing lots of options )
+## The Build File ( minimalist example )
 
     {
         "source": "src",
         "spec": "spec"
         "output":  [ "build" ]
+        "dependencies": [ "anvil.mocha" ]
     }
 
 * source is the path where _all_ project source belongs; this can be a flat or complex hierarchy
 * output is a list of paths to copy build output to.
-* wrap
-    * happens before minification
-    * provides a means to wrap all output files of a type with a prefix and suffix before minification
-    * if prefix-file or suffix-file is provided, the file will be read and the contents used
-    * this feature is primarily a convenience method included for legacy reasons
-* finalize
-    * header prepends the following string to the final output ONLY.
-    * footer appends the following string to the final output ONLY.
-    * if header-file or footer-file is provided, the file will be read and the contents used
-    * this section was added to support adding boiler plate text headers to minified/gzipped output
-
-## Jumpstart New Projects
-
-Anvil will build a set of standard project directories for you and even spit out a build.json file based on the conventional use.
-
-### Lib Projects
-
-    anvil --lib <projectName>
-
-Will produce a directory structure that looks like this:
-
-    -projectName
-        |-spec
-        build.json
+* spec is the folder where test specifications can be found
+* dependencies is a list of anvil plugin names that should be installed before the build can proceed
 
 ## Building By Convention
 
 If you don't specify your own build file, anvil assumes you intend to use a build.json file. If one isn't present, it will use its own conventions to build your project. If that's all you need, great! Chances are you'll want a build.json that's configured for your specific project.
+
+## Writing New Build Files
+
+Keeping up with all the plugin defaults can be difficult. To see what's available by default for each plugin, you can write a new build file for customization.
+
+    anvil --write {name}
+
+This command creates a build file in the current directory at {name}.json. It will include all the default settings for all the installed and built-in plugins.
 
 ## Combining source files, Import Style
 
@@ -89,14 +76,24 @@ Anvil allows you to combine source files by using a commented command
     CSS: 			/* import "dependency.{ext}" */ 
     LESS, Stylus:	// import "dependency.{ext}
 
-When you use Anvil to compile your project, it will traverse all the files in your source directory and combine them so that your top level files are what get output. **Warning** Currently, Anvil is not clever enough to detect circular dependencies created via import statements and it will _shatter your world_ if you do this.
+When you use anvil to compile your project, it will traverse all the files in your source directory and combine them so that your top level files are what get output. 
+
+**Warning** Currently, anvil is not clever enough to detect circular dependencies created via import statements and it will _shatter your world_ if you do this.
 
 ## Combining source files, Concatenation Style
 
 Anvil provides you with two ways to drive concatenation: yaml lists or individual yaml files
 
-### YAML lists
-Anvil allows you to combine source files by listing the order of concatenation in a YAML format. Note: the paths must all be absolute OR relative to the top level of your source folder.
+### List Files
+Anvil allows you to combine source files by listing the order of concatenation in a JSON or YAML format. Note: the paths must all be absolute OR relative to the top level of your source folder.
+
+#### JSON Format
+    {
+        "./file1.js": [ "./file1a.js", "./file1b.js", "./file1c.js" ],
+        "./file2.js": [ "./file2a.js", "./file2b.js", "./file2c.js" ],
+    }
+
+#### YAML Format
 
     ./file1.js:
         - ./file1a.js
@@ -108,33 +105,30 @@ Anvil allows you to combine source files by listing the order of concatenation i
         - ./file2b.js
         - ./file2c.js
 
-In this example, Anvil will create file1 and file2 by concatenating the three files below each. This approach only supports 1 level of parent/child relationships (you really shouldn't need more than 1 level)
 
+Anvi will create file1.js and file2.js by concatenating the corresponding list of files in the order they appear.
 
-### YAML files
-If you want to use this approach, just create a YAML file with the list of files that should be used to create it in the order to concatenate them. The name of the file should be the name you want after YAML extension has been removed.
+### Individual Files
+This approach allows you to create a list of files to concatenate to create the final outcome. The name and location of the file will be identical to the original but anvil will strip the .json or .yaml extension off.
 
+#### JSON Format
+    { "imports": [ "./file1a.js", "./file1c.js", "./file1c.js" ] }
+
+#### YAML Format
 file1.js.yaml's contents:
 
     - ./file1a.js    
     - ./file1b.js    
     - ./file1c.js    
-    
-This would produce file1.js.yaml and concat each of the three listed files together to create its contents. The difference in the paths here is that they must be relative to the placement of file1.js.yaml.
+
+
+Each example would produce file1.js and concat each of the three listed files together to create its contents. ***NOTE***: The paths in an individual concat file _must_ be relative to the concat file itself.
 
 ## Building With Specific Build Files
 
 To build with a specific build file
 
     anvil -b <buildfile>
-
-## Creating New / Additional Build Files
-
-To create a build file for lib projects, you can just type the following:
-
-    anvil --newbuild <buildfile>
-
-and it will create the build file for you. If you don't include the file name, anvil will create a build.json (possibly overwriting your existing one, be careful!)
 
 ## Continuous Integration
 
@@ -148,14 +142,6 @@ You can configure a build to always run in this mode by adding the following JSO
         "continuous": "true"
     }
 
-### Testing With Mocha
-
-Mocha might be the best thing ever. You can tell Anvil to run your spec files with mocha from the command line
-
-    anvil --mocha
-
-or by adding a "mocha" configuration block to your build.json file.
-
 ## Console log
 
 Anvil uses color-coded messages to let you see what's happening during the build. Here's the color key:
@@ -167,7 +153,7 @@ Anvil uses color-coded messages to let you see what's happening during the build
     yellow - warning
     red - error
 
-By default anvil will print everything but debug messages unless you provide a --debug argument or add this to your build.json :
+By default anvil will print everything but debug and warning messages unless you provide a --verbose argument or add this to your build.json :
 
     "log": {
         "debug": true
@@ -179,7 +165,7 @@ You can tell anvil to run in quiet mode (it will still print errors (red) and st
 
 # Contributors
 
-Special thanks to the following individuals who have contributed source code or ideas to help make Anvil.js less buggy and more useful:
+Special thanks to the following individuals who have contributed source code or ideas to help make anvil less buggy and more useful:
 
  * Jim Cowart
  * Aaron McCall
