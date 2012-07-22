@@ -31,7 +31,7 @@ var fileLoaderFactory = function( _, anvil ) {
 			var exclude = config.fileLoader.excluded;
 			exclude = exclude.concat( this.excluded );
 			if( command.ci ) {
-				this.config.continuous = true;
+				anvil.config.fileLoader.continuous = true;
 			}
 			done();
 		},

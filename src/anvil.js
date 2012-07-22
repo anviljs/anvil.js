@@ -20,12 +20,17 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		this.events = events;
 		this.fs = fs;
 		this.scheduler = scheduler;
+		var self = this;
 
 		events.on( "all.stop", function( exitCode ) {
 			process.exit( exitCode );
 		} );
 
-		var self = this;
+		events.on( "plugin.loaded", function( plugin ) {
+			self.plugins[ plugin.name ] = plugin;
+		} );
+
+		
 		process.on( "uncaughtException", function( err ) {
 			if( self.log ) {
 				self.log.error( "Unhandled exception: " + err + "\n" + err.stack );

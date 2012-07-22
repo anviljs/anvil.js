@@ -4,12 +4,12 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 		_.bindAll( this );
 	};
 
-	FSCrawler.prototype.crawl = function( directory, onComplete, filter ) {
+	FSCrawler.prototype.crawl = function( directory, onComplete, filter, limit, level ) {
 		var self = this,
 			base = directory,
 			directoryList = [],
 			fileList = [];
-
+		level = level + 1;
 		if( directory && directory !== "" ) {
 			directory = path.resolve( directory );
 			fs.readdir( directory, function( err, contents ) {
@@ -25,10 +25,10 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 							return _.any( filter, function( exclusion ) { return exclusion === directory; } );
 						} );
 
-						if( directories.length > 0 ) {
+						if( directories.length > 0 &&  ( level <= limit || limit === 0 ) ) {
 							scheduler.parallel( directories,
 								function( directory, done ) {
-									self.crawl( directory, done, filter );
+									self.crawl( directory, done, filter, limit, level );
 								},
 								function( files ) {
 									fileList = fileList.concat( _.flatten( files ) );

@@ -96,7 +96,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		} );
 	};
 
-	FileSystem.prototype.getFiles = function( pathSpec, workingPath, onFiles, filter ) {
+	FileSystem.prototype.getFiles = function( pathSpec, workingPath, onFiles, filter, limit ) {
 		var self = this;
 		filter = filter || [];
 		filter = _.map( filter, function( directory ) {
@@ -107,7 +107,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		crawler.crawl( pathSpec,
 			function( files, directories ) {
 				onFiles(
-					_.map( files, function( file ) { return self.buildFileData( pathSpec, workingPath, file ); } ),
+					_.map( files, function( file ) { return self.buildFileData( pathSpec, workingPath, file, limit, 0 ); } ),
 					directories
 				);
 		}, filter );

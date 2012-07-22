@@ -5,7 +5,10 @@
         "compiler",
         "fileLoader",
         "filePrep",
+        "output",
         "pluginInstaller",
-        "anvil.mocha"
+        "replace",
+        "anvil.mocha",
+        "headers"
     ]
 }
