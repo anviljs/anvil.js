@@ -10,8 +10,8 @@ var replaceFactory = function( _, anvil ) {
 		config: {
 			tokens: [
 				{
-					find: /[{]{3}([^}]*)[}]{3}/g,
-					replace: /[{]{3}replace[}]{3}/g
+					find: "/[{]{3}([^}]*)[}]{3}/g",
+					replace: "/[{]{3}replace[}]{3}/g"
 				}
 			],
 			sourceData: {}
@@ -66,12 +66,10 @@ var replaceFactory = function( _, anvil ) {
 			anvil.fs.read( [ file.workingPath, file.name ], function( content, error ) {
 				if( !error ) {
 					_.each( anvil.config.replace.tokens, function( token ) {
-						if( token.find.reset ) {
-							token.find.reset();
-						}
 						var tokens = [],
+							finder = anvil.parseRegex( token.find ),
 							match, tokenName;
-						while( ( match = token.find.exec( content ) ) ) {
+						while( ( match = finder.exec( content ) ) ) {
 							tokenName = match[1];
 							tokens.push( tokenName );
 						}
@@ -82,9 +80,8 @@ var replaceFactory = function( _, anvil ) {
 									stringified, trimmed, replacer;
 								if( replacement ) {
 									hadReplacement = true;
-									stringified = ( token.replace ).toString().replace( /replace/, tokenName );
-									trimmed = stringified.substring( 1, stringified.length -2 ),
-									replacer = new RegExp( trimmed, "g" );
+									stringified = ( token.replace ).replace( /replace/, tokenName );
+									replacer = anvil.parseRegex( stringified );
 									content = content.replace( replacer, replacement );
 								}
 							} );

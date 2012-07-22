@@ -100,8 +100,9 @@ var configFactory = function( _, commander, path, anvil ) {
 		commander
 			.version("0.8.0")
 			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
-			.option( "--verbose", "Include debug and warning messages in log" )
-			.option( "-q, --quiet", "Only print completion and error messages" );
+			.option( "--write [build file]", "Create a new build file based on default config" )
+			.option( "-q, --quiet", "Only print completion and error messages" )
+			.option( "--verbose", "Include debug and warning messages in log" );
 		anvil.onCommander( commander );
 	};
 

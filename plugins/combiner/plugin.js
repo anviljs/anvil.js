@@ -39,23 +39,23 @@ var combinerFactory = function( _, anvil ) {
 			patterns: [
 				{
 					extensions: [ ".html" ],
-					find: /[<][!][-]{2}.?import[(]?.?[\"'].*[\"'].?[)]?.?[-]{2}[>]/g,
-					replace: /([ \t]*)[<][!][-]{2}.?import[(]?.?[\"']replace[\"'].?[)] ?.?[-]{2}[>]/g
+					find: "/[<][!][-]{2}.?import[(]?.?[\"'].*[\"'].?[)]?.?[-]{2}[>]/g",
+					replace: "/([ \t]*)[<][!][-]{2}.?import[(]?.?[\"']replace[\"'].?[)] ?.?[-]{2}[>]/g"
 				},
 				{
 					extensions: [ ".js", ".coffee" ],
-					find: /([\/]{2}|[\#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([\#]{0,3})/g,
-					replace: /([ \t]*)([\/]{2}|[\#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[\#]{0,3}/g
+					find: "/([\/]{2}|[#]{3}).?import.?[(]?.?[\"'].*[\"'].?[)]?[;]?.?([#]{0,3})/g",
+					replace: "/([ \t]*)([\/]{2}|[#]{3}).?import.?[(]?.?[\"']replace[\"'].?[)]?[;]?.?[#]{0,3}/g"
 				},
 				{
 					extensions: [ ".css", ".less", ".styl" ],
-					find: /([\/]{2}|[\/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][\/])?/g,
-					replace: /([ \t]*)([\/]{2}|[\/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][\/])?/g
+					find: "/([\/]{2}|[\/][*]).?import[(]?.?[\"'].*[\"'].?[)]?([*][\/])?/g",
+					replace: "/([ \t]*)([\/]{2}|[\/][*]).?import[(]?.?[\"']replace[\"'].?[)]?([*][\/])?/g"
 				},
 				{
 					extensions: [ ".yaml", ".yml" ],
-					find: /([ \t]*)[-][ ]?import[:][ ]*[\"'].*[\"']/g,
-					replace: /([ \t]*)[-][ ]?import[:][ ]*[\"']replace[\"']/g
+					find: "/([ \t]*)[-][ ]?import[:][ ]*[\"'].*[\"']/g",
+					replace: "/([ \t]*)[-][ ]?import[:][ ]*[\"']replace[\"']/g"
 				}
 			]
 		},
@@ -127,12 +127,13 @@ var combinerFactory = function( _, anvil ) {
 			var self = this,
 				imports = [],
 				ext = file.extension(),
-				pattern = this.getPattern( ext );
+				pattern = this.getPattern( ext ),
+				finder = pattern.find ? anvil.parseRegex( pattern.find ) : undefined;
 			
 			if( file.state != "done" )
 			{
 				anvil.fs.read( [ file.workingPath, file.name ], function( content, err ) {
-					imports = imports.concat( content.match( pattern.find ) );
+					imports = imports.concat( content.match( finder ) );
 					imports = _.filter( imports, function( x ) { return x; } );
 					_.each( imports, function( imported ) {
 						importName = imported.match( /[\"'].*[\"']/ )[ 0 ].replace( /[\"']/g, "" );
@@ -163,13 +164,12 @@ var combinerFactory = function( _, anvil ) {
 			var self = this;
 			return function( text, done ) {
 				if( file.state != "done" || imported != "done" ) {
-					anvil.log.debug( "combining '" + imported.fullPath + "' into '" + imported.fullPath + "'");
+					anvil.log.debug( "combining '" + imported.fullPath + "' into '" + file.fullPath + "'");
 					self.replace( text, file, imported, done );
 				} else {
 					done();
 				}
 			};
-			
 		},
 
 		replace: function( content, file, imported, done ) {
@@ -185,12 +185,13 @@ var combinerFactory = function( _, anvil ) {
 
 			try {
 				anvil.fs.read( [ working, source ], function( newContent ) {
-					var stringified = pattern.toString().replace( /replace/, "([.][\/])?" + importAlias ),
-						trimmed = stringified.substring( 1, stringified.length - 2 ),
-						fullPattern = new RegExp( trimmed, "g" ),
+					var stringified = pattern.replace( /replace/, "([.][/])?" + importAlias ),
+						fullPattern = anvil.parseRegex( stringified ),
 						capture = fullPattern.exec( content ),
 						sanitized = newContent.replace( "$", "dollarh" ),
 						whiteSpace, replaced;
+
+					anvil.log.debug( "replacing " + fullPattern + " in " + content );
 
 					if( capture && capture.length > 1 ) {
 						whiteSpace = capture[1];

@@ -52,8 +52,31 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 
 	Anvil.prototype.onPluginsConfigured = function() {
 		this.pluginConfigurationCompleted = true;
-		this.log.complete( "plugin configuration complete" );
-		events.raise( "plugins.configured" );
+		var file = this.commander ? this.commander.write : undefined;
+		if( file ) {
+			this.writeConfig( file + ".json" );
+		} else {
+			this.log.complete( "plugin configuration complete" );
+			events.raise( "plugins.configured" );
+		}
+	};
+
+	Anvil.prototype.writeConfig = function( file ) {
+		var self = this,
+			json = JSON.stringify( this.config, null, 4 );
+			this.fs.write( file, json, function( err ) {
+				if( err ) {
+					self.log.error( "Could not write config to " + file + " : " + err + "\n" + err.stack );
+				} else {
+					self.log.complete( "Configuration defaults written to " + file + " successfully" );
+				}
+			} );
+	};
+
+	Anvil.prototype.parseRegex = function( regex ) {
+		return regex.match( /\/g$/ ) ?
+			new RegExp( regex.replace(/\/g$/, "").substring( 1 ), "g" ) :
+			new RegExp( regex.substring( 1, regex.length-1 ) );
 	};
 
 	return new Anvil();
