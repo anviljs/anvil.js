@@ -66,9 +66,6 @@ var headerFactory = function( _, anvil ) {
 						_.each( files, function( file ) {
 							self.headers[ file.extension() ] = file;
 							file.noCopy = true;
-							if( anvil.config.fileLoader.continuous ) {
-								anvil.plugins[ "fileLoader" ].watch( file.fullPath, false );
-							}
 							anvil.project.files.push( file );
 						}, [], 0 );
 						done();

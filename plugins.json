@@ -9,6 +9,7 @@
         "pluginInstaller",
         "replace",
         "anvil.mocha",
-        "headers"
+        "headers",
+        "anvil.http"
     ]
 }
