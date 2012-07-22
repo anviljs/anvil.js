@@ -68,6 +68,7 @@ var fileLoaderFactory = function( _, anvil ) {
 
 		watch: function( path, isDir ) {
 			var self = this;
+
 			this.watchers.push( anvil.fs.watch( path, function( fileEvent, file ) {
 				var eventName = isDir ? "directory.change" : "file.change";
 				self.handle( eventName, fileEvent, file, path );
@@ -96,7 +97,6 @@ var fileLoaderFactory = function( _, anvil ) {
 					this.excluded.push( anvil.config.output );
 					this.loadSource( function() {
 						self.loadSpecs( function() {
-							self.callback();
 							self.transition( "watching" );
 						} );
 					} );
@@ -108,6 +108,7 @@ var fileLoaderFactory = function( _, anvil ) {
 					if( this.config.continuous ) {
 						this.watchAll();
 					}
+					this.callback();
 				},
 				"file.change": function( fileEvent, file, path ) {
 					this.unwatchAll();
