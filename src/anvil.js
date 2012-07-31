@@ -21,7 +21,7 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		this.fs = fs;
 		this.scheduler = scheduler;
 		var self = this;
-
+ 
 		events.on( "all.stop", function( exitCode ) {
 			process.exit( exitCode );
 		} );
@@ -29,11 +29,12 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		events.on( "plugin.loaded", function( plugin ) {
 			self.plugins[ plugin.name ] = plugin;
 		} );
-
 		
+		process.removeAllListeners( "uncaughtException" );
 		process.on( "uncaughtException", function( err ) {
 			if( self.log ) {
 				self.log.error( "Unhandled exception: " + err + "\n" + err.stack );
+
 			} else {
 				console.log( "Unhandled exception: " + err + "\n" + err.stack );
 			}

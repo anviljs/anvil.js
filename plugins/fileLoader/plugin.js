@@ -60,24 +60,22 @@ var fileLoaderFactory = function( _, anvil ) {
 		},
 
 		watchAll: function() {
-			var self = this;
-			_.each( anvil.project.files, function( file ) { self.watch( file.fullPath ); } );
-			_.each( anvil.project.specs, function( file ) { self.watch( file.fullPath ); } );
-			_.each( anvil.project.directories, function( directory ) { self.watch( directory, true ); } );
+			this.watch( anvil.config.source );
+			this.watch( anvil.config.spec );
 		},
 
-		watch: function( path, isDir ) {
+		watch: function( path ) {
 			var self = this;
-
-			this.watchers.push( anvil.fs.watch( path, function( fileEvent, file ) {
-				var eventName = isDir ? "directory.change" : "file.change";
-				self.handle( eventName, fileEvent, file, path );
-			} ) );
+			this.watchers.push(
+				anvil.fs.watch( path, function( event ) {
+					self.handle( "file.change", event.name, path );
+				} )
+			);
 		},
 
 		unwatchAll: function() {
 			while( this.watchers.length > 0 ) {
-				this.watchers.pop().close();
+				this.watchers.pop().end();
 			}
 		},
 
@@ -110,10 +108,9 @@ var fileLoaderFactory = function( _, anvil ) {
 					}
 					this.callback();
 				},
-				"file.change": function( fileEvent, file, path ) {
-					this.unwatchAll();
-					anvil.log.event( "detected file system event '" + fileEvent + "' in '" + path + "'" );
-					anvil.events.raise( "file.changed", fileEvent, path );
+				"file.change": function( file, path ) {
+					anvil.log.event( "file change in '" + file + "'" );
+					anvil.events.raise( "file.changed", "change", file, path );
 				}
 			}
 		}

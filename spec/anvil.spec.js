@@ -25,6 +25,7 @@ describe( "when setting up configuration and plugins", function() {
 	var configCompleted = false;
 
 	before( function( done ) {
+		commander.removeAllListeners();
 		events.on( "plugins.configured", function() {
 			configCompleted = true;
 			done();

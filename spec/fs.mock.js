@@ -187,11 +187,12 @@ var fsFactory = function( _, path ) {
 		this.paths = {};
 	};
 
-	FileSystemMock.prototype.raiseEvent = function( fileEvent, pathSpec ) {
-		pathSpec = this.buildPath( pathSpec );
-		var watcher = this.watchers[ pathSpec ];
+	FileSystemMock.prototype.raiseEvent = function( fileEvent ) {
+		var watcher = _.find( this.watchers, function( watcher, path ) {
+			return fileEvent.name.indexOf( path ) >= 0;
+		} );
 		if( watcher ) {
-			watcher.handler( fileEvent, pathSpec );
+			watcher.handler( fileEvent );
 		}
 	};
 
@@ -199,7 +200,7 @@ var fsFactory = function( _, path ) {
 		var self = this;
 		pathSpec = this.buildPath( pathSpec );
 		var watcher = {
-			close: function() {
+			end: function() {
 				delete self.watchers[ pathSpec ];
 			},
 			handler: onEvent
@@ -217,7 +218,10 @@ var fsFactory = function( _, path ) {
 			this.files[ pathSpec ] = file;
 		}
 		file.write( content, function() {
-			self.raiseEvent( "change", pathSpec );
+			self.raiseEvent( {
+				name: pathSpec,
+				isDirectory: function() { return false; }
+			} );
 			onComplete();
 		} );
 	};

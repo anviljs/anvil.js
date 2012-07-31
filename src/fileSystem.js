@@ -1,3 +1,5 @@
+var watchTree = require( "fs-watch-tree" ).watchTree;
+
 var fileFactory = function( _, fs, path, mkdir, crawler ) {
 
 	var FileSystem = function() {
@@ -187,7 +189,15 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 
 	FileSystem.prototype.watch = function( pathSpec, onEvent ) {
 		pathSpec = this.buildPath( pathSpec );
-		return fs.watch( pathSpec, onEvent );
+		var self = this;
+
+		return watchTree( pathSpec,
+			_.debounce( function( event ) {
+				if( !event.isDirectory() ) {
+					onEvent( event );
+				}
+			}, 1000, true )
+		);
 	};
 
 	FileSystem.prototype.write = function( pathSpec, content, onComplete ) {

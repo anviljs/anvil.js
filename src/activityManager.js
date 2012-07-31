@@ -76,7 +76,8 @@ var activityManagerFactory = function( _, machina, anvil ) {
 						}
 					};
 				anvil.log.step( "starting activity, " + activity );
-				anvil.scheduler.pipeline( undefined, this.pipelines[ activity ], done );
+				var steps = _.clone( this.pipelines[ activity ] );
+				anvil.scheduler.pipeline( undefined, steps, done );
 			} catch ( err ) {
 				anvil.log.error( " error running activity " + anvil.config.activityOrder[ this.activityIndex ] + " : " + err + "\n" + err.stack );
 			}

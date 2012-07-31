@@ -8,7 +8,8 @@ var configFactory = function( _, commander, path, anvil ) {
 			"pre-process",
 			"compile",
 			"post-process",
-			"push"
+			"push",
+			"test"
 		],
 		working: "./.anvil/tmp",
 		source: "./src",
