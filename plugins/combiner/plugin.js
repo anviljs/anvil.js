@@ -2,35 +2,6 @@ var path = require( "path" );
 
 var combinerFactory = function( _, anvil ) {
 
-	var isADependency = function( file, dependencies ) {
-		return _.any( dependencies, function( dependency ) {
-			return dependency.fullPath === file.fullPath;
-		} );
-	};
-
-	var sort = function( files ) {
-		var newList = [];
-		_.each( files, function( file ) { file.visited = false; } );
-		_.each( files, function( file ) { visit( files, file, newList ); } );
-		return newList;
-	};
-			
-	var visit = function( files, file, list ) {
-		if( !file.visited ) {
-			file.visited = true;
-			_.each( files, function( other ) {
-				var dependsOn = isADependency( file, other.dependencies );
-				if( dependsOn ) {
-					if( file.state != "done" ) {
-						other.state = "inProcess";
-					}
-					visit( files, other, list );
-				}
-			} );
-			list.push( file );
-		}
-	};
-
 	return anvil.plugin( {
 		name: "combiner",
 		activity: "combine",
@@ -69,21 +40,25 @@ var combinerFactory = function( _, anvil ) {
 			_.bindAll( self );
 			var self = this,
 				list = anvil.project.files,
+				combinerFactory = function( file ) {
+					return function( done ) {
+						self.combine( file, done );
+					};
+				},
 				findImports = _.bind( function( file, done ) {
 					self.findImports( file, list, done );
 				}, this );
+				match = function( file, dependency ) {
+					return dependency.fullPath === file.fullPath;
+				};
 
 			anvil.scheduler.parallel( list, findImports, function() {
 				_.each( list, function( file ) {
 					self.findDependents( file, list );
 				} );
-				var sorted = _.map( sort( list ), function( file ) {
-					return function( done ) {
-						self.combine( file, done );
-					};
-				} );
-				
-				anvil.scheduler.pipeline( undefined, sorted, done );
+				var sorted = anvil.utility.dependencySort( list, "descending", match ),
+					combiners = _.map( sorted, combinerFactory );
+				anvil.scheduler.pipeline( undefined, combiners, done );
 			} );
 		},
 
@@ -118,7 +93,8 @@ var combinerFactory = function( _, anvil ) {
 			};
 			_.each( list, function( item ) {
 				if( _.any( item.imports, imported ) ) {
-					file.dependents++;
+					file.dependents.push( item );
+					file.noCopy = true;
 				}
 			} );
 		},
@@ -128,7 +104,7 @@ var combinerFactory = function( _, anvil ) {
 				imports = [],
 				ext = file.extension(),
 				pattern = this.getPattern( ext ),
-				finder = pattern.find ? anvil.parseRegex( pattern.find ) : undefined;
+				finder = pattern.find ? anvil.utility.parseRegex( pattern.find ) : undefined;
 			
 			if( file.state != "done" )
 			{
@@ -186,7 +162,7 @@ var combinerFactory = function( _, anvil ) {
 			try {
 				anvil.fs.read( [ working, source ], function( newContent ) {
 					var stringified = pattern.replace( /replace/, "([.][/])?" + importAlias ),
-						fullPattern = anvil.parseRegex( stringified ),
+						fullPattern = anvil.utility.parseRegex( stringified ),
 						capture = fullPattern.exec( content ),
 						sanitized = newContent.replace( "$", "dollarh" ),
 						whiteSpace, replaced;

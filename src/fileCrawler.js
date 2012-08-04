@@ -25,7 +25,7 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 							return _.any( filter, function( exclusion ) { return exclusion === directory; } );
 						} );
 
-						if( directories.length > 0 &&  ( level <= limit || limit === 0 ) ) {
+						if( directories.length > 0 && ( level <= limit || limit < 0 ) ) {
 							scheduler.parallel( directories,
 								function( directory, done ) {
 									self.crawl( directory, done, filter, limit, level );

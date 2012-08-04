@@ -87,7 +87,7 @@ var fsFactory = function( _, path ) {
 		file = path.resolve( file );
 		return {
 			name: path.basename( file ),
-			dependents: 0,
+			dependents: [],
 			extension: function() { return path.extname( this.name ); },
 			fullPath: file,
 			imports: [],

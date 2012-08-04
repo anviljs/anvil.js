@@ -29,82 +29,32 @@ var configFactory = function( _, commander, path, anvil ) {
 
 	var Config = function() {
 		_.bindAll( this );
-		this.deepExtend();
 		anvil.events.on( "commander.configured", this.processArguments );
 		this.commands = {};
 		this.args = [];
 	};
 
-	// Thanks to Jim Cowart for help with this approach
-	// adapted from -> http://jsfiddle.net/ifandelse/TDwZy/
-	Config.prototype.deepExtend = function() {
-		var slice = Array.prototype.slice;
-		if ( !_.deepExtend ) {
-			var behavior = {
-				"*": function( target, property, value ) {
-					target[ property ] = value;
-				},
-				"object": function(target, property, value ) {
-					target[ property ] = deepExtend( target[ property ] || {}, value );
-				},
-				"array": function( target, property, value ) {
-					target[ property ] = _.filter(
-											_.union( target[ property ], value ),
-											function( x ) {
-												return x;
-											} );
-				}
-			},
-			getType = function( value ) {
-				if( _.isArray( value ) ) {
-					return "array";
-				} else if ( _.isRegExp( value ) ) {
-					return "regex";
-				} else if ( _.isDate( value ) ) {
-					return "date";
-				} else {
-					return typeof value;
-				}
-			},
-			getHandlerName = function( value ) {
-				var type = getType( value );
-				return behavior[ type ] ? type : "*";
-			},
-			deepExtend = function( target ) {
-				_.each( slice.call( arguments, 1 ), function( source ) {
-					_.each( source, function( value, property ) {
-						behavior[ getHandlerName( value ) ]( target, property, value );
-					});
-				});
-				return target;
-			};
+	Config.prototype.checkDirectories = function( config ) {
+		_.map( [ "working", "output", "source", "spec" ], function( property ) {
+			config[ property ] = path.resolve( config[ property ] );
+		} );
 
-			_.mixin( {
-				deepExtend: deepExtend
-			} );
+		if( config.working === config.output ||
+			config.working === config.source ||
+			config.source === config.output ) {
+			anvil.log.error( "Source, working and output directories MUST be seperate directories." );
+			anvil.events.raise( "all.stop", -1 );
 		}
 	};
 
-	Config.prototype.initialize = function( argList ) {
-		var log = anvil.config.log;
-		this.args = argList;
-
-		if( _.any( argList, function( arg ) { return arg === "-q" || arg === "--quiet"; } ) ) {
-			log.debug = false;
-			log["event"] = false;
-			log.warning = false;
-		} else if ( _.any( argList, function( arg ) { return arg == "--verbose"; } ) ) {
-			log.debug = true;
-			log.warning = true;
-		}
-
+	Config.prototype.createCommand = function() {
 		commander
 			.version("0.8.0")
 			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
 			.option( "--write [build file]", "Create a new build file based on default config" )
 			.option( "-q, --quiet", "Only print completion and error messages" )
 			.option( "--verbose", "Include debug and warning messages in log" );
-		anvil.onCommander( commander );
+		anvil.onCommander( this.loadedConfig, commander );
 	};
 
 	Config.prototype.getConfiguration = function( buildFile, onConfig ) {
@@ -127,20 +77,31 @@ var configFactory = function( _, commander, path, anvil ) {
 				}
 			};
 		anvil.scheduler.mapped( calls, function( result ) {
-			var config = _.deepExtend( defaultConfig, anvil.config, result.user, result.local );
-
-			_.map( [ "working", "output", "source", "spec" ], function( property ) {
-				config[ property ] = path.resolve( config[ property ] );
-			} );
-
-			if( config.working === config.output ||
-				config.working === config.source ||
-				config.source === config.output ) {
-				anvil.log.error( "Source, working and output directories MUST be seperate directories." );
-				anvil.events.raise( "all.stop", -1 );
-			}
-
+			var config = _.deepExtend( result.user, result.local );
 			onConfig( config );
+		} );
+	};
+
+	Config.prototype.initialize = function( argList ) {
+		this.args = argList;
+		var self = this,
+			log = anvil.config.log,
+			argLine = argList.join(" "),
+			match = argLine.match( /(([-]b)|([-]{2}build))[ ](\w+)/ ),
+			buildFile = match ? "./" + match[4] + ".json" : "./build.json";
+		
+		if( _.any( argList, function( arg ) { return arg === "-q" || arg === "--quiet"; } ) ) {
+			log.debug = false;
+			log["event"] = false;
+			log.warning = false;
+		} else if ( _.any( argList, function( arg ) { return arg == "--verbose"; } ) ) {
+			log.debug = true;
+			log.warning = true;
+		}
+
+		this.getConfiguration( buildFile, function( config ) {
+			self.loadedConfig = config;
+			self.createCommand();
 		} );
 	};
 
@@ -173,9 +134,9 @@ var configFactory = function( _, commander, path, anvil ) {
 		} catch ( err ) {
 			anvil.log.error( "Error processing arguments (" + this.args + ") :" + err + "\n" + err.stack );
 		}
-		this.getConfiguration( commander.build, function( config ) {
-			anvil.onConfig( config );
-		} );
+		var config = _.deepExtend( defaultConfig, anvil.config, this.loadedConfig );
+		this.checkDirectories( config );
+		anvil.onConfig( config );
 	};
 
 	return new Config();

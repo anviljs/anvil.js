@@ -67,7 +67,7 @@ var replaceFactory = function( _, anvil ) {
 				if( !error ) {
 					_.each( anvil.config.replace.tokens, function( token ) {
 						var tokens = [],
-							finder = anvil.parseRegex( token.find ),
+							finder = anvil.utility.parseRegex( token.find ),
 							match, tokenName;
 						while( ( match = finder.exec( content ) ) ) {
 							tokenName = match[1];
@@ -81,7 +81,7 @@ var replaceFactory = function( _, anvil ) {
 								if( replacement ) {
 									hadReplacement = true;
 									stringified = ( token.replace ).replace( /replace/, tokenName );
-									replacer = anvil.parseRegex( stringified );
+									replacer = anvil.utility.parseRegex( stringified );
 									content = content.replace( replacer, replacement );
 								}
 							} );

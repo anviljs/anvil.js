@@ -15,7 +15,7 @@ var outputFactory = function( _, anvil ) {
 
 		run: function( done ) {
 			var toCopy = _.filter( anvil.project.files, function( file ) {
-				return file.dependents === 0 && !file.noCopy;
+				return !file.noCopy;
 			} );
 			anvil.scheduler.parallel( toCopy, this.copy, function() {
 				_.each( anvil.project.files, function( file ) {

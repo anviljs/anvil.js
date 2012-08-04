@@ -47,29 +47,31 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 		} );
 	};
 
-	PluginLocator.prototype.loadPlugins = function() {
+	PluginLocator.prototype.loadPlugins = function( config, commander ) {
 		var self = this;
-		try {
-			plugins.getPlugins( function( list ) {
-				_.each( list, function( plugin ) {
-					try {
-						self.initPlugin( plugin.instance );
-						self.instances[ plugin.name ]= plugin.instance;
-						self.count++;
-					} catch ( err ) {
-						anvil.log.error( "Error initializing plugin '" + plugin.name + "': " + err + "\n" + err.stack );
-						anvil.pluginManager.removePlugin( plugin.name, function() {
-							anvil.log.step( "Plugin '" + plugin.name + "' cannot be loaded and has been disabled");
-							anvil.events.raise( "all.stop", -1 );
-						} );
-					}
+		plugins.checkDependencies( config.dependencies, function() {
+			try {
+				plugins.getPlugins( function( list ) {
+					_.each( list, function( plugin ) {
+						try {
+							self.initPlugin( plugin.instance );
+							self.instances[ plugin.name ]= plugin.instance;
+							self.count++;
+						} catch ( err ) {
+							anvil.log.error( "Error initializing plugin '" + plugin.name + "': " + err + "\n" + err.stack );
+							anvil.pluginManager.removePlugin( plugin.name, function() {
+								anvil.log.step( "Plugin '" + plugin.name + "' cannot be loaded and has been disabled");
+								anvil.events.raise( "all.stop", -1 );
+							} );
+						}
+					} );
+					anvil.events.raise( "commander.configured" );
 				} );
-				anvil.events.raise( "commander.configured" );
-			} );
-		} catch ( err ) {
-			anvil.log.error( "Fatal: attempt to initialize plugins was an abismal fail: " + err + "\n" + err.stack );
-			anvil.events.raise( "all.stop", -1 );
-		}
+			} catch ( err ) {
+				anvil.log.error( "Fatal: attempt to initialize plugins was an abismal fail: " + err + "\n" + err.stack );
+				anvil.events.raise( "all.stop", -1 );
+			}
+		} );
 	};
 
 	PluginLocator.prototype.wireHandler = function( topic, handler ) {

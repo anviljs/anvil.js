@@ -23,10 +23,11 @@ var headerFactory = function( _, anvil ) {
 		},
 
 		getHeaders: function( files ) {
+			var self = this;
 			return _.filter( files, function( file ) {
 				var full = file.name,
 					limited = full.replace( file.extension(), "" );
-				return limited === headerFileName;
+				return limited === self.headerFileName;
 			} );
 		},
 
@@ -63,16 +64,16 @@ var headerFactory = function( _, anvil ) {
 			if( activity === "identify" ) {
 				anvil.fs.getFiles( "./", anvil.config.working, function( files, directories ) {
 					if( files.length > 0 ) {
-						_.each( files, function( file ) {
+						_.each( self.getHeaders( files ), function( file ) {
 							self.headers[ file.extension() ] = file;
 							file.noCopy = true;
 							anvil.project.files.push( file );
-						}, [], 0 );
+						} );
 						done();
 					} else {
 						done();
 					}
-				} );
+				}, [], 0 );
 			} else {
 				var lookup = self.getOutput();
 				anvil.scheduler.parallel( lookup.extensions, function( extension, done ) {

@@ -31,8 +31,8 @@ var filePrepFactory = function( _, anvil ) {
 				file = anvil.fs.buildFileData( base, anvil.config.working, path );
 				anvil.project.files.push( file );
 			}
-			file.state = "inProcess";
-			this.copy( file, function() {
+			
+			this.traceDependents( file, function() {
 				anvil.events.raise( "rebuild", "combine" );
 			} );
 		},
@@ -51,6 +51,27 @@ var filePrepFactory = function( _, anvil ) {
 
 		run: function( done ) {
 			anvil.scheduler.parallel( anvil.project.files, this.copy, done );
+		},
+
+		traceDependents: function( file, done ) {
+			anvil.log.debug( "Tracing " + file.dependents.length + " dependents for " + file.originalPath );
+			var self = this,
+				copies = _.map( file.dependents, function( dependent ) {
+					return function( done ) {
+						self.traceDependents( dependent, function() { done(); } );
+					};
+				} );
+			anvil.scheduler.pipeline( undefined, copies, function() {
+				file.state = "inProcess";
+				var fresh = anvil.fs.buildFileData( anvil.config.source, anvil.config.working, file.originalPath );
+				_.each( fresh, function( value, key ) {
+					file[ key ] = value;
+				} );
+				file.dependents = [];
+				file.imports = [];
+				file.extension();
+				self.copy( file, done );
+			} );
 		}
 	} );
 };

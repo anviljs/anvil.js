@@ -37,6 +37,7 @@ var fileLoaderFactory = function( _, anvil ) {
 		},
 
 		loadSource: function( done ) {
+			anvil.log.step( "Scanning source directory: " + anvil.config.source );
 			anvil.fs.getFiles( anvil.config.source, anvil.config.working, function( files, directories ) {
 				anvil.project.files = files;
 				anvil.project.directories = directories;

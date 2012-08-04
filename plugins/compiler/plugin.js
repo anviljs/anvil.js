@@ -34,7 +34,10 @@ var compilerFactory = function( _, anvil ) {
 		},
 
 		run: function( done ) {
-			anvil.scheduler.parallel( anvil.project.files, this.compile, function() { done(); } );
+			var files = _.filter( anvil.project.files, function( file ) {
+				return file.dependents.length === 0;
+			} );
+			anvil.scheduler.parallel( files, this.compile, function() { done(); } );
 		}
 	} );
 };

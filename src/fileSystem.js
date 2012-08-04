@@ -11,7 +11,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		file = path.resolve( file );
 		return {
 			name: path.basename( file ),
-			dependents: 0,
+			dependents: [],
 			extension: function() { return path.extname( this.name ); },
 			fullPath: file,
 			imports: [],
@@ -100,6 +100,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 
 	FileSystem.prototype.getFiles = function( pathSpec, workingPath, onFiles, filter, limit ) {
 		var self = this;
+		limit = limit === undefined || limit === null ? -1 : limit;
 		filter = filter || [];
 		filter = _.map( filter, function( directory ) {
 			return path.resolve( self.buildPath( directory ) );
@@ -109,10 +110,10 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 		crawler.crawl( pathSpec,
 			function( files, directories ) {
 				onFiles(
-					_.map( files, function( file ) { return self.buildFileData( pathSpec, workingPath, file, limit, 0 ); } ),
+					_.map( files, function( file ) { return self.buildFileData( pathSpec, workingPath, file ); } ),
 					directories
 				);
-		}, filter );
+		}, filter, limit, 0 );
 	};
 
 	FileSystem.prototype.link = function( from, to, done ) {

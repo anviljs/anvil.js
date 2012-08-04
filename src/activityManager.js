@@ -1,31 +1,5 @@
 var activityManagerFactory = function( _, machina, anvil ) {
 
-	var isADependency = function( plugin, dependencies ) {
-		return _.any( dependencies, function( dependency ) {
-			return dependency === plugin.name;
-		} );
-	};
-
-	var sort = function( plugins ) {
-		var newList = [];
-		_.each( plugins, function( plugin ) { plugin.visited = false; } );
-		_.each( plugins, function( plugin ) { visit( plugins, plugin, newList ); } );
-		return newList;
-	};
-			
-	var visit = function( plugins, plugin, list ) {
-		if( !plugin.visited ) {
-			plugin.visited = true;
-			_.each( plugins, function( neighbor ) {
-				var dependsOn = isADependency( plugin, neighbor.dependencies );
-				if( dependsOn ) {
-					visit( plugins, neighbor, list );
-				}
-			} );
-			list.unshift( plugin );
-		}
-	};
-
 	var activityManager = {
 
 		initialState: "waiting",
@@ -104,9 +78,10 @@ var activityManagerFactory = function( _, machina, anvil ) {
 				},
 				"plugins.configured": function() {
 					var self = this;
-					
 					_.each( self.activities, function( plugins, activity ) {
-						var sorted = sort( plugins );
+						var sorted = anvil.utility.dependencySort( plugins, "ascending", function( plugin, dependency ) {
+							return dependency === plugin.name;
+						} );
 						self.pipelines[ activity ] = _.map( sorted, function( plugin ) {
 							if( plugin.run ) {
 								return function( done ) {
@@ -115,6 +90,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 								};
 							}
 						} );
+						
 						self.states[ activity ] = {
 							_onEnter: self.runActivity,
 							"build.stop": self.onBuildStop

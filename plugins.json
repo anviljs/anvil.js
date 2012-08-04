@@ -8,8 +8,8 @@
         "output",
         "pluginInstaller",
         "replace",
-        "anvil.mocha",
         "headers",
-        "anvil.http"
+        "anvil.http",
+        "anvil.mocha"
     ]
 }

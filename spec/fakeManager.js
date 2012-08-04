@@ -2,6 +2,9 @@ var fakeManagerFactory = function( _, anvil ) {
 	
 	var fakeManager = {
 		plugins: [],
+		checkDependencies: function( dependencies, done ) {
+			done();
+		},
 		getPlugins: function( done ) {
 			_.each( this.plugins, function( plugin ) {
 				anvil.events.raise( "plugin.loaded", plugin.instance );

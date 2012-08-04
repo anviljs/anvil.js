@@ -46,9 +46,9 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		events.raise( "config", this.onPluginsConfigured );
 	};
 
-	Anvil.prototype.onCommander = function( commander ) {
+	Anvil.prototype.onCommander = function( config, commander ) {
 		this.commander = commander;
-		events.raise( "commander" );
+		events.raise( "commander", config, commander );
 	};
 
 	Anvil.prototype.onPluginsConfigured = function() {
@@ -72,12 +72,6 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 					self.log.complete( "Configuration defaults written to " + file + " successfully" );
 				}
 			} );
-	};
-
-	Anvil.prototype.parseRegex = function( regex ) {
-		return regex.match( /\/g$/ ) ?
-			new RegExp( regex.replace(/\/g$/, "").substring( 1 ), "g" ) :
-			new RegExp( regex.substring( 1, regex.length-1 ) );
 	};
 
 	return new Anvil();

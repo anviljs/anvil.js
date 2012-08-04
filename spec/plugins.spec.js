@@ -11,6 +11,7 @@ var scheduler = require( "../src/scheduler.js" )( _ );
 var events = require( "../src/eventAggregator.js" )( _ );
 var bus = require( "../src/bus.js")( _, postal );
 var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
+require( "../src/utility.js")( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
 var manager = require( "../src/pluginManager.js" )( _, anvil );
@@ -52,15 +53,6 @@ describe( "when scanning project directory with file plugin", function() {
 
 		it( "should have loaded all files", function() {
 			anvil.project.files.length.should.be.greaterThan( 1 );
-		} );
-
-		it( "should raise file change event on file change", function( done ) {
-			anvil.events.on( "file.changed", function( fileEvent, file ) {
-				fileEvent.should.equal( "change" );
-				file.should.equal( root + "/src/test.js" );
-				done();
-			} );
-			fs.write( root + "/src/test.js", "this is new content", function() {} );
 		} );
 
 		it( "should copy files to working path", function() {
@@ -112,6 +104,15 @@ describe( "when scanning project directory with file plugin", function() {
 			"// project: anvil.js\n" +
 			"// version: 0.8.0\n" +
 			" var a = 'this value';" );
+		} );
+
+		it( "should raise file change event on file change", function( done ) {
+			anvil.events.on( "file.changed", function( fileEvent, file ) {
+				fileEvent.should.equal( "change" );
+				file.should.equal( root + "/src/test.js" );
+				done();
+			} );
+			fs.write( root + "/src/test.js", "this is new content", function() {} );
 		} );
 	} );
 } );
