@@ -24,6 +24,6 @@
   "devDependencies": {},
   "optionalDependencies": {},
   "bin": {
-        "anvil": "./bin/anvil"
+        "anvil": "./lib/api.js"
   }
 }
