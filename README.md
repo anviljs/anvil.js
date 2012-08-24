@@ -2,7 +2,7 @@
 
 Anvil started as a way to build a single javascript module from several source files. Build tools that require a lot of explicit/declarative instructions distract from getting work on the project done.
 
-Anvil has been rewritten as an extensible tool that uses a plugin architecture to allow developers to change pretty much everything about how it works.
+Anvil has been rewritten as a general build system with a plugin architecture. It should be easy to add features or change almost any behavior as needed.
 
 The new version of anvil is not entirely backwards compatible. If you want to continue using the old version, you can still install it from npm by specifying the version number ( 0.7.9 ). If you need help converting your project to the new version, please send me an e-mail or submit an issue to the project and I'll help as I have time.
 
@@ -174,3 +174,5 @@ Special thanks to the following individuals who have contributed source code or 
  * Mike Hostetler
  * Doug Neiner
  * Derick Bailey
+ * Jonathan Creamer
+ * Brian Edgerton

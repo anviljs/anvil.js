@@ -15,6 +15,7 @@ var logFactory = function( anvil ) {
 
 		step: function( text ) {
 			this.stepLog.push( text );
+			console.log( text );
 		},
 
 		event: function( text ) {

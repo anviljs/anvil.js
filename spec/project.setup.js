@@ -158,7 +158,9 @@ var factory = function( _, fs, path, scheduler, realFS ) {
 		scheduler.parallel( files, write, function() {
 			realFS.readFile( "./package.json", "utf8", function( error, content ) {
 				if( !error ) {
-					fs.write( "./package.json", content, done );
+					fs.write( "./package.json", content, function() {
+						done();
+					} );
 				} else {
 					done();
 				}
