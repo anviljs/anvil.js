@@ -10,7 +10,6 @@
         "replace",
         "headers",
         "anvil.mocha",
-        "anvil.http",
-        "anvil.uglify"
+        "anvil.http"
     ]
 }

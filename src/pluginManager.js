@@ -1,5 +1,6 @@
 var path = require("path");
 var fs = require( "fs" );
+var npm = require( "npm" );
 var child_process = require( "child_process" );
 
 var pluginManagerFactory = function( _, anvil, testing ) {
@@ -18,6 +19,7 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 	PluginManager.prototype.getPlugins = function( done ) {
 		var self =this,
 			list = [];
+		anvil.log.step( "loading plugins" );
 		anvil.fs.read( dataPath, function( json, err ) {
 			var plugins = JSON.parse( json ),
 				removals = [];
@@ -79,7 +81,7 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 	};
 
 	PluginManager.prototype.checkDependencies = function( dependencies, done ) {
-		anvil.log.step( "checking build dependencies " );
+		anvil.log.step( "checking for " + dependencies.length + " build dependencies " );
 		var self = this;
 		this.getInstalled( function( list ) {
 			var installers = _.map( dependencies, function( dependency ) {
@@ -149,32 +151,42 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 		var self = this,
 			currentPath = path.resolve( installPath, "../" ),
 			linkPath = anvil.fs.buildPath( [ installPath, pluginName ] ),
-			pluginPath = anvil.fs.buildPath( [ currentPath, "node_modules", pluginName ] ),
-			child = child_process.spawn( "npm", [ "install", pluginName ], { cwd: currentPath } );
+			pluginPath = anvil.fs.buildPath( [ currentPath, "node_modules", pluginName ] );
+
 		anvil.log.step( "Installing plugin: " + pluginName );
-		child.on( "exit", function( code ) {
-			if( code === 0 ) {
-				anvil.log.complete( "Installation of '" + pluginName + "' completed successfully." );
-				anvil.fs.link( pluginPath, linkPath, function( err ) {
-					if( err ) {
-						anvil.log.error( "Could not link plugin path! " + err );
-					}
-					self.addPlugin( pluginName, function() {
-						var packagePath = anvil.fs.buildPath( [ pluginPath, "package.json" ] ),
-							dependencies = require( packagePath ).requiredPlugins;
-						if( dependencies && dependencies.length > 0 ) {
-							self.getInstalled( function( installed ) {
-								var missing = _.difference( dependencies, installed );
-								anvil.scheduler.parallel( missing, self.install, function() { done(); } );
+		npm.load( npm.config, function( err, npm ) {
+			try {
+				npm.localPrefix = currentPath;
+				npm.config.set( "loglevel", "silent" );
+				npm.commands.install( [ pluginName ], function( err, data ) {
+					if( !err ) {
+						anvil.log.complete( "Installation of '" + pluginName + "' completed successfully." );
+						anvil.fs.link( pluginPath, linkPath, function( err ) {
+							if( err ) {
+								anvil.log.error( "Could not link plugin path! " + err.stack );
+							}
+							self.addPlugin( pluginName, function() {
+								var packagePath = anvil.fs.buildPath( [ pluginPath, "package.json" ] ),
+									dependencies = require( packagePath ).requiredPlugins;
+								if( dependencies && dependencies.length > 0 ) {
+									self.getInstalled( function( installed ) {
+										var missing = _.difference( dependencies, installed );
+										anvil.scheduler.parallel( missing, self.install, function() { done(); } );
+									} );
+								} else {
+									done();
+								}
 							} );
-						} else {
-							done();
-						}
-					} );
+						} );
+					} else {
+						anvil.log.error( "Installation of '" + pluginName + "' has failed with error: \n" + err.stack );
+						done( { plugin: pluginName } );
+					}
 				} );
-			} else {
-				anvil.log.error( "Installation of '" + pluginName + "' has failed" );
-				done( { plugin: pluginName, code: code } );
+				
+			} catch ( err ) {
+				anvil.log.error( "Installation of '" + pluginName + "' has failed with error: \n" + err.stack );
+				done( { plugin: pluginName } );
 			}
 		} );
 	};
@@ -195,20 +207,28 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 		var self = this,
 			currentPath = path.resolve( installPath, "../" ),
 			linkPath = anvil.fs.buildPath( [ installPath, pluginName ] ),
-			pluginPath = anvil.fs.buildPath( [ currentPath, "node_modules", pluginName ] ),
-			child = child_process.spawn( "npm", [ "uninstall", pluginName ], { cwd: currentPath } );
-		child.on( "exit", function( code ) {
-			if( code === 0 ) {
-				anvil.log.complete( "Uninstallation of '" + pluginName + "' completed successfully." );
-				anvil.fs["delete"]( linkPath, function( err ) {
-					if( err ) {
-						anvil.log.error( "Link at '" + linkPath + "' could not be deleted : " + err );
+			pluginPath = anvil.fs.buildPath( [ currentPath, "node_modules", pluginName ] );
+		npm.load( npm.config, function( err, npm ) {
+			try {
+				npm.localPrefix = currentPath;
+				npm.config.set( "loglevel", "silent" );
+				npm.commands.uninstall( [ pluginName ], function( err, data ) {
+					if( !err ) {
+						anvil.log.complete( "Uninstallation of '" + pluginName + "' completed successfully." );
+						anvil.fs["delete"]( linkPath, function( err ) {
+							if( err ) {
+								anvil.log.error( "Link at '" + linkPath + "' could not be deleted: " + err );
+							}
+						} );
+						self.removePlugin( pluginName, done );
+					} else {
+						anvil.log.error( "Uninstallation of '" + pluginName + "' has failed: " + err );
+						done( { plugin: pluginName } );
 					}
 				} );
-				self.removePlugin( pluginName, done );
-			} else {
-				anvil.log.error( "Uninstallation of '" + pluginName + "' has failed" );
-				done( { plugin: pluginName, code: code } );
+			} catch ( err ) {
+				anvil.log.error( "Uninstallation of '" + pluginName + "' has failed: " + err );
+				done( { plugin: pluginName } );
 			}
 		} );
 	};
