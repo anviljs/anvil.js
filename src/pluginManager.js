@@ -161,22 +161,28 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 				npm.commands.install( [ pluginName ], function( err, data ) {
 					if( !err ) {
 						anvil.log.complete( "Installation of '" + pluginName + "' completed successfully." );
-						anvil.fs.link( pluginPath, linkPath, function( err ) {
-							if( err ) {
-								anvil.log.error( "Could not link plugin path! " + err.stack );
-							}
-							self.addPlugin( pluginName, function() {
-								var packagePath = anvil.fs.buildPath( [ pluginPath, "package.json" ] ),
-									dependencies = require( packagePath ).requiredPlugins;
-								if( dependencies && dependencies.length > 0 ) {
-									self.getInstalled( function( installed ) {
-										var missing = _.difference( dependencies, installed );
-										anvil.scheduler.parallel( missing, self.install, function() { done(); } );
+						anvil.fs.pathExists( linkPath, function( exists ) {
+							if( !exists ) {
+								anvil.fs.link( pluginPath, linkPath, function( err ) {
+									if( err ) {
+										anvil.log.error( "Could not link plugin path! " + err.stack );
+									}
+									self.addPlugin( pluginName, function() {
+										var packagePath = anvil.fs.buildPath( [ pluginPath, "package.json" ] ),
+											dependencies = require( packagePath ).requiredPlugins;
+										if( dependencies && dependencies.length > 0 ) {
+											self.getInstalled( function( installed ) {
+												var missing = _.difference( dependencies, installed );
+												anvil.scheduler.parallel( missing, self.install, function() { done(); } );
+											} );
+										} else {
+											done();
+										}
 									} );
-								} else {
-									done();
-								}
-							} );
+								} );
+							} else {
+								done();
+							}
 						} );
 					} else {
 						anvil.log.error( "Installation of '" + pluginName + "' has failed with error: \n" + err.stack );
