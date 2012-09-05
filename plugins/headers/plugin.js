@@ -13,7 +13,7 @@ var headerFactory = function( _, anvil ) {
 
 		configure: function( config, command, done ) {
 			var self = this;
-			this.headerFileName = command.header;
+			this.headerFileName = command.header || "header";
 			anvil.plugins[ "output" ].dependencies.push( "headers" );
 			_.each( self.getHeaders( anvil.project.files ), function( file ) {
 				file.noCopy = true;
@@ -41,7 +41,7 @@ var headerFactory = function( _, anvil ) {
 						hasHeader = _.any( self.headers, function( value, key ) {
 							return key === extension;
 						} );
-					return file.dependents === 0 && !file.noCopy && hasHeader;
+					return file.dependents.length === 0 && !file.noCopy && hasHeader;
 				} );
 			_.each( files, function( file ) {
 				var extension = file.extension();
