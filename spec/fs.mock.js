@@ -136,12 +136,18 @@ var fsFactory = function( _, path ) {
 		onComplete( { lastModified: state.mtime } );
 	};
 
-	FileSystemMock.prototype.pathExists = function( pathSpec ) {
-		var fullPath = this.buildPath( pathSpec );
+	FileSystemMock.prototype.pathExists = function( pathSpec, callback ) {
+		var fullPath = this.buildPath( pathSpec ),
+			exists = false;
 		if( path.extname( fullPath ) ) {
-			return this.files[ fullPath ];
+			exists = this.files[ fullPath ];
 		} else {
-			return this.paths[ fullPath ];
+			exists = this.paths[ fullPath ];
+		}
+		if( callback ) {
+			callback( exists );
+		} else {
+			return exists;
 		}
 	};
 
