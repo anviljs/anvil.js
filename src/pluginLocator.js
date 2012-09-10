@@ -3,6 +3,7 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 	var PluginLocator = function() {
 		_.bindAll( this );
 		this.instances = {};
+		this.preLoaded = [];
 		this.count = 0;
 		anvil.events.on( "commander", this.loadPlugins );
 		anvil.events.on( "config", this.configurePlugins );
@@ -10,12 +11,14 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 
 	PluginLocator.prototype.configurePlugins = function( done ) {
 		var remaining = this.count;
+		try {
 		var configDone = function() {
-			if( --remaining === 0 ) {
-				done();
-			}
-		};
-		_.each( this.instances, function( plugin ) {
+				if( --remaining === 0 ) {
+					done();
+				}
+			},
+			plugins = _.values( this.instances ).concat( this.preLoaded );
+		_.each( plugins, function( plugin ) {
 			try {
 				if( plugin.configure ) {
 					plugin.configure( anvil.config, anvil.commander, configDone );
@@ -30,6 +33,9 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 				} );
 			}
 		} );
+		} catch( err ) {
+			console.log( err );
+		}
 	};
 
 	PluginLocator.prototype.initPlugin = function( plugin ) {
@@ -52,6 +58,7 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 		plugins.checkDependencies( config.dependencies || [], function() {
 			try {
 				plugins.getPlugins( function( list ) {
+					list = list.concat( self.preLoaded );
 					_.each( list, function( plugin ) {
 						try {
 							self.initPlugin( plugin.instance );

@@ -5,11 +5,12 @@ var child_process = require( "child_process" );
 
 var pluginManagerFactory = function( _, anvil, testing ) {
 
-
-	var dataPath = path.resolve( __dirname, "../plugins.json" );
-	var installPath = path.join( __dirname, "../plugins/" );
+	var globalDataPath = path.resolve( __dirname, "../plugins.json" ),
+		localDataPath = path.resolve( "./plugins.json" ),
+		dataPath = globalDataPath,
+		installPath = path.join( __dirname, "../plugins/" );
 	installPath = testing ? path.resolve( "./spec/plugins/" ) : installPath;
-
+	
 	var PluginManager = function() {
 		_.bindAll( this );
 		this.installPath = installPath;
@@ -20,24 +21,13 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 		var self =this,
 			list = [];
 		anvil.log.step( "loading plugins" );
+		
 		anvil.fs.read( dataPath, function( json, err ) {
 			var plugins = JSON.parse( json ),
 				removals = [];
 			_.each( plugins.list, function( plugin ) {
-				try {
-					var pluginPath = anvil.fs.buildPath( [ installPath, plugin ] ),
-						instance = require( path.resolve( pluginPath ) )( _, anvil ),
-						metadata = { instance: instance, name: plugin };
-					list.push( metadata );
-					anvil.events.raise( "plugin.loaded", instance );
-					anvil.log.debug( "loaded plugin " + plugin );
-				} catch ( err ) {
-					anvil.log.error( "Error loading plugin '" + plugin + "' : " + err );
-					removals.push( function( done ) { self.removePlugin( plugin, function() {
-							anvil.log.step( "Plugin '" + plugin + "' cannot be loaded and has been disabled");
-						} );
-					} );
-				}
+				var pluginPath = anvil.fs.buildPath( [ installPath, plugin ] );
+				self.loadPlugin( plugin, pluginPath, list, removals );
 			} );
 			if( removals.length > 0 ) {
 				_.defer( function() {
@@ -48,6 +38,25 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 			}
 			done( list );
 		} );
+	};
+
+	PluginManager.prototype.loadPlugin = function( plugin, pluginPath, list, removals ) {
+		removals = removals || [];
+		try {
+			var instance = require( path.resolve( pluginPath ) )( _, anvil ),
+				metadata = { instance: instance, name: plugin };
+			if( list ) {
+				list.push( metadata );
+			}
+			anvil.events.raise( "plugin.loaded", instance );
+			anvil.log.debug( "loaded plugin " + plugin );
+		} catch ( err ) {
+			anvil.log.error( "Error loading plugin '" + plugin + "' : " + err );
+			removals.push( function( done ) { self.removePlugin( plugin, function() {
+					anvil.log.step( "Plugin '" + plugin + "' cannot be loaded and has been disabled");
+				} );
+			} );
+		}
 	};
 
 	PluginManager.prototype.addPlugin = function( plugin, onComplete ) {
