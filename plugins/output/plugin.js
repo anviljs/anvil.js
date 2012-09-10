@@ -16,7 +16,7 @@ var outputFactory = function( _, anvil ) {
 			} );
 		},
 
-		configure: function( command, configure, done ) {
+		configure: function( config, command, done ) {
 			var self = this;
 			anvil.events.on( "file.deleted", function( change, path, base ) {
 				if( base === anvil.config.source ) {
