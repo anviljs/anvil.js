@@ -47,7 +47,7 @@ var combinerFactory = function( _, anvil ) {
 				},
 				findImports = _.bind( function( file, done ) {
 					self.findImports( file, list, done );
-				}, this );
+				}, this ),
 				match = function( file, dependency ) {
 					return dependency.fullPath === file.fullPath;
 				};
@@ -112,10 +112,10 @@ var combinerFactory = function( _, anvil ) {
 					imports = imports.concat( content.match( finder ) );
 					imports = _.filter( imports, function( x ) { return x; } );
 					_.each( imports, function( imported ) {
-						importName = imported.match( /[\"'].*[\"']/ )[ 0 ].replace( /[\"']/g, "" );
+						var importName = imported.match( /[\"'].*[\"']/ )[ 0 ].replace( /[\"']/g, "" );
 						importName = importName.match( /^[.]{1,2}[\/]/ ) ?
 										importName : "./" + importName;
-						importedFile = _.find( list,
+						var importedFile = _.find( list,
 							function( i ) {
 								var relativeImportPath = path.relative(
 										path.dirname( file.fullPath ),
