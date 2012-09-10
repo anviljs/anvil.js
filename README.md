@@ -14,6 +14,7 @@ A baseline install can do the following:
 
 * Install, remove, enable or disable plugins
 * Automatically install any plugins your build file defines as dependencies
+* Run local tasks (follows the same api as a plugin)
 * Continuously and incrementally build the project as files change
 * Create default build files based on installed plugins
 * Combine resource files through a comment-based import syntax

@@ -10,6 +10,9 @@ var fakeManagerFactory = function( _, anvil ) {
 				anvil.events.raise( "plugin.loaded", plugin.instance );
 			} );
 			done( this.plugins );
+		},
+		getTasks: function( done ) {
+			done();
 		}
 	};
 
@@ -59,6 +62,7 @@ var fakeManagerFactory = function( _, anvil ) {
 	_.bindAll( pluginA );
 	_.bindAll( pluginB );
 	_.bindAll( pluginC );
+	_.bindAll( fakeManager );
 
 	fakeManager.plugins = [
 		{ name: "pluginA", instance: pluginA },

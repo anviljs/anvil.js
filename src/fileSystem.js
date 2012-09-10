@@ -29,6 +29,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 			hasLocalPrefix = pathSpec[0].match( /^[.]\// );
 			pathSpec = path.join.apply( {}, pathSpec );
 		}
+		pathSpec = pathSpec.replace( "~", process.env.HOME );
 		return hasLocalPrefix ? "./" + pathSpec : pathSpec;
 	};
 

@@ -17,48 +17,6 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 		anvil.pluginManager = this;
 	};
 
-	PluginManager.prototype.getPlugins = function( done ) {
-		var self =this,
-			list = [];
-		anvil.log.step( "loading plugins" );
-		
-		anvil.fs.read( dataPath, function( json, err ) {
-			var plugins = JSON.parse( json ),
-				removals = [];
-			_.each( plugins.list, function( plugin ) {
-				var pluginPath = anvil.fs.buildPath( [ installPath, plugin ] );
-				self.loadPlugin( plugin, pluginPath, list, removals );
-			} );
-			if( removals.length > 0 ) {
-				_.defer( function() {
-					anvil.scheduler.pipeline( undefined, removals, function() {
-						anvil.events.raise( "all.stop", -1 );
-					} );
-				} );
-			}
-			done( list );
-		} );
-	};
-
-	PluginManager.prototype.loadPlugin = function( plugin, pluginPath, list, removals ) {
-		removals = removals || [];
-		try {
-			var instance = require( path.resolve( pluginPath ) )( _, anvil ),
-				metadata = { instance: instance, name: plugin };
-			if( list ) {
-				list.push( metadata );
-			}
-			anvil.events.raise( "plugin.loaded", instance );
-			anvil.log.debug( "loaded plugin " + plugin );
-		} catch ( err ) {
-			anvil.log.error( "Error loading plugin '" + plugin + "' : " + err );
-			removals.push( function( done ) { self.removePlugin( plugin, function() {
-					anvil.log.step( "Plugin '" + plugin + "' cannot be loaded and has been disabled");
-				} );
-			} );
-		}
-	};
-
 	PluginManager.prototype.addPlugin = function( plugin, onComplete ) {
 		anvil.fs.read( dataPath, function( json ) {
 			var plugins = JSON.parse( json );
@@ -74,25 +32,10 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 		} );
 	};
 
-	PluginManager.prototype.removePlugin = function( plugin, onComplete ) {
-		anvil.fs.read( dataPath, function( json ) {
-			var plugins = JSON.parse( json );
-			if( _.any( plugins.list, function( name ) { return name === plugin; } ) ) {
-				plugins.list = _.reject( plugins.list, function( name ) { return name === plugin; } );
-				json = JSON.stringify( plugins, null, 4 );
-				anvil.fs.write( dataPath, json, function( err ) {
-					onComplete( true, err );
-				} );
-			} else {
-				onComplete( false );
-			}
-		} );
-	};
-
 	PluginManager.prototype.checkDependencies = function( dependencies, done ) {
 		anvil.log.step( "checking for " + dependencies.length + " build dependencies " );
 		var self = this;
-		this.getInstalled( function( list ) {
+		this.getInstalled( installPath, function( list ) {
 			var installers = _.map( dependencies, function( dependency ) {
 				if( !_.contains( list, dependency ) ) {
 					return function( done ) {
@@ -129,7 +72,7 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 
 	PluginManager.prototype.enable = function( pluginName, done ) {
 		var self = this;
-		this.getInstalled( function( list ) {
+		this.getInstalled( installPath, function( list ) {
 			if( _.contains( list, pluginName ) ) {
 				self.addPlugin( pluginName, function() {
 					anvil.log.complete( "Plugin '" + pluginName + "' is enabled" );
@@ -142,16 +85,39 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 		} );
 	};
 
-	PluginManager.prototype.getInstalled = function( done ) {
+	PluginManager.prototype.getInstalled = function( pluginPath, done ) {
 		var self = this,
 			list = [],
 			base = path.resolve( "./" );
-		anvil.fs.getFiles( installPath, installPath, function( files, directories ) {
+		anvil.fs.getFiles( pluginPath, pluginPath, function( files, directories ) {
 			_.each( directories, function( directory ) {
 				if( directory !== base ) {
-					list.push( directory.replace( installPath, "" ) );
+					list.push( directory.replace( pluginPath, "" ) );
 				}
 			}, [ base ], 1 );
+			done( list );
+		} );
+	};
+
+	PluginManager.prototype.getPlugins = function( done ) {
+		var self =this,
+			list = [];
+		anvil.log.step( "loading plugins" );
+		
+		anvil.fs.read( dataPath, function( json, err ) {
+			var plugins = JSON.parse( json ),
+				removals = [];
+			_.each( plugins.list, function( plugin ) {
+				var pluginPath = anvil.fs.buildPath( [ installPath, plugin ] );
+				self.loadPlugin( plugin, pluginPath, list, removals );
+			} );
+			if( removals.length > 0 ) {
+				_.defer( function() {
+					anvil.scheduler.pipeline( undefined, removals, function() {
+						anvil.events.raise( "all.stop", -1 );
+					} );
+				} );
+			}
 			done( list );
 		} );
 	};
@@ -162,6 +128,22 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 			return require( path.join( pluginPath, 'package.json' ) ).name;
 		}
 		return pluginName;
+	};
+
+	PluginManager.prototype.getTasks = function( done ) {
+		var self = this,
+			list = [],
+			taskPath = anvil.loadedConfig.tasks ?
+						anvil.fs.buildPath( anvil.loadedConfig.tasks ):
+						path.resolve( anvil.config.tasks );
+		anvil.log.step( "loading tasks" );
+		this.getInstalled( taskPath, function( tasks ) {
+			_.each( tasks, function( task ) {
+				var scriptPath = anvil.fs.buildPath( [ taskPath, task, task, + ".js" ] );
+				self.loadPlugin( task, scriptPath, list, [] );
+			} );
+			done( list );
+		} );
 	};
 
 	PluginManager.prototype.install = function( pluginName, done ) {
@@ -189,7 +171,7 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 										var packagePath = anvil.fs.buildPath( [ realPluginName, "package.json" ] ),
 											dependencies = require( packagePath ).requiredPlugins;
 										if( dependencies && dependencies.length > 0 ) {
-											self.getInstalled( function( installed ) {
+											self.getInstalled( installPath, function( installed ) {
 												var missing = _.difference( dependencies, installed );
 												anvil.scheduler.parallel( missing, self.install, function() { done(); } );
 											} );
@@ -218,11 +200,45 @@ var pluginManagerFactory = function( _, anvil, testing ) {
 	PluginManager.prototype.list = function( ignore, done ) {
 		var self = this;
 		anvil.log.complete( "Plugin list: " );
-		this.getInstalled( function( plugins ) {
+		this.getInstalled( installPath, function( plugins ) {
 			_.each( plugins, function( plugin ) {
 				anvil.log.event( plugin );
 			} );
 			done();
+		} );
+	};
+
+	PluginManager.prototype.loadPlugin = function( plugin, pluginPath, list, removals ) {
+		removals = removals || [];
+		try {
+			var instance = require( path.resolve( pluginPath ) )( _, anvil ),
+				metadata = { instance: instance, name: plugin };
+			if( list ) {
+				list.push( metadata );
+			}
+			anvil.events.raise( "plugin.loaded", instance );
+			anvil.log.debug( "loaded plugin " + plugin );
+		} catch ( err ) {
+			anvil.log.error( "Error loading plugin '" + plugin + "' : " + err );
+			removals.push( function( done ) { self.removePlugin( plugin, function() {
+					anvil.log.step( "Plugin '" + plugin + "' cannot be loaded and has been disabled");
+				} );
+			} );
+		}
+	};
+
+	PluginManager.prototype.removePlugin = function( plugin, onComplete ) {
+		anvil.fs.read( dataPath, function( json ) {
+			var plugins = JSON.parse( json );
+			if( _.any( plugins.list, function( name ) { return name === plugin; } ) ) {
+				plugins.list = _.reject( plugins.list, function( name ) { return name === plugin; } );
+				json = JSON.stringify( plugins, null, 4 );
+				anvil.fs.write( dataPath, json, function( err ) {
+					onComplete( true, err );
+				} );
+			} else {
+				onComplete( false );
+			}
 		} );
 	};
 

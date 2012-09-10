@@ -5,7 +5,6 @@ var postal = require( "postal" );
 var fs = require( "fs" );
 var path = require( "path" );
 var mkdir = require( "mkdirp" ).mkdirp;
-var colors = require( "colors" );
 var scheduler = require( "./scheduler.js" )( _ );
 var crawler = require( "./fileCrawler.js" )( _, fs, path, scheduler );
 var files = require( "./fileSystem.js" )( _, fs, path, mkdir, crawler );
@@ -15,22 +14,19 @@ var anvil = require( "./anvil.js" )( _, scheduler, files, events, bus );
 require( "./utility.js")( _, anvil );
 var plugin = require( "./plugin.js" )( _, anvil );
 var log = require( "./log.js" )( anvil );
-var consoleLog = require( "./consoleLogger.js" )( _, anvil );
 var manager = require( "./pluginManager.js" )( _, anvil );
 var locator = require( "./pluginLocator.js" )( _, manager, anvil );
 var config = require( "./config.js" )( _, commander, path, anvil );
 var activityManager = require( "./activityManager.js" )( _, machina, anvil );
+var Harness = require( "./pluginHarness.js" );
 
-var apiFactory = function() {
-	return {
+module.exports = {
+		config: config,
 		scheduler: scheduler,
 		files: files,
 		events: events,
 		bus: bus,
 		anvil: anvil,
 		log: log,
-		pluginHarness: harness
+		PluginHarness: Harness
 	};
-};
-
-module.exports = apiFactory;

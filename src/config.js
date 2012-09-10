@@ -15,6 +15,7 @@ var configFactory = function( _, commander, path, anvil ) {
 		source: "./src",
 		spec: "./spec",
 		output: "./lib",
+		tasks: "./tasks",
 		log: {
 			debug: false,
 			"event": true,
@@ -54,7 +55,7 @@ var configFactory = function( _, commander, path, anvil ) {
 			.option( "--write [build file]", "Create a new build file based on default config" )
 			.option( "-q, --quiet", "Only print completion and error messages" )
 			.option( "--verbose", "Include debug and warning messages in log" );
-		anvil.onCommander( this.loadedConfig, commander );
+		anvil.onCommander( anvil.loadedConfig, commander );
 	};
 
 	Config.prototype.getConfiguration = function( buildFile, onConfig ) {
@@ -100,7 +101,7 @@ var configFactory = function( _, commander, path, anvil ) {
 		}
 
 		this.getConfiguration( buildFile, function( config ) {
-			self.loadedConfig = config;
+			anvil.loadedConfig = config;
 			self.createCommand();
 		} );
 	};
@@ -134,7 +135,7 @@ var configFactory = function( _, commander, path, anvil ) {
 		} catch ( err ) {
 			anvil.log.error( "Error processing arguments (" + this.args + ") :" + err + "\n" + err.stack );
 		}
-		var config = _.deepExtend( defaultConfig, anvil.config, this.loadedConfig );
+		var config = _.deepExtend( defaultConfig, anvil.config, anvil.loadedConfig );
 		this.checkDirectories( config );
 		anvil.onConfig( config );
 	};

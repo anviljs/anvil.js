@@ -24,6 +24,9 @@ var mockPluginManager = {
 		done( [
 			{ name: "testPlugin", instance: { test: function() { return "hello anvil!"; } } }
 		] );
+	},
+	getTasks: function( done ) {
+		done();
 	}
 };
 
