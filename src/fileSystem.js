@@ -1,6 +1,6 @@
 var watchTree = require( "fs-watch-tree" ).watchTree;
 
-var fileFactory = function( _, fs, path, mkdir, crawler ) {
+var fileFactory = function( _, fs, path, mkdir, crawler, scheduler ) {
 
 	var FileSystem = function() {
 		_.bindAll( this );
@@ -52,12 +52,23 @@ var fileFactory = function( _, fs, path, mkdir, crawler ) {
 	};
 
 	FileSystem.prototype["delete"] = function( pathSpec, onDeleted ) {
+		var self = this;
 		pathSpec = this.buildPath( pathSpec );
 		if( this.pathExists( pathSpec ) ) {
 			fs.stat( pathSpec, function( err, stat ) {
 				if ( stat.isDirectory() ) {
 					fs.rmdir( pathSpec, function( error ) {
-						if( onDeleted ) {
+						if( error ) {
+							self.getFiles( pathSpec, pathSpec, function( files, directories ) {
+								scheduler.parallel( directories, self["delete"], function() {
+									scheduler.parallel( files, function( file, done ) {
+										self["delete"]( file.fullPath, done );
+									}, function() {
+										self["delete"]( pathSpec, onDeleted );
+									} );
+								} );
+							}, [], 1 );
+						} else if( onDeleted ) {
 							onDeleted( error );
 						}
 					} );

@@ -5,6 +5,17 @@ var outputFactory = function( _, anvil ) {
 		name: "output",
 		activity: "push",
 
+		clean: function( done ) {
+			anvil.fs["delete"]( anvil.config.output, function( error ) {
+				if( !error ) {
+					anvil.fs.ensurePath( anvil.config.output, done );
+				} else {
+					console.log( error );
+					done();
+				}
+			} );
+		},
+
 		copy: function( file, done ) {
 			anvil.scheduler.parallel( [ anvil.config.output ], function( destination, copied ) {
 				destination = path.resolve( destination );
@@ -14,14 +25,17 @@ var outputFactory = function( _, anvil ) {
 		},
 
 		run: function( done ) {
-			var toCopy = _.filter( anvil.project.files, function( file ) {
+			var self = this,
+				toCopy = _.filter( anvil.project.files, function( file ) {
 				return !file.noCopy;
 			} );
-			anvil.scheduler.parallel( toCopy, this.copy, function() {
-				_.each( anvil.project.files, function( file ) {
-					file.state = "done";
+			this.clean( function() {
+				anvil.scheduler.parallel( toCopy, self.copy, function() {
+					_.each( anvil.project.files, function( file ) {
+						file.state = "done";
+					} );
+					done();
 				} );
-				done();
 			} );
 		}
 	} );
