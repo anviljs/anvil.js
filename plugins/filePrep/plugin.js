@@ -6,11 +6,15 @@ var filePrepFactory = function( _, anvil ) {
 		configure: function( config, command, done ) {
 			var self = this;
 			anvil.events.on( "file.changed", function( change, path, base ) {
-				var isSource = ( base === anvil.config.source );
-				if( isSource ) {
+				if( base === anvil.config.source ) {
 					self.handleSourceChange( path, base );
 				} else {
 					self.handleSpecChange( path, base );
+				}
+			} );
+			anvil.events.on( "file.deleted", function( change, path, base ) {
+				if( base === anvil.config.source ) {
+					self['delete']( path );
 				}
 			} );
 			done();
@@ -20,6 +24,17 @@ var filePrepFactory = function( _, anvil ) {
 			var path = anvil.fs.buildPath( [ file.relativePath, file.name ] );
 			anvil.log.event( "prepping '" + path + "'" );
 			anvil.fs.copy( file.originalPath, [ file.workingPath, file.name ], done );
+		},
+
+		"delete": function( path, done ) {
+			var file = _.find( anvil.project.files, function( file ) {
+							return file.originalPath == path;
+						} );
+			if( file ) {
+				anvil.fs["delete"]( [ file.workingPath, file.name ], function() {
+					anvil.log.event( "Deleted " + file.fullPath + " from working path " );
+				} );
+			}
 		},
 
 		handleSourceChange: function( path, base ) {

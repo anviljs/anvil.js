@@ -69,7 +69,11 @@ var fileLoaderFactory = function( _, anvil ) {
 			var self = this;
 			this.watchers.push(
 				anvil.fs.watch( path, function( event ) {
-					self.handle( "file.change", event.name, path );
+					if( !event.isDelete() ) {
+						self.handle( "file.change", event.name, path );
+					} else {
+						self.handle( "file.deleted", event.name, path );
+					}
 				} )
 			);
 		},
@@ -112,6 +116,10 @@ var fileLoaderFactory = function( _, anvil ) {
 				"file.change": function( file, path ) {
 					anvil.log.event( "file change in '" + file + "'" );
 					anvil.events.raise( "file.changed", "change", file, path );
+				},
+				"file.deleted": function( file, path ) {
+					anvil.log.event( "file deleted: '" + file + "'" );
+					anvil.events.raise( "file.deleted", "deleted", file, path );
 				}
 			}
 		}

@@ -16,12 +16,40 @@ var outputFactory = function( _, anvil ) {
 			} );
 		},
 
+		configure: function( command, configure, done ) {
+			var self = this;
+			anvil.events.on( "file.deleted", function( change, path, base ) {
+				if( base === anvil.config.source ) {
+					self['delete']( path );
+				}
+			} );
+			done();
+		},
+
 		copy: function( file, done ) {
 			anvil.scheduler.parallel( [ anvil.config.output ], function( destination, copied ) {
 				destination = path.resolve( destination );
 				anvil.log.debug( "copying " + file.name + " to " + ( destination + file.relativePath ) );
 				anvil.fs.copy( [ file.workingPath, file.name ], [ destination, file.relativePath, file.name ], copied );
 			}, done );
+		},
+
+		"delete": function( filePath ) {
+			var file = _.find( anvil.project.files, function( file ) {
+							return file.originalPath == filePath;
+						} );
+			if( file ) {
+				anvil.scheduler.parallel( [ anvil.config.output ], function( destination, done ) {
+					try {
+						destination = path.resolve( destination );
+						var removeFrom = anvil.fs.buildPath( [ destination, file.relativePath, file.name ] );
+						anvil.log.debug( "Deleting output at " + removeFrom );
+						anvil.fs["delete"]( removeFrom, done );
+					} catch( err ) {
+						console.log( err );
+					}
+				}, function() {} );
+			}
 		},
 
 		run: function( done ) {
