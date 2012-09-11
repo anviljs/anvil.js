@@ -6,10 +6,10 @@ var filePrepFactory = function( _, anvil ) {
 		configure: function( config, command, done ) {
 			var self = this;
 			anvil.events.on( "file.changed", function( change, path, base ) {
-				if( base === anvil.config.source ) {
-					self.handleSourceChange( path, base );
-				} else {
+				if( base === anvil.config.spec ) {
 					self.handleSpecChange( path, base );
+				} else {
+					self.handleSourceChange( path, base );
 				}
 			} );
 			anvil.events.on( "file.deleted", function( change, path, base ) {

@@ -12,6 +12,10 @@ var fileLoaderFactory = function( _, anvil ) {
 		excluded: [],
 		config: {
 			continuous: false,
+			watchPaths: [
+				anvil.config.source,
+				anvil.config.spec
+			],
 			excluded: []
 		},
 		watchers: [],
@@ -39,9 +43,10 @@ var fileLoaderFactory = function( _, anvil ) {
 		loadSource: function( done ) {
 			anvil.log.step( "Scanning source directory: " + anvil.config.source );
 			anvil.fs.getFiles( anvil.config.source, anvil.config.working, function( files, directories ) {
-				anvil.project.files = files;
+				anvil.project.files = anvil.project.files.concat( files );
 				anvil.project.directories = directories;
 				anvil.log.event( "found " + directories.length + " directories with " + files.length + " files" );
+				console.log( anvil.project.files );
 				done();
 			}, this.excluded );
 		},
@@ -61,8 +66,10 @@ var fileLoaderFactory = function( _, anvil ) {
 		},
 
 		watchAll: function() {
-			this.watch( anvil.config.source );
-			this.watch( anvil.config.spec );
+			var self = this;
+			_.each( anvil.config[ "filePrep" ].watchPaths, function( target ) {
+				this.watch( target );
+			} );
 		},
 
 		watch: function( path ) {
