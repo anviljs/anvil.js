@@ -113,7 +113,7 @@ var configFactory = function( _, commander, path, anvil ) {
 				onComplete( JSON.parse( content ) );
 			} );
 		} else {
-			onComplete( defaultConfig );
+			onComplete( {} );
 		}
 	};
 
