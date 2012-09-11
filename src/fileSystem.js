@@ -63,6 +63,33 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler ) {
 	};
 
 	FileSystem.prototype.copy = function( from, to, onComplete ) {
+		var self = this;
+		from = this.buildPath( from );
+		fs.stat( from, function( err, stat ) {
+			if ( stat.isDirectory() ) {
+				self.copyDirectory( from, to, onComplete );
+			} else {
+				self.copyFile( from, to, onComplete );
+			}
+		} );
+	};
+
+	FileSystem.prototype.copyDirectory = function( from, to, onComplete ) {
+		from = path.resolve( this.buildPath( from ) );
+		to = path.resolve( this.buildPath( to ) );
+		var self = this,
+			toDir = path.dirname( to );
+		this.ensurePath( toDir, function() {
+			self.getFiles( from, from, function( files, directories ) {
+				scheduler.parallel( files, function( file, done ) {
+					var relative = file.fullPath.replace( from, "" );
+					self.copyFile( file.fullPath, [ to, relative, file.name ], done );
+				}, onComplete );
+			} );
+		} );
+	};
+
+	FileSystem.prototype.copyFile = function( from, to, onComplete ) {
 		from = this.buildPath( from );
 		to = this.buildPath( to );
 		var toDir = path.dirname( to ),
