@@ -6,13 +6,11 @@ var outputFactory = function( _, anvil ) {
 		activity: "push",
 
 		clean: function( done ) {
-			anvil.fs["delete"]( anvil.config.output, function( error ) {
-				if( !error ) {
-					anvil.fs.ensurePath( anvil.config.output, done );
-				} else {
-					console.log( error );
-					done();
+			anvil.fs.cleanDirectory( anvil.config.output, function( err ) {
+				if( err ) {
+					anvil.log.error( err );
 				}
+				done();
 			} );
 		},
 

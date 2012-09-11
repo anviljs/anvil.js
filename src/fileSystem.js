@@ -33,6 +33,35 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler ) {
 		return hasLocalPrefix ? "./" + pathSpec : pathSpec;
 	};
 
+	FileSystem.prototype.cleanDirectory = function( pathSpec, onDeleted ) {
+		var self = this;
+		pathSpec = this.buildPath( pathSpec );
+		self.getFiles( pathSpec, pathSpec, function( files, directories ) {
+			if( directories.length ) {
+				scheduler.parallel( files,
+					function( file, done ) {
+						self["delete"]( file.fullPath, done );
+					},
+					function() {
+						scheduler.parallel( directories, self["delete"], function() {
+							if( onDeleted ) {
+								onDeleted();
+							}
+						} );
+					} );
+			} else {
+				scheduler.parallel( files,
+					function( file, done ) {
+						self["delete"]( file.fullPath, done );
+					}, function() {
+						if( onDeleted ) {
+							onDeleted();
+						}
+					} );
+			}
+		}, [], 1 );
+	};
+
 	FileSystem.prototype.copy = function( from, to, onComplete ) {
 		from = this.buildPath( from );
 		to = this.buildPath( to );
@@ -57,50 +86,52 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler ) {
 		if( this.pathExists( pathSpec ) ) {
 			fs.stat( pathSpec, function( err, stat ) {
 				if ( stat.isDirectory() ) {
-					fs.rmdir( pathSpec, function( error ) {
-						if( error ) {
-							self.getFiles( pathSpec, pathSpec, function( files, directories ) {
-								if( directories.length ) {
-									scheduler.parallel( files,
-										function( file, done ) {
-											self["delete"]( file.fullPath, done );
-										},
-										function() {
-											scheduler.parallel( directories, self["delete"], function() {
-												self["delete"]( pathSpec, onDeleted );
-											} );
-										} );
-								} else {
-									scheduler.parallel( files, function( file, done ) {
-											self["delete"]( file.fullPath, done );
-										}, function() {
-											self["delete"]( pathSpec, onDeleted );
-										} );
-								}
-							}, [], 1 );
-						} else if( onDeleted ) {
-							onDeleted( error );
-						}
-					} );
+					self.deleteDirectory( pathSpec, onDeleted );
 				} else {
-					fs.unlink( pathSpec, function( error ) {
-						if( onDeleted ) {
-							onDeleted( error );
-						}
-					} );
+					self.deleteFile( pathSpec, onDeleted );
 				}
 			} );
 		} else {
-			fs.lstat( pathSpec, function( err, stat ) {
-				if( !err ) {
-					fs.unlink( pathSpec, function( error ) {
-						if( onDeleted ) {
-							onDeleted( error );
-						}
-					} );
+			self.deleteLink( pathSpec, onDeleted );
+		}
+	};
+
+	FileSystem.prototype.deleteDirectory = function( pathSpec, onDeleted ) {
+		var self = this;
+		pathSpec = this.buildPath( pathSpec );
+		self.cleanDirectory( pathSpec, function() {
+			fs.rmdir( pathSpec, function() {
+				if( onDeleted ) {
+					onDeleted();
 				}
 			} );
-		}
+		} );
+	};
+
+	FileSystem.prototype.deleteFile = function( pathSpec, onDeleted ) {
+		pathSpec = this.buildPath( pathSpec );
+		fs.unlink( pathSpec, function( error ) {
+			if( onDeleted ) {
+				onDeleted( error );
+			}
+		} );
+	};
+
+	FileSystem.prototype.deleteLink = function( pathSpec, onDeleted ) {
+		pathSpec = this.buildPath( pathSpec );
+		fs.lstat( pathSpec, function( err, stat ) {
+			if( !err ) {
+				fs.unlink( pathSpec, function( error ) {
+					if( onDeleted ) {
+						onDeleted( error );
+					}
+				} );
+			} else {
+				if( onDeleted ) {
+					onDeleted( error );
+				}
+			}
+		} );
 	};
 
 	FileSystem.prototype.ensurePath = function( pathSpec, onComplete ) {
