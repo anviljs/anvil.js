@@ -46,7 +46,6 @@ var fileLoaderFactory = function( _, anvil ) {
 				anvil.project.files = anvil.project.files.concat( files );
 				anvil.project.directories = directories;
 				anvil.log.event( "found " + directories.length + " directories with " + files.length + " files" );
-				console.log( anvil.project.files );
 				done();
 			}, this.excluded );
 		},
