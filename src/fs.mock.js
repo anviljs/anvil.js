@@ -64,6 +64,12 @@ var fsFactory = function( _, path ) {
 		} );
 	};
 
+	FileSystemMock.prototype.cleanDirectory = function( pathSpec, onDeleted ) {
+		var self = this;
+		pathSpec = this.buildPath( pathSpec );
+		onDeleted();
+	};
+
 	FileSystemMock.prototype[ "delete" ] = function( pathSpec, onDeleted ) {
 		pathSpec = this.buildPath( pathSpec );
 		var file = this.files[ pathSpec ];
