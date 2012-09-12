@@ -66,8 +66,8 @@ var fileLoaderFactory = function( _, anvil ) {
 
 		watchAll: function() {
 			var self = this;
-			_.each( anvil.config[ "filePrep" ].watchPaths, function( target ) {
-				this.watch( target );
+			_.each( anvil.config[ "fileLoader" ].watchPaths, function( target ) {
+				self.watch( target );
 			} );
 		},
 
