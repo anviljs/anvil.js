@@ -24,10 +24,11 @@ var pluginManagerFactory = function( _, anvil ) {
 		_.bindAll( this );
 		this.installPath = pluginInstallPath;
 		anvil.pluginManager = this;
-		anvil.fs.ensurePath( pluginInstallPath );
-		if( !anvil.fs.pathExists( dataPath ) ) {
-			anvil.fs.write( dataPath, JSON.stringify( builtIn ) );
-		}
+		anvil.fs.ensurePath( pluginInstallPath, function() {
+			if( !anvil.fs.pathExists( dataPath ) ) {
+				anvil.fs.write( dataPath, JSON.stringify( builtIn ) );
+			}
+		} );
 	};
 
 	PluginManager.prototype.addPlugin = function( plugin, onComplete ) {
