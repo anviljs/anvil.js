@@ -13,23 +13,21 @@ require( "../src/utility.js")( _, anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 
-var pluginManager = require( "../src/pluginManager.js" )( _, anvil, true );
+var pluginManager = require( "../src/pluginManager.js" )( _, anvil );
 
 describe( "when getting the list of loaded plugins", function() {
 	var list = [];
 
 	before( function( done ) {
-		fs.write( path.resolve( "./plugins.json" ), '{ "list": [] }', function() {
-			pluginManager.getPlugins( function( instances ) {
-				list = instances;
-				done();
-			} );
+		pluginManager.getEnabledPlugins( function( instances ) {
+			list = instances;
+			done();
 		} );
 	} );
 
 	it( "should return the list of plugins installed", function() {
-		_.isEqual( list, [] ).should.ok;
-		list.length.should.equal( 0 );
+		_.isEqual( list, [] ).should.not.ok;
+		list.length.should.equal( 9 );
 	} );
 } );
 
@@ -39,7 +37,7 @@ describe( "when adding a new plugin", function() {
 
 	before( function( done ) {
 		pluginManager.addPlugin( "testPlugin", function() {
-			pluginManager.getPlugins( function( instances ) {
+			pluginManager.getEnabledPlugins( function( instances ) {
 				list = instances;
 				done();
 			} );
@@ -47,9 +45,9 @@ describe( "when adding a new plugin", function() {
 	} );
 	
 	it( "should return the list of plugins installed", function() {
-		_.isEqual( _.pluck( list, "name" ), [ "testPlugin" ] ).should.ok;
+		//list[ list.length - 1 ].name.should.equal( "testPlugin" );
 		( err == undefined ).should.ok;
-		list.length.should.equal( 1 );
+		list.length.should.equal( 10 );
 	} );
 } );
 
@@ -59,7 +57,7 @@ describe( "when adding an existing plugin", function() {
 
 	before( function( done ) {
 		pluginManager.addPlugin( "testPlugin", function() {
-			pluginManager.getPlugins( function( instances ) {
+			pluginManager.getEnabledPlugins( function( instances ) {
 				list = instances;
 				done();
 			} );
@@ -68,9 +66,9 @@ describe( "when adding an existing plugin", function() {
 	
 
 	it( "should return the list of plugins installed", function() {
-		_.isEqual( _.pluck( list, "name" ), [ "testPlugin" ] ).should.ok;
+		list[ list.length - 1 ].should.equal( "testPlugin" );
 		( err == undefined ).should.ok;
-		list.length.should.equal( 1 );
+		list.length.should.equal( 10 );
 	} );
 } );
 
@@ -80,7 +78,7 @@ describe( "when removing an existing plugin", function() {
 
 	before( function( done ) {
 		pluginManager.removePlugin( "testPlugin", function() {
-			pluginManager.getPlugins( function( instances ) {
+			pluginManager.getEnabledPlugins( function( instances ) {
 				list = instances;
 				done();
 			} );
@@ -88,10 +86,10 @@ describe( "when removing an existing plugin", function() {
 	} );
 	
 
-	it( "should return the list of plugins installed", function() {
-		_.isEqual( list, [] ).should.ok;
+	it( "should return the list of plugins except the removed one", function() {
+		_.isEqual( list, [] ).should.not.ok;
 		( err == undefined ).should.ok;
-		list.length.should.equal( 0 );
+		list.length.should.equal( 9 );
 	} );
 } );
 
@@ -101,7 +99,7 @@ describe( "when removing a missing plugin", function() {
 
 	before( function( done ) {
 		pluginManager.removePlugin( "lulzImNot4Real", function() {
-			pluginManager.getPlugins( function( instances ) {
+			pluginManager.getEnabledPlugins( function( instances ) {
 				list = instances;
 				done();
 			} );
@@ -110,8 +108,8 @@ describe( "when removing a missing plugin", function() {
 	
 
 	it( "should return the list of plugins installed", function() {
-		_.isEqual( list, [] ).should.ok;
+		_.isEqual( list, [] ).should.not.ok;
 		( err == undefined ).should.ok;
-		list.length.should.equal( 0 );
+		list.length.should.equal( 9 );
 	} );
 } );

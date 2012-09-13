@@ -156,15 +156,19 @@ var factory = function( _, fs, path, scheduler, realFS ) {
 			fs.write( [ file.path, file.name ], file.source, done );
 		};
 		scheduler.parallel( files, write, function() {
-			realFS.readFile( "./package.json", "utf8", function( error, content ) {
-				if( !error ) {
-					fs.write( "./package.json", content, function() {
+			var dataPath = fs.buildPath( [ "~/.anvilplugins", "plugins.json" ] ),
+				packagePath = "./package.json";
+			scheduler.parallel( [ dataPath, packagePath ], function( filePath, done ) {
+				realFS.readFile( filePath, "utf8", function( error, content ) {
+					if( !error ) {
+						fs.write( filePath, content, function() {
+							done();
+						} );
+					} else {
 						done();
-					} );
-				} else {
-					done();
-				}
-			} );
+					}
+				} );
+			}, function() { done(); } );
 		} );
 	};
 };

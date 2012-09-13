@@ -101,7 +101,7 @@ describe( "when scanning project directory with file plugin", function() {
 			fs.files[ root + "/lib/tokenized.js" ].should.be.ok;
 			fs.files[ root + "/lib/tokenized.js" ].content.should.equal( "// author: Alex Robson <alex@sharplearningcurve.com> (http://sharplearningcurve.com)\n" +
 			"// project: anvil.js\n" +
-			"// version: 0.8.3\n" +
+			"// version: 0.8.5\n" +
 			" var a = 'this value';" );
 		} );
 
