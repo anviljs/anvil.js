@@ -10,8 +10,8 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 	};
 
 	PluginLocator.prototype.configurePlugins = function( done ) {
-		var remaining = this.count;
-		var configDone = function() {
+		var remaining = this.count,
+			configDone = function() {
 				if( --remaining === 0 ) {
 					done();
 				}
@@ -57,7 +57,7 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 					plugins: plugins.getPlugins,
 					tasks: plugins.getTasks
 				}, function( results ) {
-					list = self.preLoaded
+					var list = self.preLoaded
 							.concat( results.plugins || [] )
 							.concat( results.tasks || [] );
 					_.each( list, function( plugin ) {

@@ -86,7 +86,7 @@ var pluginManagerFactory = function( _, anvil ) {
 
 	PluginManager.prototype.enable = function( pluginName, done ) {
 		var self = this;
-		this.getInstalled( installPath, function( list ) {
+		this.getInstalled( pluginInstallPath, function( list ) {
 			if( _.contains( list, pluginName ) ) {
 				self.addPlugin( pluginName, function() {
 					anvil.log.complete( "Plugin '" + pluginName + "' is enabled" );
@@ -103,14 +103,18 @@ var pluginManagerFactory = function( _, anvil ) {
 		var self = this,
 			list = [];
 		
-		anvil.fs.getFiles( pluginPath, pluginPath, function( files, directories ) {
-			_.each( directories, function( directory ) {
-				if( directory !== pluginPath ) {
-					list.push( directory.replace( pluginPath, "" ).replace( path.sep, "" ) );
-				}
-			}, [ pluginPath ], 1 );
+		if( anvil.fs.pathExists( pluginPath ) ) {
+			anvil.fs.getFiles( pluginPath, pluginPath, function( files, directories ) {
+				_.each( directories, function( directory ) {
+					if( directory !== pluginPath ) {
+						list.push( directory.replace( pluginPath, "" ).replace( path.sep, "" ) );
+					}
+				}, [ pluginPath ], 1 );
+				done( list );
+			} );
+		} else {
 			done( list );
-		} );
+		}
 	};
 
 	PluginManager.prototype.getEnabledPlugins = function( done ) {
@@ -242,7 +246,7 @@ var pluginManagerFactory = function( _, anvil ) {
 			anvil.events.raise( "plugin.loaded", instance );
 			anvil.log.debug( "loaded plugin " + plugin );
 		} catch ( err ) {
-			anvil.log.error( "Error loading plugin '" + plugin + "' : " + err );
+			anvil.log.error( "Error loading plugin '" + plugin + "' : " + err.stack );
 			removals.push( function( done ) { self.removePlugin( plugin, function() {
 					anvil.log.step( "Plugin '" + plugin + "' cannot be loaded and has been disabled");
 				} );
@@ -267,30 +271,29 @@ var pluginManagerFactory = function( _, anvil ) {
 	PluginManager.prototype.uninstall = function( pluginName, done ) {
 		anvil.log.step( "Uninstalling plugin: " + pluginName );
 		var self = this,
-			currentPath = path.resolve( installPath, "../" ),
-			linkPath = anvil.fs.buildPath( [ installPath, pluginName ] ),
-			pluginPath = anvil.fs.buildPath( [ currentPath, "node_modules", pluginName ] );
+			cwd = process.cwd(),
+			reset = function( data ) {
+				process.chdir( cwd );
+				done( data );
+			};
 		npm.load( npm.config, function( err, npm ) {
 			try {
-				npm.localPrefix = currentPath;
+				process.chdir( installPath );
+				npm.localPrefix = installPath;
 				npm.config.set( "loglevel", "silent" );
+				npm.config.set( "global", false );
 				npm.commands.uninstall( [ pluginName ], function( err, data ) {
 					if( !err ) {
 						anvil.log.complete( "Uninstallation of '" + pluginName + "' completed successfully." );
-						anvil.fs["delete"]( linkPath, function( err ) {
-							if( err ) {
-								anvil.log.error( "Link at '" + linkPath + "' could not be deleted: " + err );
-							}
-						} );
-						self.removePlugin( pluginName, done );
+						self.removePlugin( pluginName, reset );
 					} else {
 						anvil.log.error( "Uninstallation of '" + pluginName + "' has failed: " + err );
-						done( { plugin: pluginName } );
+						reset( { plugin: pluginName } );
 					}
 				} );
 			} catch ( err ) {
 				anvil.log.error( "Uninstallation of '" + pluginName + "' has failed: " + err );
-				done( { plugin: pluginName } );
+				reset( { plugin: pluginName } );
 			}
 		} );
 	};
