@@ -1,6 +1,6 @@
 var watchTree = require( "fs-watch-tree" ).watchTree;
 
-var fileFactory = function( _, fs, path, mkdir, crawler, scheduler ) {
+var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 
 	var FileSystem = function() {
 		_.bindAll( this );
@@ -31,7 +31,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler ) {
 			hasLocalPrefix = pathSpec[0].match( /^[.]\// );
 			pathSpec = path.join.apply( {}, pathSpec );
 		}
-		pathSpec = pathSpec.replace( "~", process.env.HOME );
+		pathSpec = pathSpec.replace( /^~/, process.env.HOME );
 		return hasLocalPrefix ? "./" + pathSpec : pathSpec;
 	};
 
@@ -190,13 +190,10 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler ) {
 		}
 	};
 
-	FileSystem.prototype.getFiles = function( pathSpec, workingPath, onFiles, filter, limit ) {
+	FileSystem.prototype.getFiles = function( pathSpec, workingPath, onFiles, filters, limit ) {
 		var self = this;
 		limit = limit === undefined || limit === null ? -1 : limit;
-		filter = filter || [];
-		filter = _.map( filter, function( directory ) {
-			return path.resolve( self.buildPath( directory ) );
-		} );
+		filters = filters || [];
 		pathSpec = path.resolve( this.buildPath( pathSpec ) );
 
 		crawler.crawl( pathSpec,
@@ -205,7 +202,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler ) {
 					_.map( files, function( file ) { return self.buildFileData( pathSpec, workingPath, file ); } ),
 					directories
 				);
-		}, filter, limit, 0 );
+		}, filters, limit, 0 );
 	};
 
 	FileSystem.prototype.link = function( from, to, done ) {

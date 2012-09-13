@@ -20,11 +20,13 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 					} );
 					self.classifyHandles( qualified, function( files, directories ) {
 						fileList = fileList.concat( files );
+						fileList = _.reject( fileList, function( file ) {
+							return _.any( filter, function( exclusion ) { return file.match( exclusion ); } );
+						} );
 						directoryList = directoryList.concat( directories );
 						directoryList = _.reject( directoryList, function( directory ) {
-							return _.any( filter, function( exclusion ) { return exclusion === directory; } );
+							return _.any( filter, function( exclusion ) { return directory.match( exclusion ); } );
 						} );
-
 						if( directories.length > 0 && ( level <= limit || limit < 0 ) ) {
 							scheduler.parallel( directories,
 								function( directory, done ) {
@@ -32,6 +34,9 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 								},
 								function( files ) {
 									fileList = fileList.concat( _.flatten( files ) );
+									fileList = _.reject( fileList, function( file ) {
+										return _.any( filter, function( exclusion ) { return file.match( exclusion ); } );
+									} );
 									onComplete( fileList, directoryList, filter );
 								}
 							);

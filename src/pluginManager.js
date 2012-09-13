@@ -48,6 +48,7 @@ var pluginManagerFactory = function( _, anvil ) {
 	PluginManager.prototype.checkDependencies = function( dependencies, done ) {
 		anvil.log.step( "checking for " + dependencies.length + " build dependencies " );
 		var self = this;
+		try {
 		this.getInstalled( pluginInstallPath, function( list ) {
 			var installers = _.map( dependencies, function( dependency ) {
 				if( !_.contains( list, dependency ) ) {
@@ -71,6 +72,9 @@ var pluginManagerFactory = function( _, anvil ) {
 				done();
 			}
 		} );
+	} catch( err ) {
+		console.log( "shitshitshitshitshit" + err.stack );
+	}
 	};
 
 	PluginManager.prototype.disable = function( pluginName, done ) {
@@ -173,13 +177,13 @@ var pluginManagerFactory = function( _, anvil ) {
 	PluginManager.prototype.install = function( pluginName, done ) {
 		var self = this,
 			realPluginName = this.getPluginName( pluginName ),
-			pluginPath = anvil.fs.buildPath( [ pluginInstallPath, realPluginName ] ),
+			isPath = anvil.fs.pathExists( pluginName ),
 			cwd = process.cwd(),
 			reset = function( data ) {
 				process.chdir( cwd );
 				done( data );
 			};
-
+		pluginName = isPath ? path.resolve( pluginName ) : pluginName;
 		anvil.log.step( "Installing plugin: " + realPluginName );
 		anvil.fs.ensurePath( pluginInstallPath, function() {
 			process.chdir( installPath );
