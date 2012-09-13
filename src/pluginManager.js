@@ -188,6 +188,7 @@ var pluginManagerFactory = function( _, anvil ) {
 				try {
 					npm.localPrefix = installPath;
 					npm.config.set( "loglevel", "silent" );
+					npm.config.set( "global", false );
 					npm.commands.install( [ pluginName ], function( err, data ) {
 						if( !err ) {
 							anvil.log.complete( "Installation of '" + realPluginName + "' completed successfully." );
