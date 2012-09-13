@@ -4,6 +4,7 @@ var machina = require( "machina" );
 var postal = require( "postal" );
 var fs = require( "fs" );
 var path = require( "path" );
+var colors = require( "colors" );
 var mkdir = require( "mkdirp" ).mkdirp;
 var scheduler = require( "./lib/scheduler.js" )( _ );
 var crawler = require( "./lib/fileCrawler.js" )( _, fs, path, scheduler );
@@ -14,6 +15,7 @@ var anvil = require( "./lib/anvil.js" )( _, scheduler, files, events, bus );
 require( "./lib/utility.js")( _, anvil );
 var plugin = require( "./lib/plugin.js" )( _, anvil );
 var log = require( "./lib/log.js" )( anvil );
+var consoleLog = require( "./lib/consoleLogger.js" )( _, anvil );
 var manager = require( "./lib/pluginManager.js" )( _, anvil );
 var locator = require( "./lib/pluginLocator.js" )( _, manager, anvil );
 var config = require( "./lib/config.js" )( _, commander, path, anvil );
@@ -29,17 +31,11 @@ var plugins = [
 		"anvil.workset"
 	];
 
-var installers = _.map( plugins, function( plugin ) {
-	return function( success, done ) {
-		try {
-			manager.install( plugin, function() { done( success ); } );
-		} catch ( err ) {
-			console.log( "Installation of core plugin " + plugin + " failed with error:\n " + err.stack );
-			done( false );
-		}
-	};
+anvil.events.on( "all.stop", function() {
+	process.exit();
 } );
 
-scheduler.pipeline( true, installers, function( success ) { 
-	console.log( "Core plugin installation completed " + ( success ? "without errors " : "with errors" ) ); 
+anvil.log.step( "Checking for core plugins" );
+manager.checkDependencies( plugins, function() {
+	anvil.log.complete( "Core dependencies are installed" );
 } );
