@@ -49,7 +49,6 @@ var pluginManagerFactory = function( _, anvil ) {
 	PluginManager.prototype.checkDependencies = function( dependencies, done ) {
 		anvil.log.step( "checking for " + dependencies.length + " build dependencies " );
 		var self = this;
-		try {
 		this.getInstalled( pluginInstallPath, function( list ) {
 			var installers = _.map( dependencies, function( dependency ) {
 				if( !_.contains( list, dependency ) ) {
@@ -73,9 +72,6 @@ var pluginManagerFactory = function( _, anvil ) {
 				done();
 			}
 		} );
-	} catch( err ) {
-		console.log( "shitshitshitshitshit" + err.stack );
-	}
 	};
 
 	PluginManager.prototype.disable = function( pluginName, done ) {
