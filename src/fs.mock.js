@@ -26,7 +26,6 @@ var fsFactory = function( _, path ) {
 	FileMock.prototype.write = function( content, onComplete ) {
 		var self = this;
 		this.lastModified = new Date();
-		console.log( "Writing to " + this.fullPath );
 		setTimeout( function() {
 			self.content = content;
 			onComplete();

@@ -36,7 +36,6 @@ var pluginManagerFactory = function( _, anvil ) {
 			if( ! _.any( plugins.list, function( name ) { return name === plugin; } ) ) {
 				plugins.list.push( plugin );
 				json = JSON.stringify( plugins, null, 4 );
-				console.log( "bout to write dis " + plugins.list.length );
 				anvil.fs.write( dataPath, json, function( err ) {
 					onComplete( err );
 				} );
@@ -52,8 +51,6 @@ var pluginManagerFactory = function( _, anvil ) {
 		this.getInstalled( pluginInstallPath, function( list ) {
 			var installers = _.map( dependencies, function( dependency ) {
 				if( !_.contains( list, dependency ) ) {
-					console.log( list );
-					console.log( " list contains " + dependency + " : " + _.contains( list, dependency ) );
 					return function( done ) {
 						self.install( dependency, function( result ) {
 							if( !result ) {
