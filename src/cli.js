@@ -22,7 +22,7 @@ var config = require( "./config.js" )( _, commander, path, anvil );
 var activityManager = require( "./activityManager.js" )( _, machina, anvil );
 
 var cliFactory = function() {
-	
+
 	var Cli = function() {
 		config.initialize( process.argv );
 	};

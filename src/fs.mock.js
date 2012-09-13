@@ -26,12 +26,11 @@ var fsFactory = function( _, path ) {
 	FileMock.prototype.write = function( content, onComplete ) {
 		var self = this;
 		this.lastModified = new Date();
-		if( this.available ) {
-			setTimeout( function() {
-				self.content = content;
-				onComplete();
-			}, this.delay );
-		}
+		console.log( "Writing to " + this.fullPath );
+		setTimeout( function() {
+			self.content = content;
+			onComplete();
+		}, this.delay );
 	};
 
 	var FileSystemMock = function() {
@@ -47,6 +46,7 @@ var fsFactory = function( _, path ) {
 			hasLocalPrefix = pathSpec[0].match( /^[.]\// );
 			pathSpec = path.join.apply( {}, pathSpec );
 		}
+		pathSpec = pathSpec.replace( "~", process.env.HOME );
 		return hasLocalPrefix ? "./" + pathSpec : pathSpec;
 	};
 
@@ -67,7 +67,9 @@ var fsFactory = function( _, path ) {
 	FileSystemMock.prototype.cleanDirectory = function( pathSpec, onDeleted ) {
 		var self = this;
 		pathSpec = this.buildPath( pathSpec );
-		onDeleted();
+		if( onDeleted ) {
+			onDeleted();
+		}
 	};
 
 	FileSystemMock.prototype[ "delete" ] = function( pathSpec, onDeleted ) {
@@ -84,9 +86,10 @@ var fsFactory = function( _, path ) {
 	FileSystemMock.prototype.ensurePath = function( pathSpec, onComplete ) {
 		var fullPath = this.buildPath( pathSpec );
 		this.paths[ fullPath ] = true;
-		onComplete();
+		if( onComplete ) {
+			onComplete();
+		}
 	};
-
 
 	FileSystemMock.prototype.buildFileData = function( baseline, workingBase, file ) {
 		var projectBase = path.resolve( baseline );
@@ -176,10 +179,18 @@ var fsFactory = function( _, path ) {
 		var file = this.files[ pathSpec ];
 		if( file ) {
 			file.read( function( content ) {
-				onComplete( content );
+				if( onComplete ) {
+					onComplete( content );
+				} else {
+					return content;
+				}
 			} );
 		} else {
-			onComplete( "", "Cannot read " + pathSpec + "; it does not exist" );
+			if( onComplete ) {
+				onComplete( "", "Cannot read " + pathSpec + "; it does not exist" );
+			} else {
+				throw new Exception( "Cannot read " + pathSpec + "; it does not exist" );
+			}
 		}
 	};
 
@@ -234,7 +245,9 @@ var fsFactory = function( _, path ) {
 				name: pathSpec,
 				isDirectory: function() { return false; }
 			} );
-			onComplete();
+			if( onComplete ) {
+				onComplete();
+			}
 		} );
 	};
 
