@@ -210,11 +210,15 @@ var fsFactory = function( _, path ) {
 	};
 
 	FileSystemMock.prototype.raiseEvent = function( fileEvent ) {
-		var watcher = _.find( this.watchers, function( watcher, path ) {
-			return fileEvent.name.indexOf( path ) >= 0;
+		var watcher = _.find( this.watchers, function( watcher, watchPath ) {
+			// console.log( "comparing " + path + " to " + fileEvent.name );
+			return fileEvent.name.indexOf( path.resolve( watchPath ) ) >= 0;
 		} );
+
 		if( watcher ) {
 			watcher.handler( fileEvent );
+		} else {
+			// console.log( "no watchers found" );
 		}
 	};
 
@@ -242,6 +246,7 @@ var fsFactory = function( _, path ) {
 		file.write( content, function() {
 			self.raiseEvent( {
 				name: pathSpec,
+				isDelete: function() { return false; },
 				isDirectory: function() { return false; }
 			} );
 			if( onComplete ) {

@@ -58,10 +58,6 @@ describe( "when scanning project directory with file plugin", function() {
 			fs.files[ root + "/.anvil/tmp/test.js" ].should.be.ok;
 		} );
 
-		it( "should have rewritten changed content to working folder", function() {
-			fs.files[ root + "/.anvil/tmp/test.js" ].content.should.equal( "this is new content" );
-		} );
-
 		it( "should have combined a.js", function() {
 			fs.files[ root + "/.anvil/tmp/a.js" ].content.should.equal( combinedA );
 		} );
@@ -101,7 +97,7 @@ describe( "when scanning project directory with file plugin", function() {
 			fs.files[ root + "/lib/tokenized.js" ].should.be.ok;
 			fs.files[ root + "/lib/tokenized.js" ].content.should.equal( "// author: Alex Robson <alex@sharplearningcurve.com> (http://sharplearningcurve.com)\n" +
 			"// project: anvil.js\n" +
-			"// version: 0.8.5\n" +
+			"// version: 0.8.6\n" +
 			" var a = 'this value';" );
 		} );
 

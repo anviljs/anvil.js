@@ -139,9 +139,9 @@ var factory = function( _, fs, path, scheduler, realFS ) {
 		path: root,
 		name: "build.json",
 		source: '{\n' +
-				'	"source": "./src",\n' +
-				'	"output": "./lib",\n' +
-				'	"spec": "./spec"\n' +
+				'	"source": "' + root  + '/src",\n' +
+				'	"output": "' + root  + '/lib",\n' +
+				'	"spec": "' + root  + '/spec"\n' +
 				'}'
 	};
 
