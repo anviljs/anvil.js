@@ -53,10 +53,12 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 		if( !_.isEmpty( plugin.config ) ) {
 			anvil.config[ plugin.name ] = plugin.config;
 		}
-		if( _.isArray( plugin.commander ) ) {
+		if( plugin.commander && _.isArray( plugin.commander ) ) {
 			_.each( plugin.commander, function( options ) {
 				self.commandOptions.push( options );
 			} );
+		} else if( plugin.commander && _.isObject( plugin.commander ) ) {
+			this.setupCommandRoutes( plugin );
 		}
 	};
 
@@ -95,6 +97,48 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 				anvil.events.raise( "all.stop", -1 );
 			}
 		} );
+	};
+
+	// Look away, shield your eyes. For only sorrow lies before those who
+	// read the contents...
+	PluginLocator.prototype.setupCommandRoutes = function ( plugin ) {
+		var self = this,
+			oldConfig = plugin.configure,
+			oldRun = plugin.run,
+			calls = {},
+			keys;
+		_.each( plugin.commander, function( commandSpec, key ) {
+			self.commandOptions.push( [ key, commandSpec.description ] );
+			var scrubbedKey = key.replace( /[-]/g, "" ).replace( " ", "" ),
+				keys = scrubbedKey.split( "," );
+			_.each( keys, function( k ) { calls[ k ] = commandSpec; } );
+		} );
+		var getCall = function( commander ) {
+			var call,
+				hasCall = _.any( calls, function( spec, k ) {
+					if( commander[ k ] ) {
+						call = calls[ k ].call;
+						return true;
+					}
+					return false;
+				} );
+			return call;
+		};
+		plugin.configure = function( config, commander, done ) {
+			var call = getCall( commander );
+			if( call ) {
+				this[ "__invoke__" ] = _.isString( call ) ? this[ call ] : call;
+			}
+			oldConfig( config, commander, done );
+		};
+		plugin.run = function( done, activity ) {
+			if( this[ "__invoke__" ] ) {
+				this[ "__invoke__" ]( done, activity );
+			} else {
+				oldRun( done, activity );
+			}
+		};
+		_.bindAll( plugin );
 	};
 
 	PluginLocator.prototype.wireHandler = function( topic, handler ) {
