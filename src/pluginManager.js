@@ -298,6 +298,55 @@ var pluginManagerFactory = function( _, anvil ) {
 		} );
 	};
 
+	PluginManager.prototype.updatePlugin = function( pluginName, done ) {
+		var self = this,
+			cwd = process.cwd(),
+			reset = function( data ) {
+				process.chdir( cwd );
+				done();
+			};
+		anvil.log.step( "Updating plugin: " + pluginName );
+		anvil.fs.ensurePath( pluginInstallPath, function() {
+			process.chdir( installPath );
+			npm.load( npm.config, function( err, npm ) {
+				try {
+					npm.localPrefix = installPath;
+					npm.config.set( "loglevel", "silent" );
+					npm.config.set( "global", false );
+					npm.commands.update( [ pluginName ], function( err, data ) {
+						if( !err ) {
+							anvil.log.complete( "Updating '" + pluginName + "' completed successfully." );
+							self.addPlugin( pluginName, function() {
+								reset();
+							} );
+						} else {
+							anvil.log.error( "Updating '" + pluginName + "' has failed with error: \n" + err.stack );
+							reset( { plugin: pluginName } );
+						}
+					} );
+				} catch ( err ) {
+					anvil.log.error( "Updating of '" + pluginName + "' has failed with error: \n" + err.stack );
+					reset( { plugin: pluginName } );
+				}
+			} );
+		} );
+	};
+
+	PluginManager.prototype.update = function( ignored, done ) {
+		var self = this;
+		this.getInstalled( pluginInstallPath, function( list ) {
+			var calls = _.map( list, function( pluginName ) {
+				return function( done ) {
+					self.updatePlugin( pluginName, done );
+				};
+			} );
+			anvil.scheduler.pipeline( undefined, calls, function() { 
+				anvil.log.complete( "Anvil has finished updating installed plugins" );
+				done(); 
+			} );
+		} );
+	};
+
 	return new PluginManager();
 };
 
