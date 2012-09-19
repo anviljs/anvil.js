@@ -211,14 +211,11 @@ var fsFactory = function( _, path ) {
 
 	FileSystemMock.prototype.raiseEvent = function( fileEvent ) {
 		var watcher = _.find( this.watchers, function( watcher, watchPath ) {
-			// console.log( "comparing " + path + " to " + fileEvent.name );
 			return fileEvent.name.indexOf( path.resolve( watchPath ) ) >= 0;
 		} );
 
 		if( watcher ) {
 			watcher.handler( fileEvent );
-		} else {
-			// console.log( "no watchers found" );
 		}
 	};
 
