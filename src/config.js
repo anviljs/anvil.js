@@ -49,12 +49,7 @@ var configFactory = function( _, commander, path, anvil ) {
 	};
 
 	Config.prototype.createCommand = function() {
-		commander
-			.version("{{{version}}}")
-			.option( "-b, --build [build file]", "Use a custom build file", "./build.json" )
-			.option( "--write [build file]", "Create a new build file based on default config" )
-			.option( "-q, --quiet", "Only print completion and error messages" )
-			.option( "--verbose", "Include debug and warning messages in log" );
+		commander.version("{{{version}}}");
 		anvil.onCommander( anvil.loadedConfig, commander );
 	};
 

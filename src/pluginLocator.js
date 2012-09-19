@@ -4,6 +4,12 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 		_.bindAll( this );
 		this.instances = {};
 		this.preLoaded = [];
+		this.commandOptions = [
+			[ "-b, --build [build file]", "Use a custom build file", "./build.json" ],
+			[ "--write [build file]", "Create a new build file based on default config" ],
+			[ "-q, --quiet", "Only print completion and error messages" ],
+			[ "--verbose", "Include debug and warning messages in log" ]
+		];
 		this.count = 0;
 		anvil.events.on( "commander", this.loadPlugins );
 		anvil.events.on( "config", this.configurePlugins );
@@ -47,9 +53,11 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 		if( !_.isEmpty( plugin.config ) ) {
 			anvil.config[ plugin.name ] = plugin.config;
 		}
-		_.each( plugin.commander, function( options ) {
-			anvil.commander.option.apply( anvil.commander, options );
-		} );
+		if( _.isArray( plugin.commander ) ) {
+			_.each( plugin.commander, function( options ) {
+				self.commandOptions.push( options );
+			} );
+		}
 	};
 
 	PluginLocator.prototype.loadPlugins = function( config, commander ) {
@@ -75,6 +83,10 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 								anvil.events.raise( "all.stop", -1 );
 							} );
 						}
+					} );
+					var optionList = self.commandOptions.sort();
+					_.each( optionList, function( options ) {
+						anvil.commander.option.apply( anvil.commander, options );
 					} );
 					anvil.events.raise( "commander.configured" );
 				} );
