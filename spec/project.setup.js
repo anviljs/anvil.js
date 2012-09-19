@@ -8,7 +8,7 @@ var factory = function( _, fs, path, scheduler, realFS ) {
 		name: "a.js",
 		source: "var a = 'a';" +
 				"\nvar f = function() {" +
-				"\n   // import( 'b.js' )" +
+				"\n   // import( 'b' )" +
 				"\n};"
 	};
 

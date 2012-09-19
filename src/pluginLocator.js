@@ -19,6 +19,9 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 			plugins = _.values( this.instances ).concat( this.preLoaded );
 		_.each( plugins, function( plugin ) {
 			try {
+				if( anvil.config[ plugin.name ] ) {
+					plugin.config = anvil.config[ plugin.name ];
+				}
 				if( plugin.configure ) {
 					plugin.configure( anvil.config, anvil.commander, configDone );
 				} else {

@@ -29,9 +29,7 @@ var combinedA = "var a = 'a';" +
 describe( "when scanning project directory with file plugin", function() {
 	
 	before( function( done ) {
-		fs.write( path.resolve( "./plugins.json" ), '{ "list": [ "combiner", "compiler", "concat", "fileLoader", "filePrep", "output", "pluginInstaller", "replace" ] }', function() {
-			setup( done );
-		} );
+		setup( done );
 	} );
 
 	describe( "when spinning up system for build", function() {
