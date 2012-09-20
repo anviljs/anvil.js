@@ -36,13 +36,21 @@ var configFactory = function( _, commander, path, anvil ) {
 	};
 
 	Config.prototype.checkDirectories = function( config ) {
-		_.map( [ "working", "output", "source", "spec" ], function( property ) {
+		_.map( [ "working", "source", "spec" ], function( property ) {
 			config[ property ] = path.resolve( config[ property ] );
 		} );
 
-		if( config.working === config.output ||
-			config.working === config.source ||
-			config.source === config.output ) {
+		var output = _.isArray( config.output ) ? config.output : [ config.output ],
+			outputCollision = false;
+		config.output = _.map( output, function( outputPath ) {
+			var resolved = path.resolve( outputPath );
+			if( resolved === config.working || resolved === config.source ) {
+				outputCollision = true;
+			}
+			return resolved;
+		} );
+
+		if( config.working === config.source || outputCollision ) {
 			anvil.log.error( "Source, working and output directories MUST be seperate directories." );
 			anvil.events.raise( "all.stop", -1 );
 		}

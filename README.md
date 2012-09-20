@@ -39,7 +39,7 @@ Without a build file, anvil will use its default conventions to attempt to build
     {
         "source": "src",
         "spec": "spec"
-        "output":  [ "build" ]
+        "output":  "build"
         "dependencies": [ "anvil.mocha" ]
     }
 
