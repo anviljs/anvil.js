@@ -57,7 +57,7 @@ var configFactory = function( _, commander, path, anvil ) {
 	};
 
 	Config.prototype.createCommand = function() {
-		commander.version("{{{version}}}");
+		commander.version("{{{version}}}", "-v, --version" );
 		anvil.onCommander( anvil.loadedConfig, commander );
 	};
 
