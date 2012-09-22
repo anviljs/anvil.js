@@ -1,12 +1,3 @@
-/*
-	anvil.js - an extensible build system
-	version:	0.8.9
-	author:		Alex Robson <alex@sharplearningcurve.com> (http://sharplearningcurve.com)
-	copyright:	2011 - 2012
-	license:	Dual licensed
-				MIT (http://www.opensource.org/licenses/mit-license)
-				GPL (http://www.opensource.org/licenses/gpl-license)
-*/
 var anvilFactory = function( _, scheduler, fs, events, bus ) {
 	
 	var Anvil = function() {

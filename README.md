@@ -2,23 +2,29 @@
 
 Anvil started as a way to build a single javascript module from several source files. Build tools that require a lot of explicit/declarative instructions distract from getting work on the project done.
 
-Anvil is currently being rewritten as CI tool for JS, CSS and HTML.
+Anvil has been rewritten as a general build system with a plugin architecture. It should be easy to add features or change almost any behavior as needed.
+
+The new version of anvil is not entirely backwards compatible. If you want to continue using the old version, you can still install it from npm by specifying the version number ( 0.7.9 ). If you need help converting your project to the new version, please send me an e-mail or submit an issue to the project and I'll help as I have time.
 
 ## What Does It Do?
 
-Here are the main features:
+All parts of the build process are implemented as plugins. Some plugins ship along with anvil's source so that it can do _something_ out of the box. Most of the interesting features will likely be plugins that you install.
 
-* Create simple directory structure / scaffolding for new projects
+A baseline install can do the following:
+
+* Install, remove, enable or disable plugins
+* Automatically install any plugins your build file defines as dependencies
+* Run local tasks (follows the same api as a plugin)
+* Continuously and incrementally build the project as files change
+* Create default build files based on installed plugins
 * Combine resource files through a comment-based import syntax
-* 'Compile' CoffeeScript, Stylus, LESS, HAML, and Markdown
-* Minify JS and CSS resources
-* Generate annotated JS or CoffeeScript source with docco or ape
-* Continously perform these steps in the background as files change
-* Mocha test runner
-* Host static content
- * Compiles CoffeeScript, Stylus, LESS, Markdown and HAML on the fly
- * Useful for hosting browser test suites
- * Simple hook script to cause page refreshes after every build
+* Concat resource files in specified order using
+    * JSON or YAML file that lists files to create from other files
+    * individual JSON or YAML files
+* Replace tokens (with customizable syntax) in source with 
+    * values from package.json
+    * JSON or YAML key/value files
+* Add file headers to final build output based on output file type
 
 ## Installation
 
@@ -26,110 +32,35 @@ Here are the main features:
 
 ## By Convention
 
-Without a build file, Anvil will use its default conventions to attempt to build your project.
+Without a build file, anvil will use its default conventions to attempt to build your project.
 
-## The Build File ( large example showing lots of options )
+## The Build File ( minimalist example )
 
     {
         "source": "src",
-        "style": "style",
-        "markup": "markup",
-        "output": {
-            "source": [ "lib", "site/js" ],
-            "style": [ "css", "site/css" ],
-            "markup": "site/"
-        },
-        "lint": {},
-        "uglify": {},
-        "cssmin": {},
-        "extensions": { "uglify": "min" },
-        "finalize": {
-            "header|header-file": "this is some unprocessed text or a file name",
-            "footer|footer-file": "this is some unprocessed text or a file name"
-        },
-        "wrap": {
-            "prefix|prefix-file": "this is some unprocessed text or a file name",
-            "suffix|suffix-file": "this is some unprocessed text or a file name"
-        },
-        "hosts": {
-          "/": "site",
-          "/docs": "docs"
-        },
-        "name": "custom-name.js",
-        "mocha": { "reporter": "spec" },
-        "docs": { "generator": "ape", "output": "docs" }
+        "spec": "spec"
+        "output":  "build"
+        "dependencies": [ "anvil.mocha" ]
     }
 
-* source is your JS and CS code.
-* output is where build outputs go.
-* lint will run output files run through JSLint before Uglify occurs (JS only).
-* uglify specifies that you want your JS output uglified.
-* cssmin minifies CSS output.
-* wrap
-    * happens before minification
-    * provides a means to wrap all output files of a type with a prefix and suffix before minification
-    * if prefix-file or suffix-file is provided, the file will be read and the contents used
-    * this feature is primarily a convenience method included for legacy reasons
-* finalize
-    * header prepends the following string to the final output ONLY.
-    * footer appends the following string to the final output ONLY.
-    * if header-file or footer-file is provided, the file will be read and the contents used
-    * this section was added to support adding boiler plate text headers to minified/gzipped output
-* name
-    * for projects with a single file output, this will replace the name of the output file
-    * for projects with multiple file outputs, you can provide a lookup hash to over-write
-        each specific file name
-* mocha
-	* allows you to provide customizations to how the mocha tests will run
- * docs
- 	* generate annotated source documents for your project
-
-## Jumpstart New Projects
-
-There are two ways to do this now - one for lib projects and one for sites.
-
-Anvil will build a set of standard project directories for you and even spit out a build.json file based on the conventional use.
-
-### Lib Projects
-
-    anvil --lib <projectName>
-
-Will produce a directory structure that looks like this:
-
-    -projectName
-        |-ext
-        |-src
-        |-lib
-        |-spec
-        build.json
-
-
-### Site Projects
-
-    anvil --site <projectName>
-
-Will produce a directory structure that looks like this:
-
-    -projectName
-        |-ext
-        |-src
-        |-site
-            |-js
-            |-css
-        |-style
-        |-markup
-        |-lib
-        |-css
-        |-spec
-        build.json
+* source is the path where _all_ project source belongs; this can be a flat or complex hierarchy
+* output is a list of paths to copy build output to.
+* spec is the folder where test specifications can be found
+* dependencies is a list of anvil plugin names that should be installed before the build can proceed
 
 ## Building By Convention
 
-If you don't specify your own build file, anvil assumes you intend to use a build.json file. If one isn't present, it will use its own conventions to build your project. If that's all you need, great! Chances are you'll want a build.json that's configured for your specific project. 
+If you don't specify your own build file, anvil assumes you intend to use a build.json file. If one isn't present, it will use its own conventions to build your project. If that's all you need, great! Chances are you'll want a build.json that's configured for your specific project.
 
-Now that there are two types of projects, Anvil infers the project type based on the folders you have.
+## Writing New Build Files
 
-## Combining source files
+Keeping up with all the plugin defaults can be difficult. To see what's available by default for each plugin, you can write a new build file for customization.
+
+    anvil --write {name}
+
+This command creates a build file in the current directory at {name}.json. It will include all the default settings for all the installed and built-in plugins.
+
+## Combining source files, Import Style
 
 Anvil allows you to combine source files by using a commented command
 
@@ -146,7 +77,53 @@ Anvil allows you to combine source files by using a commented command
     CSS: 			/* import "dependency.{ext}" */ 
     LESS, Stylus:	// import "dependency.{ext}
 
-When you use Anvil to compile your project, it will traverse all the files in your source directory and combine them so that your top level files are what get output. **Warning** Currently, Anvil is not clever enough to detect circular dependencies created via import statements and it will _shatter your world_ if you do this.
+When you use anvil to compile your project, it will traverse all the files in your source directory and combine them so that your top level files are what get output. 
+
+**Warning** Currently, anvil is not clever enough to detect circular dependencies created via import statements and it will _shatter your world_ if you do this.
+
+## Combining source files, Concatenation Style
+
+Anvil provides you with two ways to drive concatenation: yaml lists or individual yaml files
+
+### List Files
+Anvil allows you to combine source files by listing the order of concatenation in a JSON or YAML format. Note: the paths must all be absolute OR relative to the top level of your source folder.
+
+#### JSON Format
+    {
+        "./file1.js": [ "./file1a.js", "./file1b.js", "./file1c.js" ],
+        "./file2.js": [ "./file2a.js", "./file2b.js", "./file2c.js" ],
+    }
+
+#### YAML Format
+
+    ./file1.js:
+        - ./file1a.js
+        - ./file1b.js
+        - ./file1c.js
+
+    file2.js:
+        - ./file2a.js
+        - ./file2b.js
+        - ./file2c.js
+
+
+Anvi will create file1.js and file2.js by concatenating the corresponding list of files in the order they appear.
+
+### Individual Files
+This approach allows you to create a list of files to concatenate to create the final outcome. The name and location of the file will be identical to the original but anvil will strip the .json or .yaml extension off.
+
+#### JSON Format
+    { "imports": [ "./file1a.js", "./file1c.js", "./file1c.js" ] }
+
+#### YAML Format
+file1.js.yaml's contents:
+
+    - ./file1a.js    
+    - ./file1b.js    
+    - ./file1c.js    
+
+
+Each example would produce file1.js and concat each of the three listed files together to create its contents. ***NOTE***: The paths in an individual concat file _must_ be relative to the concat file itself.
 
 ## Building With Specific Build Files
 
@@ -154,86 +131,121 @@ To build with a specific build file
 
     anvil -b <buildfile>
 
-## Creating New / Additional Build Files
-
-To create a build file for lib projects, you can just type the following:
-
-    anvil --libfile <buildfile>
-
-or for a site project
-
-    anvil --sitefile <buildfile>
-
-and it will create the build file for you. If you don't include the file name, anvil will create a build.json (possibly overwriting your existing one, be careful!)
-
-## Custom Naming
-
-For projects with a single file output, you can provide a name property which will override the default name of the file:
-
-    "name": "my-custom-name.js"
-
-For projects where there are multiple files in the output, you must provide a hash object that will tell anvil how to rename each specific file. For example, if you have a build producing 'one.js' and 'two.js' you would need to provide a hash object that would tell anvil how to name each:
-
-    "name": {
-        "one.js" : "main.js",
-        "two.js" : "plugin.js"
-    }
-
 ## Continuous Integration
 
-Anvil will watch your source directory for changes and rebuild the project in the event any changes are saved to the files in the directory.
+Anvil will watch your source directory for changes and incrementally rebuild changed files ( and any affected files ).
 
     anvil --ci
 
-Remember, if you intend to always run in this mode, you can put a "continuous": true in your build.json file.
-
-## Hosting
-
-Anvil provides local hosting based on the "hosts" config block. Adding -h, --host argument or a "host": true block to your build.json file will cause Anvil to host your project's directories (according to configuration) at port 3080 via express.
-
-    anvil -h
-
-or
-
-    anvil --host
-
-Coffee, Stylus, LESS, Mardown, and HAML are all converted at request time if they are referenced directly.
-
-The hosts key in the build.json file is where you can control what each folder will be hosted at in the relative url.
-
-    "hosts": {
-        "/example1" : "./examples/example1",
-        "/example2" : "./examples/example2"
+You can configure a build to always run in this mode by adding the following JSON snippet to your build.json file:
+    
+    "fileLoader": {
+        "continuous": "true"
     }
 
-The block above would host the folder ./example/example1 at http://localhost:3080/example1 and folder ./example/example2 at http://localhost:3080/example2
+## Console log
 
-### External Dependencies
+Anvil uses color-coded messages to let you see what's happening during the build. Here's the color key:
 
-External dependencies get included in all hosting scenarios.
+    magenta - debug
+    default - events
+    blue - build steps
+    green - success
+    yellow - warning
+    red - error
 
-### Testing With Mocha
+By default anvil will print everything but debug and warning messages unless you provide a --verbose argument or add this to your build.json :
 
-Mocha might be the best thing ever. You can tell Anvil to run your spec files with mocha from the command line
-
-    anvil --mocha
-
-or by adding a "mocha" configuration block to your build.json file.
-
-## Too chatty?
+    "log": {
+        "debug": true
+    }
 
 You can tell anvil to run in quiet mode (it will still print errors (red) and step completions (green) )
 
     anvil -q
 
+# Plugins & Tasks
+Anvil has two primary points for extension: plugins (things installed by anvil from npm) and tasks (local plugins).
+
+## Plugins
+Anvil installs plugins from npm to a global location: ~/.anvilplugins/node_modules and keeps a manifest of installed and enabled plugins at: ~/.anvilplugins/plugins.json.
+
+Once a plugin is installed, anvil will load it and use it in the build process unless you:
+  * Disable it globally with '''anvil disable {pluginname}''' at the command line
+  * Explicitly include other plugins besides it in the build file
+  * Explicitly exclude it in the build file
+
+### When Plugins Misbehave
+Anvil will attempt to automatically disable a plugin that throws an exception that would break the build. This is to try and prevent an installed plugin from breaking your build system.
+
+### Installing & Uninstalling
+Anvil provides simple command line arguments to install or uninstall plugins to itself at a global level:
+
+    anvil install {pluginname}
+
+or
+
+    anvil uninstall {pluginname}
+
+You can also install plugins from a file path using the relative path to the plugin directory in place of the plugin's name.
+
+### Enabling & Disabling
+Anvil provides command line arguments that allow you to enable or disable plugins at the global level:
+
+    anvil enable {pluginname}
+
+or
+
+    anvil disable {pluginname}
+
+Disabled plugins should never be loaded into a build session.
+
+### Updating Plugins
+Anvil will check npm for updates to all globally installed plugins with one simple command:
+
+    anvil update
+
+This command will take longer the more plugins you have installed and the more plugins which require updates from npm. Note: anvil automatically does this every time you install a new anvil version from npm.
+
+
+### Including Specific Plugins
+Anvil's build file now supports explicit inclusion only so that only plugins which you specify in the build file will be run as part of the build.
+
+    "plugins": {
+        "include": [ "anvil.one", "anvil.two", ... ]
+    }
+
+### Excluding Specified Plugins
+Anvil also supports explicit exclusion so that all plugins except for those you specify in the build file will be run as part of the build.
+
+    "plugins": {
+        "exclude": [ "anvil.one", "anvil.two", ... ]
+    }
+
+### Installing Plugins Locally For A Project
+You can now install a plugin locally to a project using npm like so:
+
+    npm install {pluginname}
+
+In order for anvil to know about the plugin, you must add the following option to your build file:
+
+    "plugins": {
+        "local": [ "myLocallyInstalledPluginName" ]
+    }
+
+Please note: if you have already installed a global version of the plugin, anvil will always prefer the locally installed plugin; if you wish to use a global version of the plugin, you must use npm to uninstall the local version. Anvil does not manage locally installed plugins.
+
 # Contributors
 
-Special thanks to the following individuals who have contributed source code or ideas to help make Anvil.js less buggy and more useful:
+Special thanks to the following individuals who have contributed source code or ideas to help make anvil less buggy and more useful:
 
  * Jim Cowart
  * Aaron McCall
  * Mike Stenhouse
  * Robert Messerle
  * Mike Hostetler
+ * Jonathan Creamer
+ * Brian Edgerton
+ * Elijah Manor
  * Doug Neiner
  * Derick Bailey

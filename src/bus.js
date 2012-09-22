@@ -1,0 +1,30 @@
+var busFactory = function( _, postal ) {
+	
+	var Bus = function() {
+
+	};
+
+	Bus.prototype.publish = function( channel, topic, message ) {
+		postal
+			.channel( { channel: channel, topic: topic } )
+			.publish( message );
+	};
+
+	Bus.prototype.subscribe = function( channel, topic, callback ) {
+		postal
+			.channel( { channel: channel, topic: topic } )
+			.subscribe( function() {
+				try {
+					callback.apply( this, arguments );
+				} catch ( error ) {
+					// we don't need to do anything,
+					// but there's no reason to blow up
+					// just because a subscriber did
+				}
+			} );
+	};
+
+	return new Bus();
+};
+
+module.exports = busFactory;

@@ -1,7 +1,2 @@
 #!/usr/bin/env node
-
-var path = require("path");
-var fs = require("fs");
-var lib = path.join(path.dirname(fs.realpathSync(__filename, "../lib")));
-var anvil = require("../lib/anvil.js");
-anvil.run();
+require( "../lib/cli.js" )();
