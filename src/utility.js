@@ -30,7 +30,11 @@ var utlityFactory = function( _, anvil ) {
 				target[ property ] = value;
 			},
 			"object": function(target, property, value ) {
-				target[ property ] = deepExtend( target[ property ] || {}, value );
+				if( _.isObject( target[ property ] ) ) {
+					target[ property ] = deepExtend( target[ property ] || {}, value );
+				} else {
+					target[ property ] = value;
+				}
 			},
 			"array": function( target, property, value ) {
 				target[ property ] = _.filter(
