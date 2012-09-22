@@ -38,4 +38,11 @@ anvil.events.on( "all.stop", function() {
 anvil.log.step( "Checking for core plugins" );
 manager.checkDependencies( plugins, function() {
 	anvil.log.complete( "Core dependencies are installed" );
+	anvil.log.step( "Checking for updates to all installed plugins" );
+	manager.update( undefined, function() {
+		anvil.log.complete( "All installed plugins are up to date!" );
+	} );
 } );
+
+
+
