@@ -164,6 +164,64 @@ You can tell anvil to run in quiet mode (it will still print errors (red) and st
 
     anvil -q
 
+# Plugins & Tasks
+Anvil has two primary points for extension: plugins (things installed by anvil from npm) and tasks (local plugins).
+
+## Plugins
+Anvil installs plugins from npm to a global location: ~/.anvilplugins/node_modules and keeps a manifest of installed and enabled plugins at: ~/.anvilplugins/plugins.json.
+
+Once a plugin is installed, anvil will load it and use it in the build process unless you:
+  * Disable it globally with '''anvil disable {pluginname}''' at the command line
+  * Explicitly include other plugins besides it in the build file
+  * Explicitly exclude it in the build file
+
+### When Plugins Misbehave
+Anvil will attempt to automatically disable a plugin that throws an exception that would break the build. This is to try and prevent an installed plugin from breaking your build system.
+
+### Installing & Uninstalling
+Anvil provides simple command line arguments to install or uninstall plugins to itself at a global level:
+
+    anvil install {pluginname}
+
+or
+
+    anvil uninstall {pluginname}
+
+You can also install plugins from a file path using the relative path to the plugin directory in place of the plugin's name.
+
+### Enabling & Disabling
+Anvil provides command line arguments that allow you to enable or disable plugins at the global level:
+
+    anvil enable {pluginname}
+
+or
+
+    anvil disable {pluginname}
+
+Disabled plugins should never be loaded into a build session.
+
+### Updating Plugins
+Anvil will check npm for updates to all globally installed plugins with one simple command:
+
+    anvil update
+
+This command will take longer the more plugins you have installed and the more plugins which require updates from npm. Note: anvil automatically does this every time you install a new anvil version from npm.
+
+
+### Including Specific Plugins
+Anvil's build file now supports explicit inclusion only so that only plugins which you specify in the build file will be run as part of the build.
+
+    "plugins": {
+        "include": [ "anvil.one", "anvil.two", ... ]
+    }
+
+### Excluding Specified Plugins
+Anvil also supports explicit exclusion so that all plugins except for those you specify in the build file will be run as part of the build.
+
+    "plugins": {
+        "exclude": [ "anvil.one", "anvil.two", ... ]
+    }
+
 # Contributors
 
 Special thanks to the following individuals who have contributed source code or ideas to help make anvil less buggy and more useful:
@@ -173,7 +231,8 @@ Special thanks to the following individuals who have contributed source code or 
  * Mike Stenhouse
  * Robert Messerle
  * Mike Hostetler
- * Doug Neiner
- * Derick Bailey
  * Jonathan Creamer
  * Brian Edgerton
+ * Elijah Manor
+ * Doug Neiner
+ * Derick Bailey

@@ -99,6 +99,16 @@ var pluginManagerFactory = function( _, anvil ) {
 		} );
 	};
 
+	PluginManager.prototype.getEnabledPlugins = function( done ) {
+		anvil.fs.read( dataPath, function( json, err ) {
+			if(! err ) {
+				done( JSON.parse( json ).list );
+			} else {
+				done( [] );
+			}
+		} );
+	};
+
 	PluginManager.prototype.getInstalled = function( pluginPath, done ) {
 		var self = this,
 			list = [];
@@ -117,22 +127,12 @@ var pluginManagerFactory = function( _, anvil ) {
 		}
 	};
 
-	PluginManager.prototype.getEnabledPlugins = function( done ) {
-		anvil.fs.read( dataPath, function( json, err ) {
-			if(! err ) {
-				done( JSON.parse( json ).list );
-			} else {
-				done( [] );
-			}
-		} );
-	};
-
 	PluginManager.prototype.getPlugins = function( done ) {
 		var self =this,
 			list = [];
 		anvil.log.step( "loading plugins" );
 		
-		this.getEnabledPlugins( function( plugins ) {
+		this.getPluginList( function( plugins ) {
 			var removals = [];
 			_.each( plugins, function( plugin ) {
 				var pluginPath = anvil.fs.buildPath( [ pluginInstallPath, plugin ] );
@@ -146,6 +146,22 @@ var pluginManagerFactory = function( _, anvil ) {
 				} );
 			}
 			done( list );
+		} );
+	};
+
+	PluginManager.prototype.getPluginList = function( done ) {
+		var self = this;
+		this.getEnabledPlugins( function( list ) {
+			var pluginOptions = anvil.loadedConfig.plugins;
+			if( pluginOptions ) {
+				if( pluginOptions.include ) {
+					done( pluginOptions.include );
+				} else {
+					done( _.difference( list, pluginOptions.exclude || [] ) );
+				}
+			} else {
+				done( list );
+			}
 		} );
 	};
 
