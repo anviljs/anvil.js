@@ -58,7 +58,11 @@ var configFactory = function( _, commander, path, anvil ) {
 
 	Config.prototype.createCommand = function() {
 		commander.version("{{{version}}}", "-v, --version" );
-		anvil.onCommander( anvil.loadedConfig, commander );
+		if( this.args[ 2 ] && this.args[ 2 ].match( /([-]v|[-]{2}version)/ ) ) {
+			commander.parse( this.args );
+		} else {
+			anvil.onCommander( anvil.loadedConfig, commander );
+		}
 	};
 
 	Config.prototype.getConfiguration = function( buildFile, onConfig ) {

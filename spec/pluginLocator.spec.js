@@ -34,7 +34,7 @@ var pluginLocator = require( "../src/pluginLocator.js" )( _, mockPluginManager, 
 
 describe( "when loading configured plugins", function() {
 
-	pluginLocator.loadPlugins( {}, {} );
+	pluginLocator.loadPlugins( {}, { option: function() {} } );
 
 	it( "should correctly store instance of plugin", function() {
 		pluginLocator.instances[ "testPlugin" ].test().should.equal( "hello anvil!" );

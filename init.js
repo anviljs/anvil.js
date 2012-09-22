@@ -43,6 +43,3 @@ manager.checkDependencies( plugins, function() {
 		anvil.log.complete( "All installed plugins are up to date!" );
 	} );
 } );
-
-
-

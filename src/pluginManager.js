@@ -6,6 +6,7 @@ var child_process = require( "child_process" );
 var pluginManagerFactory = function( _, anvil ) {
 
 	var installPath = anvil.fs.buildPath( [ "~/.anvilplugins" ] ),
+		localInstallPath = anvil.fs.buildPath( "./node_modules" );
 		pluginInstallPath = anvil.fs.buildPath( [ "~/.anvilplugins/node_modules" ] ),
 		dataPath = anvil.fs.buildPath( [ installPath, "plugins.json" ] ),
 		builtIn = { list: [
@@ -135,7 +136,7 @@ var pluginManagerFactory = function( _, anvil ) {
 		this.getPluginList( function( plugins ) {
 			var removals = [];
 			_.each( plugins, function( plugin ) {
-				var pluginPath = anvil.fs.buildPath( [ pluginInstallPath, plugin ] );
+				var pluginPath = self.getPluginPath( plugin );
 				self.loadPlugin( plugin, pluginPath, list, removals );
 			} );
 			if( removals.length > 0 ) {
@@ -154,6 +155,9 @@ var pluginManagerFactory = function( _, anvil ) {
 		this.getEnabledPlugins( function( list ) {
 			var pluginOptions = anvil.loadedConfig.plugins;
 			if( pluginOptions ) {
+				if( pluginOptions.local ) {
+					list = _.union( list, pluginOptions.local );
+				}
 				if( pluginOptions.include ) {
 					done( pluginOptions.include );
 				} else {
@@ -171,6 +175,14 @@ var pluginManagerFactory = function( _, anvil ) {
 			return require( path.join( pluginPath, 'package.json' ) ).name;
 		}
 		return pluginName;
+	};
+
+	PluginManager.prototype.getPluginPath = function( pluginName ) {
+		var self = this,
+			localPath = anvil.fs.buildPath( [ localInstallPath, pluginName ] ),
+			globalPath = anvil.fs.buildPath( [ pluginInstallPath, pluginName ] ),
+			localExists = anvil.fs.pathExists( localPath );
+		return localExists ? localPath : globalPath;
 	};
 
 	PluginManager.prototype.getTasks = function( done ) {

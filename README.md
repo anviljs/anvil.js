@@ -222,6 +222,19 @@ Anvil also supports explicit exclusion so that all plugins except for those you 
         "exclude": [ "anvil.one", "anvil.two", ... ]
     }
 
+### Installing Plugins Locally For A Project
+You can now install a plugin locally to a project using npm like so:
+
+    npm install {pluginname}
+
+In order for anvil to know about the plugin, you must add the following option to your build file:
+
+    "plugins": {
+        "local": [ "myLocallyInstalledPluginName" ]
+    }
+
+Please note: if you have already installed a global version of the plugin, anvil will always prefer the locally installed plugin; if you wish to use a global version of the plugin, you must use npm to uninstall the local version. Anvil does not manage locally installed plugins.
+
 # Contributors
 
 Special thanks to the following individuals who have contributed source code or ideas to help make anvil less buggy and more useful:

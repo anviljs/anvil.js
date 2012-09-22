@@ -88,7 +88,9 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 					} );
 					var optionList = self.commandOptions.sort();
 					_.each( optionList, function( options ) {
-						anvil.commander.option.apply( anvil.commander, options );
+						if( anvil.commander ) {
+							anvil.commander.option.apply( anvil.commander, options );
+						}
 					} );
 					anvil.events.raise( "commander.configured" );
 				} );
