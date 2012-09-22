@@ -40,25 +40,15 @@ var configFactory = function( _, commander, path, anvil ) {
 			config[ property ] = path.resolve( config[ property ] );
 		} );
 
-		var output = _.isArray( config.output ) ? config.output : [ config.output ],
-			outputCollision = false;
-		config.output = _.map( output, function( outputPath ) {
-			var resolved = path.resolve( outputPath );
-			if( resolved === config.working || resolved === config.source ) {
-				outputCollision = true;
-			}
-			return resolved;
-		} );
-
-		if( config.working === config.source || outputCollision ) {
-			anvil.log.error( "Source, working and output directories MUST be seperate directories." );
+		if( config.working === config.source ) {
+			anvil.log.error( "Source, working and source directories MUST be seperate directories." );
 			anvil.events.raise( "all.stop", -1 );
 		}
 	};
 
 	Config.prototype.createCommand = function() {
 		commander.version("{{{version}}}", "-v, --version" );
-		if( this.args[ 2 ] && this.args[ 2 ].match( /([-]v|[-]{2}version)/ ) ) {
+		if( this.args[ 2 ] && this.args[ 2 ].match( /^([-]v$|[-]{2}version)$/ ) ) {
 			commander.parse( this.args );
 		} else {
 			anvil.onCommander( anvil.loadedConfig, commander );
