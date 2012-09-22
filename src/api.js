@@ -20,6 +20,7 @@ var config = require( "./config.js" )( _, commander, path, anvil );
 var activityManager = require( "./activityManager.js" )( _, machina, anvil );
 var Harness = require( "./pluginHarness.js" );
 
+anvil.project.root = path.resolve( "./" );
 module.exports = {
 		config: config,
 		scheduler: scheduler,
