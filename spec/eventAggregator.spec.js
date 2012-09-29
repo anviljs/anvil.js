@@ -37,3 +37,23 @@ describe( "when raising and handling events", function() {
 	} );
 	it( "should have notified subscriberTwo once", function() { twoCount.should.equal( 1 ); } );
 } );
+
+describe( "when subscribing and unsubscribing", function() {
+	var oneCount = 0,
+		twoCount = 0,
+		one = events.on( "thingy", function() {
+			oneCount++;
+		} ),
+		two = events.on( "thingy", function() {
+			twoCount++;
+		} );
+
+	events.raise( "thingy", {} );
+	one.cancel();
+	events.raise( "thingy", {} );
+
+	it( "subscriberOne should have unsubscribed after first event fire", function() {
+		oneCount.should.equal( 1 );
+		twoCount.should.equal( 2 );
+	} );
+} );
