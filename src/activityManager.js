@@ -33,6 +33,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 		},
 
 		runActivity: function() {
+
 			try {
 				var self = this,
 					order = anvil.config.activityOrder,

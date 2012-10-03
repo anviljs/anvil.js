@@ -67,13 +67,17 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 	FileSystem.prototype.copy = function( from, to, onComplete ) {
 		var self = this;
 		from = this.buildPath( from );
-		fs.stat( from, function( err, stat ) {
-			if ( stat.isDirectory() ) {
-				self.copyDirectory( from, to, onComplete );
-			} else {
-				self.copyFile( from, to, onComplete );
-			}
-		} );
+		if( fs.existsSync( from ) ) {
+			fs.stat( from, function( err, stat ) {
+				if ( stat.isDirectory() ) {
+					self.copyDirectory( from, to, onComplete );
+				} else {
+					self.copyFile( from, to, onComplete );
+				}
+			} );
+		} else {
+			onComplete();
+		}
 	};
 
 	FileSystem.prototype.copyDirectory = function( from, to, onComplete ) {
@@ -296,17 +300,19 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 
 	FileSystem.prototype.write = function( pathSpec, content, onComplete ) {
 		pathSpec = this.buildPath( pathSpec );
-		if( onComplete ) {
-			fs.writeFile( pathSpec, content, "utf8", function( error ) {
-				if( !error ) {
-					onComplete();
-				} else {
-					onComplete( error );
-				}
-			} );
-		} else {
-			fs.writeFileSync( pathSpec, content, "utf8" );
-		}
+		this.ensurePath( path.dirname( pathSpec ), function() {
+			if( onComplete ) {
+				fs.writeFile( pathSpec, content, "utf8", function( error ) {
+					if( !error ) {
+						onComplete();
+					} else {
+						onComplete( error );
+					}
+				} );
+			} else {
+				fs.writeFileSync( pathSpec, content, "utf8" );
+			}
+		} );
 	};
 
 	return new FileSystem();
