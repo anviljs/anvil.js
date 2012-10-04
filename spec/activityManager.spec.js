@@ -22,7 +22,7 @@ describe( "when using activity manager during system start", function() {
 
 	var buildComplete = false;
 	before( function( done ) {
-		events.on( "build.done", function() {
+		anvil.on( "build.done", function() {
 			buildComplete = true;
 			done();
 		} );

@@ -7,7 +7,7 @@ var fakeManagerFactory = function( _, anvil ) {
 		},
 		getPlugins: function( done ) {
 			_.each( this.plugins, function( plugin ) {
-				anvil.events.raise( "plugin.loaded", plugin.instance );
+				anvil.raise( "plugin.loaded", plugin.instance );
 			} );
 			done( this.plugins );
 		},

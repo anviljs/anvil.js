@@ -18,15 +18,33 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		};
 		this.bus = bus;
 		this.events = events;
+		this.eventDef = {
+			"all.stop": [ "code" ],
+			"build.stop": [ "reason" ],
+			"config": [ "callback" ],
+			"commander": [ "config", "commander" ],
+			"commander.configured": [],
+			"file.changed": [ "type", "file", "path" ],
+			"file.deleted": [ "type", "file", "path" ],
+			"log.debug": [ "message" ],
+			"log.event": [ "message" ],
+			"log.step": [ "message" ],
+			"log.complete": [ "message" ],
+			"log.warning": [ "message" ],
+			"log.error": [ "message" ],
+			"plugins.configured": [],
+			"plugin.loaded": [ "instance" ],
+			"rebuild": [ "step" ]
+		};
 		this.fs = fs;
 		this.scheduler = scheduler;
 		var self = this;
  
-		events.on( "all.stop", function( exitCode ) {
+		this.on( "all.stop", function( exitCode ) {
 			process.exit( exitCode );
 		} );
 
-		events.on( "plugin.loaded", function( plugin ) {
+		this.on( "plugin.loaded", function( plugin ) {
 			self.plugins[ plugin.name ] = plugin;
 		} );
 		
@@ -43,12 +61,12 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 
 	Anvil.prototype.onConfig = function( config ) {
 		this.config = config;
-		events.raise( "config", this.onPluginsConfigured );
+		this.raise( "config", this.onPluginsConfigured );
 	};
 
 	Anvil.prototype.onCommander = function( config, commander ) {
 		this.commander = commander;
-		events.raise( "commander", config, commander );
+		this.raise( "commander", config, commander );
 	};
 
 	Anvil.prototype.onPluginsConfigured = function() {
@@ -58,8 +76,28 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 			this.writeConfig( file + ".json" );
 		} else {
 			this.log.complete( "plugin configuration complete" );
-			events.raise( "plugins.configured" );
+			this.raise( "plugins.configured" );
 		}
+	};
+
+	Anvil.prototype.on = function( eventName, handler ) {
+		events.on( "anvil." + eventName, handler );
+	};
+
+	Anvil.prototype.raise = function( eventName ) {
+		var e = this.eventDef[ eventName ],
+			fullArgs = Array.prototype.slice.call( arguments ),
+			args = fullArgs.slice( 1 );
+		if( e ) {
+			var msg = _.object( e, args );
+			bus.publish( "anvil", eventName, msg );
+		}
+		args.unshift( "anvil." + eventName );
+		events.raise.apply( undefined, args );
+	};
+
+	Anvil.prototype.subscribe = function( eventName, handler ) {
+		bus.subscribe( "anvil", eventName, handler );
 	};
 
 	Anvil.prototype.writeConfig = function( file ) {

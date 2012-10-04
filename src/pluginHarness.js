@@ -87,7 +87,7 @@ var factory = function(
 		Harness.prototype.buildOnly = function( done ) {
 			var self = this,
 				handles = this.subscribe();
-			anvil.events.on( "build.done", function() {
+			anvil.on( "build.done", function() {
 				_.each( handles, function( handle ) { handle.cancel(); } );
 				done();
 			} );
@@ -106,7 +106,7 @@ var factory = function(
 				handles = [];
 			_.each( [ "debug", "event", "step", "complete", "warning", "error" ],
 				function( type ) {
-					handles.push( anvil.events.on( "log." + type, function( x ) {
+					handles.push( anvil.on( "log." + type, function( x ) {
 						self.logs[ type ].push( x );
 					} ) );
 				}

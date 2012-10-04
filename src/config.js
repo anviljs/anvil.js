@@ -30,7 +30,7 @@ var configFactory = function( _, commander, path, anvil ) {
 
 	var Config = function() {
 		_.bindAll( this );
-		anvil.events.on( "commander.configured", this.processArguments );
+		anvil.on( "commander.configured", this.processArguments );
 		this.commands = {};
 		this.args = [];
 	};
@@ -42,7 +42,7 @@ var configFactory = function( _, commander, path, anvil ) {
 
 		if( config.working === config.source ) {
 			anvil.log.error( "Source, working and source directories MUST be seperate directories." );
-			anvil.events.raise( "all.stop", -1 );
+			anvil.raise( "all.stop", -1 );
 		}
 	};
 

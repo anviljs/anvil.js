@@ -3,12 +3,12 @@ var consoleLogFactory = function( _, anvil ) {
 	var ConsoleLogger = function() {
 		_.bindAll( this );
 
-		anvil.events.on( "log.debug", this.onDebug );
-		anvil.events.on( "log.event", this.onEvent );
-		anvil.events.on( "log.step", this.onStep );
-		anvil.events.on( "log.complete", this.onComplete );
-		anvil.events.on( "log.warning", this.onWarning );
-		anvil.events.on( "log.error", this.onError );
+		anvil.on( "log.debug", this.onDebug );
+		anvil.on( "log.event", this.onEvent );
+		anvil.on( "log.step", this.onStep );
+		anvil.on( "log.complete", this.onComplete );
+		anvil.on( "log.warning", this.onWarning );
+		anvil.on( "log.error", this.onError );
 	};
 
 	ConsoleLogger.prototype.log = function( level, x ) {

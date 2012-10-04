@@ -36,7 +36,7 @@ describe( "when scanning project directory with file plugin", function() {
 
 		var buildComplete = false;
 		before( function( done ) {
-			events.on( "build.done", function() {
+			anvil.on( "build.done", function() {
 				buildComplete = true;
 				done();
 			} );
@@ -100,7 +100,7 @@ describe( "when scanning project directory with file plugin", function() {
 		} );
 
 		it( "should raise file change event on file change", function( done ) {
-			anvil.events.on( "file.changed", function( fileEvent, file ) {
+			anvil.on( "file.changed", function( fileEvent, file ) {
 				fileEvent.should.equal( "change" );
 				file.should.equal( root + "/src/test.js" );
 				done();
