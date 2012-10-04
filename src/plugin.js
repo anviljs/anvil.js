@@ -22,6 +22,16 @@ var pluginFactory = function( _, anvil ) {
 		done();
 	};
 
+	Plugin.prototype.publish = function( topic, message ) {
+		var e = this.events[ topic ];
+		if( e ) {
+			var args = _.flatten( _.pick( message, e ) );
+			args.unshift( this.name + "." + topic );
+			anvil.events.raise.apply( undefined, args );
+		}
+		anvil.bus.publish( this.name, topic, message );
+	};
+
 	Plugin.prototype.raise = function( eventName ) {
 		var e = this.events[ eventName ],
 			fullArgs = Array.prototype.slice.call( arguments ),

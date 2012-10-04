@@ -84,6 +84,15 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		events.on( "anvil." + eventName, handler );
 	};
 
+	Anvil.prototype.publish = function( topic, message ) {
+		var e = this.eventDef[ topic ];
+		if( e ) {
+			args.unshift( "anvil." + topic );
+			events.raise.apply( undefined, args );
+		}
+		bus.publish( "anvil", topic, message );
+	};
+
 	Anvil.prototype.raise = function( eventName ) {
 		var e = this.eventDef[ eventName ],
 			fullArgs = Array.prototype.slice.call( arguments ),

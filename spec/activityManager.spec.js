@@ -27,6 +27,10 @@ describe( "when using activity manager during system start", function() {
 			done();
 		} );
 		config.initialize( [ "node", "anvil", "--pa", "test" ] );
+		setTimeout( function() {
+			buildComplete = true;
+			done();
+		}, 300 );
 	} );
 
 	it( "should complete build", function() {
