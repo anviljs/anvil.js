@@ -59,7 +59,7 @@ var pluginManagerFactory = function( _, anvil ) {
 								done();
 							} else {
 								anvil.log.error( "Fatal: Could not install missing build dependency " + dependency );
-								anvil.events.raise( "all.stop", -1 );
+								anvil.raise( "all.stop", -1 );
 							}
 						} );
 					};
@@ -142,7 +142,7 @@ var pluginManagerFactory = function( _, anvil ) {
 			if( removals.length > 0 ) {
 				_.defer( function() {
 					anvil.scheduler.pipeline( undefined, removals, function() {
-						anvil.events.raise( "all.stop", -1 );
+						anvil.raise( "all.stop", -1 );
 					} );
 				} );
 			}
@@ -271,7 +271,7 @@ var pluginManagerFactory = function( _, anvil ) {
 			if( list ) {
 				list.push( metadata );
 			}
-			anvil.events.raise( "plugin.loaded", instance );
+			anvil.raise( "plugin.loaded", instance );
 			anvil.log.debug( "loaded plugin " + plugin );
 		} catch ( err ) {
 			anvil.log.error( "Error loading plugin '" + plugin + "' : " + err.stack );
