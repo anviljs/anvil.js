@@ -18,7 +18,19 @@ var manager = require( "./pluginManager.js" )( _, anvil );
 var locator = require( "./pluginLocator.js" )( _, manager, anvil );
 var config = require( "./config.js" )( _, commander, path, anvil );
 var activityManager = require( "./activityManager.js" )( _, machina, anvil );
-var Harness = require( "./pluginHarness.js" );
+var Harness = require( "./pluginHarness.js" )(
+		scheduler,
+		crawler,
+		mkdir,
+		events,
+		bus,
+		manager,
+		locator,
+		config,
+		activityManager,
+		plugin,
+		log
+	);
 
 anvil.project.root = path.resolve( "./" );
 module.exports = {

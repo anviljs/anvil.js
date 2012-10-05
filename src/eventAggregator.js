@@ -5,17 +5,29 @@ var eventAggregatorFactory = function( _ ) {
 		this.events = {};
 	};
 
+	EventAggregator.prototype.ignore = function( eventName, onEvent ) {
+		var handlers = this.events[ eventName ];
+		if( handlers ) {
+			this.events[ eventName ] = _.reject( handlers, function( handler ) {
+				return handler === onEvent;
+			} );
+		}
+	};
+
 	EventAggregator.prototype.on = function( eventName, onEvent ) {
-		var handlers;
+		var self = this,
+			handlers;
+		onEvent.cancel = function() { self.ignore( eventName, onEvent ); };
 		if( ( handlers = this.events[ eventName ] ) ) {
 			handlers.push( onEvent );
 		} else {
 			this.events[ eventName ] = [ onEvent ];
 		}
+		return onEvent;
 	};
 
 	EventAggregator.prototype.raise = function( eventName ) {
-		var handlers = this.events[ eventName ],
+		var handlers = this.events[ eventName ] || [],
 			fullArgs = Array.prototype.slice.call( arguments ),
 			args = fullArgs.slice( 1 );
 

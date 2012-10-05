@@ -30,7 +30,7 @@ var configFactory = function( _, commander, path, anvil ) {
 
 	var Config = function() {
 		_.bindAll( this );
-		anvil.events.on( "commander.configured", this.processArguments );
+		anvil.on( "commander.configured", this.processArguments );
 		this.commands = {};
 		this.args = [];
 	};
@@ -42,7 +42,7 @@ var configFactory = function( _, commander, path, anvil ) {
 
 		if( config.working === config.source ) {
 			anvil.log.error( "Source, working and source directories MUST be seperate directories." );
-			anvil.events.raise( "all.stop", -1 );
+			anvil.raise( "all.stop", -1 );
 		}
 	};
 
@@ -105,12 +105,19 @@ var configFactory = function( _, commander, path, anvil ) {
 
 	Config.prototype.loadConfig = function( file, onComplete ) {
 		file = path.resolve( file );
+		var json = {};
 		if( anvil.fs.pathExists( file ) ) {
 			anvil.fs.read( file, function( content ) {
-				onComplete( JSON.parse( content ) );
+				try {
+					json = JSON.parse( content );
+					onComplete( json );
+				} catch ( err ) {
+					anvil.log.warning( "Could not load local build file: " + err.stack );
+					onComplete( json );
+				}
 			} );
 		} else {
-			onComplete( {} );
+			onComplete( json );
 		}
 	};
 
@@ -118,8 +125,14 @@ var configFactory = function( _, commander, path, anvil ) {
 		var userDefaults = {};
 		if( anvil.fs.pathExists( "~/.anvil" ) ) {
 			anvil.fs.read( "~/.anvil", function( content ) {
-				userDefaults = JSON.parse( content );
-				onComplete( userDefaults );
+				var userDefaults = {};
+				try {
+					userDefaults = JSON.parse( content );
+					onComplete( userDefaults );
+				} catch ( err ) {
+					anvil.log.warning( "Could not load .anvil file: " + err.stack );
+					onComplete( userDefaults );
+				}
 			} );
 		} else {
 			onComplete( userDefaults );

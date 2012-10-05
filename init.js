@@ -38,8 +38,19 @@ anvil.events.on( "all.stop", function() {
 anvil.log.step( "Checking for core plugins" );
 manager.checkDependencies( plugins, function() {
 	anvil.log.complete( "Core dependencies are installed" );
-	anvil.log.step( "Checking for updates to all installed plugins" );
-	manager.update( undefined, function() {
-		anvil.log.complete( "All installed plugins are up to date!" );
+	var timeout = setTimeout( function() {
+		anvil.log.event( "\nTimed out waiting for your response. Updates will not be installed." );
+		process.exit();
+	}, 5000 );
+	commander.prompt( "Check for updates for all installed plugins? (this could take a minute)\n ([Y]/N): ", function( resp ) {
+		if( resp === "y" || resp === "Y" || resp === "" ) {
+			clearTimeout( timeout );
+			manager.update( undefined, function() {
+				anvil.log.complete( "All installed plugins are up to date!" );
+				process.exit();
+			} );
+		} else {
+			process.exit();
+		}
 	} );
 } );

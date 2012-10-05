@@ -11,8 +11,8 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 			[ "--verbose", "Include debug and warning messages in log" ]
 		];
 		this.count = 0;
-		anvil.events.on( "commander", this.loadPlugins );
-		anvil.events.on( "config", this.configurePlugins );
+		anvil.on( "commander", this.loadPlugins );
+		anvil.on( "config", this.configurePlugins );
 	};
 
 	PluginLocator.prototype.configurePlugins = function( done ) {
@@ -37,7 +37,7 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 				anvil.log.error( "Error configuring plugin '" + plugin.name + "' : " + err + "\n" + err.stack );
 				anvil.pluginManager.removePlugin( plugin.name, function() {
 					anvil.log.step( "Plugin '" + plugin.name + "' cannot be configured and has been disabled");
-					anvil.events.raise( "all.stop", -1 );
+					anvil.raise( "all.stop", -1 );
 				} );
 			}
 		} );
@@ -46,10 +46,6 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 	PluginLocator.prototype.initPlugin = function( plugin ) {
 		var handle = this.wireHandler,
 			self = this;
-		handle( "build.done", plugin.buildSucceeded );
-		handle( "build.failed", plugin.buildFailed );
-		handle( "build.start", plugin.buildStarted );
-		handle( "build.stop", plugin.buildStopped );
 		if( !_.isEmpty( plugin.config ) ) {
 			anvil.config[ plugin.name ] = plugin.config;
 		}
@@ -82,7 +78,7 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 							anvil.log.error( "Error initializing plugin '" + plugin.name + "': " + err + "\n" + err.stack );
 							anvil.pluginManager.removePlugin( plugin.name, function() {
 								anvil.log.step( "Plugin '" + plugin.name + "' cannot be loaded and has been disabled");
-								anvil.events.raise( "all.stop", -1 );
+								anvil.raise( "all.stop", -1 );
 							} );
 						}
 					} );
@@ -92,11 +88,11 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 							anvil.commander.option.apply( anvil.commander, options );
 						}
 					} );
-					anvil.events.raise( "commander.configured" );
+					anvil.raise( "commander.configured" );
 				} );
 			} catch ( err ) {
 				anvil.log.error( "Fatal: attempt to initialize plugins was an abismal fail: " + err + "\n" + err.stack );
-				anvil.events.raise( "all.stop", -1 );
+				anvil.raise( "all.stop", -1 );
 			}
 		} );
 	};
@@ -141,12 +137,6 @@ var pluginLocatorFactory = function( _, plugins, anvil ) {
 			}
 		};
 		_.bindAll( plugin );
-	};
-
-	PluginLocator.prototype.wireHandler = function( topic, handler ) {
-		if( handler ) {
-			anvil.events.on( topic, handler );
-		}
 	};
 
 	return new PluginLocator();

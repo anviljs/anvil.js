@@ -9,7 +9,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 
 		handleEvent: function( eventName ) {
 			var self = this;
-			anvil.events.on( eventName, function() {
+			anvil.on( eventName, function() {
 				var args = Array.prototype.slice.call( arguments );
 				args.unshift( eventName );
 				self.handle.apply( self, args );
@@ -33,6 +33,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 		},
 
 		runActivity: function() {
+
 			try {
 				var self = this,
 					order = anvil.config.activityOrder,
@@ -102,7 +103,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 			"finished": {
 				_onEnter: function() {
 					anvil.log.complete( "build completed" );
-					anvil.events.raise( "build.done" );
+					anvil.raise( "build.done" );
 				},
 				"rebuild": function( startingWith ) {
 					this.activityIndex = _.indexOf( anvil.config.activityOrder, startingWith );

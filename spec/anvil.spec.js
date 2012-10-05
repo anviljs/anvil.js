@@ -27,7 +27,7 @@ describe( "when setting up configuration and plugins", function() {
 
 	before( function( done ) {
 		commander.removeAllListeners();
-		events.on( "plugins.configured", function() {
+		anvil.on( "plugins.configured", function() {
 			configCompleted = true;
 			done();
 		} );
