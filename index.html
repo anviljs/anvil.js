@@ -1,67 +1,72 @@
 <!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Anvil.js : A continuous integration tool for javascript, css and html." />
 
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <title>Anvil.js by appendto</title>
+    <title>Anvil.js</title>
   </head>
 
   <body>
 
-    <header>
-      <div class="container">
-        <h1>Anvil.js</h1>
-        <h2>A continuous integration tool for javascript, css and html.</h2>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/appendto/anvil.js">View on GitHub</a>
 
-        <section id="downloads">
-          <a href="https://github.com/appendto/anvil.js/zipball/master" class="btn">Download as .zip</a>
-          <a href="https://github.com/appendto/anvil.js/tarball/master" class="btn">Download as .tar.gz</a>
-          <a href="https://github.com/appendto/anvil.js" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-        </section>
-      </div>
-    </header>
+          <h1 id="project_title">Anvil.js</h1>
+          <h2 id="project_tagline">A continuous integration tool for javascript, css and html.</h2>
 
-    <div class="container">
-      <section id="main_content">
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/appendto/anvil.js/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/appendto/anvil.js/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
         <h1>Anvil</h1>
 
 <p>Anvil started as a way to build a single javascript module from several source files. Build tools that require a lot of explicit/declarative instructions distract from getting work on the project done.</p>
 
-<p>Anvil is currently being rewritten as CI tool for JS, CSS and HTML.</p>
+<p>Anvil has been rewritten as a general build system with a plugin architecture. It should be easy to add features or change almost any behavior as needed.</p>
 
-<p><strong><em>Please note: this description is for the upcoming RC of Anvil and does not represent the version currently available via npm</em></strong></p>
+<p>The new version of anvil is not entirely backwards compatible. If you want to continue using the old version, you can still install it from npm by specifying the version number ( 0.7.9 ). If you need help converting your project to the new version, please send me an e-mail or submit an issue to the project and I'll help as I have time.</p>
 
 <h2>What Does It Do?</h2>
 
-<p>Here's the current feature list:</p>
+<p>All parts of the build process are implemented as plugins. Some plugins ship along with anvil's source so that it can do <em>something</em> out of the box. Most of the interesting features will likely be plugins that you install.</p>
+
+<p>A baseline install can do the following:</p>
 
 <ul>
-<li>Create simple directory structure for new projects</li>
-<li>Create build.json files</li>
-<li>Combine files through a comment-based import syntax</li>
-<li>Supports multiple, distinct output files</li>
-<li>Customized file names for output</li>
-<li>Compiles CoffeeScript, Stylus, LESS, Markdown and HAML into 'native' formats (JS, CSS, HTML)</li>
-<li>Post compile pipelines:
+<li>Install, remove, enable or disable plugins</li>
+<li>Automatically install any plugins your build file defines as dependencies</li>
+<li>Run local tasks (follows the same api as a plugin)</li>
+<li>Continuously and incrementally build the project as files change</li>
+<li>Create default build files based on installed plugins</li>
+<li>Combine resource files through a comment-based import syntax</li>
+<li>Concat resource files in specified order using
 
 <ul>
-<li>Minify, Lint, Wrappers, License Headers, Run Tests</li>
+<li>JSON or YAML file that lists files to create from other files</li>
+<li>individual JSON or YAML files</li>
 </ul>
 </li>
-<li>CI mode where anvil will re-compile the project on source file changes</li>
-<li>Hosts multiple projects directories
+<li>Replace tokens (with customizable syntax) in source with 
 
 <ul>
-<li>Converts CoffeeScript, Stylus, LESS, Markdown and HAML on the fly</li>
-<li>Useful for running test suites in the browser</li>
-<li>Can refresh the page after each build</li>
+<li>values from package.json</li>
+<li>JSON or YAML key/value files</li>
 </ul>
 </li>
+<li>Add file headers to final build output based on output file type</li>
 </ul><h2>Installation</h2>
 
 <pre><code>npm install anvil.js -g
@@ -69,226 +74,273 @@
 
 <h2>By Convention</h2>
 
-<p>Without a build file, Anvil will make assumptions. Here's the list:</p>
+<p>Without a build file, anvil will use its default conventions to attempt to build your project.</p>
 
-<ul>
-<li>All your source will be in ./src and get output to ./lib and ./site/js</li>
-<li>All your styles will be in ./style and get output to ./css and ./site/css</li>
-<li>All your markup will be in ./markup and get output to ./site</li>
-<li>All resources will be compiled to JS, CSS and HTML</li>
-<li>All JS and CSS will be minified</li>
-<li>If the project includes a markup or style folder, you're building a site, not a lib</li>
-</ul><h2>The Build File ( large example showing all options )</h2>
+<h2>The Build File ( minimalist example )</h2>
 
 <pre><code>{
     "source": "src",
-    "style": "style",
-    "markup": "markup",
-    {
-        "source": [ "lib", "site/js" ],
-        "style": [ "css", "site/css" ],
-        "markup": "site/"
-    }
-    "lint": {},
-    "uglify": {},
-    "cssmin": {},
-    "extensions": { "uglify": "min" },
-    "finalize:" {
-        "header|header-file": "this is some unprocessed text or a file name",
-        "footer|footer-file": "this is some unprocessed text or a file name"
-    },
-    "hosts": {
-      "/": "site"
-    },
-    "name": "custom-name.js",
-    "testWith": "mocha|pavlov",
-    "continuous": true,
-    "host": true
+    "spec": "spec"
+    "output":  "build"
+    "dependencies": [ "anvil.mocha" ]
 }
 </code></pre>
 
 <ul>
-<li>source is where Anvil expects <em>all</em> your code. Don't get fancy or Anvil can't help you :(</li>
-<li>output is where Anvil will write all the build output and temp files. This should NOT be the same as source.</li>
-<li>lint specifies that you want your output files run through JSLint before Uglify and Gzip occur.</li>
-<li><p>uglify specifies that you want your output uglified. </p></li>
-<li>
-<p>finalize</p>
+<li>source is the path where <em>all</em> project source belongs; this can be a flat or complex hierarchy</li>
+<li>output is a list of paths to copy build output to.</li>
+<li>spec is the folder where test specifications can be found</li>
+<li>dependencies is a list of anvil plugin names that should be installed before the build can proceed</li>
+</ul><h2>Building By Convention</h2>
 
-<ul>
-<li>header prepends the following string to the final output ONLY.</li>
-<li>footer appends the following string to the final output ONLY.</li>
-<li>If header-file or footer-file is provided, the file will be read and the contents used</li>
-<li>this section was added to support adding boiler plate text headers to minified/gzipped output</li>
-</ul>
-</li>
-<li>
-<p>name</p>
+<p>If you don't specify your own build file, anvil assumes you intend to use a build.json file. If one isn't present, it will use its own conventions to build your project. If that's all you need, great! Chances are you'll want a build.json that's configured for your specific project.</p>
 
-<ul>
-<li>for projects with a single file output, this will replace the name of the output file</li>
-<li>for projects with multiple file outputs, you can provide a lookup hash to over-write
-each specific file name</li>
-</ul>
-</li>
-</ul><p>There's also another option called justCoffee that will cause anvil to maintain all output in coffeescript instead of compiling it to js.</p>
+<h2>Writing New Build Files</h2>
 
-<h2>Jumpstart New Projects</h2>
+<p>Keeping up with all the plugin defaults can be difficult. To see what's available by default for each plugin, you can write a new build file for customization.</p>
 
-<p>There are two ways to do this now - one for lib projects and one for sites.</p>
-
-<p>Anvil will build a set of standard project directories for you and even spit out a build.json file based on the conventional use.</p>
-
-<h3>Lib Projects</h3>
-
-<pre><code>anvil --lib &lt;projectName&gt;
+<pre><code>anvil --write {name}
 </code></pre>
 
-<p>Will produce a directory structure that looks like this:</p>
+<p>This command creates a build file in the current directory at {name}.json. It will include all the default settings for all the installed and built-in plugins.</p>
 
-<pre><code>-projectName
-    |-ext
-    |-src
-    |-lib
-    |-spec
-    build.json
-</code></pre>
+<h2>Combining source files, Import Style</h2>
 
-<h3>Site Projects</h3>
-
-<pre><code>anvil --site &lt;projectName&gt;
-</code></pre>
-
-<p>Will produce a directory structure that looks like this:</p>
-
-<pre><code>-projectName
-    |-ext
-    |-src
-    |-site
-        |-js
-        |-css
-    |-style
-    |-markup
-    |-lib
-    |-css
-    |-spec
-    build.json
-</code></pre>
-
-<h2>Building By Convention</h2>
-
-<p>If you don't specify your own build file, anvil assumes you intend to use a build.json file. If one isn't present, it will use its own conventions to build your project. If that's all you need, great! Chances are you'll want a build.json that's configured for your specific project. </p>
-
-<p>Now that there are two types of projects, Anvil infers the project type based on the folders in your project.</p>
-
-<h2>Combining source files</h2>
-
-<p>Anvil allows you to combine source files by using a commented import syntax:</p>
+<p>Anvil allows you to combine source files by using a commented command</p>
 
 <p><strong>Javascript</strong></p>
 
-<pre><code>//import("dependency.{ext}");
+<pre><code>// import("dependency.{ext}");
 </code></pre>
 
 <p><strong>Coffeescript</strong></p>
 
-<pre><code>###import "dependency.{ext}" ###
+<pre><code>### import "dependency.{ext}" ###
 </code></pre>
 
 <p><strong>Stylus, LESS, CSS</strong></p>
 
-<pre><code>/* import "dependency.{ext}" */
+<pre><code>CSS:            /* import "dependency.{ext}" */ 
+LESS, Stylus:   // import "dependency.{ext}
 </code></pre>
 
-<p>When you use Anvil to compile your project, it will traverse all the files in your source directory and combine them so that your top level files are what get output. <strong>Warning</strong> Currently, Anvil is not clever enough to detect circular dependencies created via import statements and it will <em>shatter your world</em> if you do this.</p>
+<p>When you use anvil to compile your project, it will traverse all the files in your source directory and combine them so that your top level files are what get output. </p>
+
+<p><strong>Warning</strong> Currently, anvil is not clever enough to detect circular dependencies created via import statements and it will <em>shatter your world</em> if you do this.</p>
+
+<h2>Combining source files, Concatenation Style</h2>
+
+<p>Anvil provides you with two ways to drive concatenation: yaml lists or individual yaml files</p>
+
+<h3>List Files</h3>
+
+<p>Anvil allows you to combine source files by listing the order of concatenation in a JSON or YAML format. Note: the paths must all be absolute OR relative to the top level of your source folder.</p>
+
+<h4>JSON Format</h4>
+
+<pre><code>{
+    "./file1.js": [ "./file1a.js", "./file1b.js", "./file1c.js" ],
+    "./file2.js": [ "./file2a.js", "./file2b.js", "./file2c.js" ],
+}
+</code></pre>
+
+<h4>YAML Format</h4>
+
+<pre><code>./file1.js:
+    - ./file1a.js
+    - ./file1b.js
+    - ./file1c.js
+
+file2.js:
+    - ./file2a.js
+    - ./file2b.js
+    - ./file2c.js
+</code></pre>
+
+<p>Anvi will create file1.js and file2.js by concatenating the corresponding list of files in the order they appear.</p>
+
+<h3>Individual Files</h3>
+
+<p>This approach allows you to create a list of files to concatenate to create the final outcome. The name and location of the file will be identical to the original but anvil will strip the .json or .yaml extension off.</p>
+
+<h4>JSON Format</h4>
+
+<pre><code>{ "imports": [ "./file1a.js", "./file1c.js", "./file1c.js" ] }
+</code></pre>
+
+<h4>YAML Format</h4>
+
+<p>file1.js.yaml's contents:</p>
+
+<pre><code>- ./file1a.js    
+- ./file1b.js    
+- ./file1c.js    
+</code></pre>
+
+<p>Each example would produce file1.js and concat each of the three listed files together to create its contents. <strong><em>NOTE</em></strong>: The paths in an individual concat file <em>must</em> be relative to the concat file itself.</p>
 
 <h2>Building With Specific Build Files</h2>
 
-<p>To build with a specific build file type</p>
+<p>To build with a specific build file</p>
 
 <pre><code>anvil -b &lt;buildfile&gt;
 </code></pre>
 
-<h2>Creating New / Additional Build Files</h2>
-
-<p>To create a build file for lib projects, you can just type the following:</p>
-
-<pre><code>anvil --libfile &lt;buildfile&gt;
-</code></pre>
-
-<p>or for a site project</p>
-
-<pre><code>anvil --sitefile &lt;buildfile&gt;
-</code></pre>
-
-<p>and it will create the build file for you. If you don't include the file name, anvil will create a build.json (possibly overwriting your existing one, be careful!)</p>
-
-<h2>Custom Naming</h2>
-
-<p>For projects with a single file output, you can provide a name property which will override the default name of the file:</p>
-
-<pre><code>"name": "my-custom-name.js"
-</code></pre>
-
-<p>For projects where there are multiple files in the output, you must provide a hash object that will tell anvil how to rename each specific file. For example, if you have a build producing 'one.js' and 'two.js' you would need to provide a hash object that would tell anvil how to name each:</p>
-
-<pre><code>"name": {
-    "one.js" : "main.js",
-    "two.js" : "plugin.js"
-}
-</code></pre>
-
 <h2>Continuous Integration</h2>
 
-<p>Anvil will watch your source directory for changes and rebuild the project in the event any changes are saved to the files in the directory.</p>
+<p>Anvil will watch your source directory for changes and incrementally rebuild changed files ( and any affected files ).</p>
 
 <pre><code>anvil --ci
 </code></pre>
 
-<p>Remember, if you intend to always run in this mode, you can put a "continuous": true in your build.json file.</p>
+<p>You can configure a build to always run in this mode by adding the following JSON snippet to your build.json file:</p>
 
-<h2>Hosting</h2>
-
-<p>Anvil provides local hosting based on the "hosts" config block. Adding -h, --host argument or a "host": true block to your build.json file will cause Anvil to host your project's directories (according to configuration) at port 3080 via express.</p>
-
-<pre><code>anvil -h
-</code></pre>
-
-<p>or</p>
-
-<pre><code>anvil --host
-</code></pre>
-
-<p>Coffee, Stylus, LESS, Mardown, and HAML are all converted at request time if they are requested.</p>
-
-<p>The hosts key in the build.json file is where you can control what each folder will be hosted at in the relative url.</p>
-
-<pre><code>"hosts": {
-    "/example1" : "./examples/example1",
-    "/example2" : "./examples/example2"
+<pre><code>"fileLoader": {
+    "continuous": "true"
 }
 </code></pre>
 
-<p>The block above would host the folder ./example/example1 at http://localhost:3080/example1 and folder ./example/example2 at http://localhost:3080/example2</p>
+<h2>Console log</h2>
 
-<h3>Testing With Mocha</h3>
+<p>Anvil uses color-coded messages to let you see what's happening during the build. Here's the color key:</p>
 
-<p>Mocha might be the best thing ever. You can tell Anvil to run your spec files with mocha from the command line or by including a mocha block in the build.json.</p>
-
-<pre><code>anvil --mocha
+<pre><code>magenta - debug
+default - events
+blue - build steps
+green - success
+yellow - warning
+red - error
 </code></pre>
 
-<p>or by adding "testWith": "mocha" to your build.json file.</p>
+<p>By default anvil will print everything but debug and warning messages unless you provide a --verbose argument or add this to your build.json :</p>
 
-<h2>Too chatty?</h2>
+<pre><code>"log": {
+    "debug": true
+}
+</code></pre>
 
 <p>You can tell anvil to run in quiet mode (it will still print errors (red) and step completions (green) )</p>
 
 <pre><code>anvil -q
 </code></pre>
+
+<h1>Plugins &amp; Tasks</h1>
+
+<p>Anvil has two primary points for extension: plugins (things installed by anvil from npm) and tasks (local plugins).</p>
+
+<h2>Plugins</h2>
+
+<p>Anvil installs plugins from npm to a global location: ~/.anvilplugins/node_modules and keeps a manifest of installed and enabled plugins at: ~/.anvilplugins/plugins.json.</p>
+
+<p>Once a plugin is installed, anvil will load it and use it in the build process unless you:</p>
+
+<ul>
+<li>Disable it globally with '''anvil disable {pluginname}''' at the command line</li>
+<li>Explicitly include other plugins besides it in the build file</li>
+<li>Explicitly exclude it in the build file</li>
+</ul><h3>When Plugins Misbehave</h3>
+
+<p>Anvil will attempt to automatically disable a plugin that throws an exception that would break the build. This is to try and prevent an installed plugin from breaking your build system.</p>
+
+<h3>Installing &amp; Uninstalling</h3>
+
+<p>Anvil provides simple command line arguments to install or uninstall plugins to itself at a global level:</p>
+
+<pre><code>anvil install {pluginname}
+</code></pre>
+
+<p>or</p>
+
+<pre><code>anvil uninstall {pluginname}
+</code></pre>
+
+<p>You can also install plugins from a file path using the relative path to the plugin directory in place of the plugin's name.</p>
+
+<h3>Enabling &amp; Disabling</h3>
+
+<p>Anvil provides command line arguments that allow you to enable or disable plugins at the global level:</p>
+
+<pre><code>anvil enable {pluginname}
+</code></pre>
+
+<p>or</p>
+
+<pre><code>anvil disable {pluginname}
+</code></pre>
+
+<p>Disabled plugins should never be loaded into a build session.</p>
+
+<h3>Updating Plugins</h3>
+
+<p>Anvil will check npm for updates to all globally installed plugins with one simple command:</p>
+
+<pre><code>anvil update
+</code></pre>
+
+<p>This command will take longer the more plugins you have installed and the more plugins which require updates from npm. Note: anvil automatically does this every time you install a new anvil version from npm.</p>
+
+<h3>Including Specific Plugins</h3>
+
+<p>Anvil's build file now supports explicit inclusion only so that only plugins which you specify in the build file will be run as part of the build.</p>
+
+<pre><code>"plugins": {
+    "include": [ "anvil.one", "anvil.two", ... ]
+}
+</code></pre>
+
+<h3>Excluding Specified Plugins</h3>
+
+<p>Anvil also supports explicit exclusion so that all plugins except for those you specify in the build file will be run as part of the build.</p>
+
+<pre><code>"plugins": {
+    "exclude": [ "anvil.one", "anvil.two", ... ]
+}
+</code></pre>
+
+<h3>Installing Plugins Locally For A Project</h3>
+
+<p>You can now install a plugin locally to a project using npm like so:</p>
+
+<pre><code>npm install {pluginname}
+</code></pre>
+
+<p>In order for anvil to know about the plugin, you must add the following option to your build file:</p>
+
+<pre><code>"plugins": {
+    "local": [ "myLocallyInstalledPluginName" ]
+}
+</code></pre>
+
+<p>Please note: if you have already installed a global version of the plugin, anvil will always prefer the locally installed plugin; if you wish to use a global version of the plugin, you must use npm to uninstall the local version. Anvil does not manage locally installed plugins.</p>
+
+<h1>Contributors</h1>
+
+<p>Special thanks to the following individuals who have contributed source code or ideas to help make anvil less buggy and more useful:</p>
+
+<ul>
+<li>Jim Cowart</li>
+<li>Aaron McCall</li>
+<li>Mike Stenhouse</li>
+<li>Robert Messerle</li>
+<li>Mike Hostetler</li>
+<li>Jonathan Creamer</li>
+<li>Brian Edgerton</li>
+<li>Elijah Manor</li>
+<li>Doug Neiner</li>
+<li>Derick Bailey</li>
+</ul>
       </section>
     </div>
 
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Anvil.js maintained by <a href="https://github.com/appendto">appendto</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
     
+
   </body>
 </html>
