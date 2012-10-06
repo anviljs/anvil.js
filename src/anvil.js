@@ -81,7 +81,7 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 	};
 
 	Anvil.prototype.on = function( eventName, handler ) {
-		events.on( "anvil." + eventName, handler );
+		return events.on( "anvil." + eventName, handler );
 	};
 
 	Anvil.prototype.publish = function( topic, message ) {

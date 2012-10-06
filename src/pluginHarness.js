@@ -33,6 +33,7 @@ var factory = function() {
 			this.command = [ "node", "anvil.js" ];
 			this.expected = [];
 			this.files = [];
+			this.fileSystem = fs;
 			this.logs = {
 				debug: [],
 				"event": [],
@@ -71,11 +72,12 @@ var factory = function() {
 		};
 
 		Harness.prototype.expectFile = function( pathSpec, content ) {
-			pathSpec = path.resolve( anvil.fs.buildPath( pathSpec ) );
+			pathSpec = anvil.fs.buildPath( pathSpec );
 			this.expected.push( { path: pathSpec, content: content } );
 		};
 
 		Harness.prototype.build = function( assert, done ) {
+			var self = this;
 			this.buildOnly( function() {
 				done( self.generateAssertions( assert ) );
 			} );
