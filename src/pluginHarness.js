@@ -1,36 +1,32 @@
 var _ = require( "underscore" );
 var path = require( "path" );
+var realFs = require( "fs" );
+var commander = require( "commander" );
+var machina = require( "machina" );
+var postal = require( "postal" );
 var fs = require( "./fs.mock.js" )( _, path );
+var scheduler = require( "./scheduler.js" )( _ );
+var events = require( "./eventAggregator.js" )( _ );
+var bus = require( "./bus.js")( _, postal );
+var anvil = require( "./anvil.js" )( _, scheduler, fs, events, bus );
+var log = require( "./log.js" )( anvil );
+require( "./consoleLogger" )( _, anvil );
+require( "./utility.js")( _, anvil );
+var plugin = require( "./plugin.js" )( _, anvil );
+var manager = require( "./pluginManager.js" )( _, anvil );
+var locator = require( "./pluginLocator.js" )( _, manager, anvil );
+var config = require( "./config.js" )( _, commander, path, anvil );
+var activityManager = require( "./activityManager.js" )( _, machina, anvil );
+anvil.project.root = path.resolve( "./" );
 
-var factory = function(
-		scheduler,
-		crawler,
-		mkdir,
-		events,
-		bus,
-		manager,
-		locator,
-		config,
-		activityManager,
-		plugin,
-		log
-	) {
-	var anvil = require( "./anvil.js" )(
-		_, scheduler, fs, events, bus
-	);
-	require( "./utility.js")( _, anvil );
-	anvil.project.root = path.resolve( "./" );
-	return function( plugin, pluginPath ) {
+var factory = function() {
+	
+	var harnessFactory = function( plugin, pluginPath ) {
 
-		var preLoaded = [];
-		manager.loadPlugin( plugin, pluginPath, preLoaded );
+		var preLoaded = [],
+			instance = manager.loadPlugin( plugin, pluginPath, preLoaded );
 		locator.preLoaded = preLoaded;
-
-		var pluginsPath = path.resolve( __dirname, "../plugins.json" );
-		fs.write(
-			pluginsPath,
-			'{ "list": [ "combiner", "compiler", "concat", "fileLoader", "filePrep", "output", "pluginInstaller", "replace" ] }',
-			function() {} );
+		locator.initPlugin( instance );
 
 		var Harness = function() {
 			_.bindAll( this );
@@ -45,6 +41,7 @@ var factory = function(
 				warning: [],
 				error: []
 			};
+			this.plugin = instance;
 		};
 
 		Harness.prototype.addFile = function( pathSpec, content ) {
@@ -116,6 +113,23 @@ var factory = function(
 
 		return new Harness();
 	};
+
+	var dataPath = fs.buildPath( [ "~/.anvilplugins", "plugins.json" ] ),
+		packagePath = "./package.json";
+	
+	scheduler.parallel( [ dataPath, packagePath ], function( filePath, done ) {
+		realFs.readFile( filePath, "utf8", function( error, content ) {
+			if( !error ) {
+				fs.write( filePath, content, function() {
+					done();
+				} );
+			} else {
+				done();
+			}
+		} );
+	}, function() {} );
+
+	return harnessFactory;
 };
 
 module.exports = factory;
