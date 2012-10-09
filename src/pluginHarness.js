@@ -1,32 +1,47 @@
-var _ = require( "underscore" );
-var path = require( "path" );
-var realFs = require( "fs" );
-var commander = require( "commander" );
-var machina = require( "machina" );
-var postal = require( "postal" );
-var fs = require( "./fs.mock.js" )( _, path );
-var scheduler = require( "./scheduler.js" )( _ );
-var events = require( "./eventAggregator.js" )( _ );
-var bus = require( "./bus.js")( _, postal );
-var anvil = require( "./anvil.js" )( _, scheduler, fs, events, bus );
-var log = require( "./log.js" )( anvil );
-require( "./consoleLogger" )( _, anvil );
-require( "./utility.js")( _, anvil );
-var plugin = require( "./plugin.js" )( _, anvil );
-var manager = require( "./pluginManager.js" )( _, anvil );
-var locator = require( "./pluginLocator.js" )( _, manager, anvil );
-var config = require( "./config.js" )( _, commander, path, anvil );
-var activityManager = require( "./activityManager.js" )( _, machina, anvil );
-anvil.project.root = path.resolve( "./" );
+var path = require( "path" ),
+	realFs = require( "fs" ),
+	_ = require( "underscore" ),
+	machina = require( "machina" ),
+	postal = require( "postal" ),
+	scheduler = require( "./scheduler.js" )( _ );
+
 
 var factory = function() {
 	
 	var harnessFactory = function( plugin, pluginPath ) {
 
-		var preLoaded = [],
-			instance = manager.loadPlugin( plugin, pluginPath, preLoaded );
+		var commander = require( "commander" ),
+			fs = require( "./fs.mock.js" )( _, path ),
+			events = require( "./eventAggregator.js" )( _ ),
+			bus = require( "./bus.js")( _, postal ),
+			anvil = require( "./anvil.js" )( _, scheduler, fs, events, bus ),
+			log = require( "./log.js" )( anvil );
+		require( "./consoleLogger" )( _, anvil );
+		require( "./utility.js")( _, anvil );
+		anvil.project.root = path.resolve( "./" );
+		var pluginModule = require( "./plugin.js" )( _, anvil ),
+			manager = require( "./pluginManager.js" )( _, anvil ),
+			locator = require( "./pluginLocator.js" )( _, manager, anvil ),
+			config = require( "./config.js" )( _, commander, path, anvil ),
+			activityManager = require( "./activityManager.js" )( _, machina, anvil ),
+			preLoaded = [],
+			instance = manager.loadPlugin( plugin, pluginPath, preLoaded ),
+			dataPath = fs.buildPath( [ "~/.anvilplugins", "plugins.json" ] ),
+			packagePath = "./package.json";
+
 		locator.preLoaded = preLoaded;
 		locator.initPlugin( instance );
+		scheduler.parallel( [ dataPath, packagePath ], function( filePath, done ) {
+			realFs.readFile( filePath, "utf8", function( error, content ) {
+				if( !error ) {
+					fs.write( filePath, content, function() {
+						done();
+					} );
+				} else {
+					done();
+				}
+			} );
+		}, function() {} );
 
 		var Harness = function() {
 			_.bindAll( this );
@@ -112,25 +127,8 @@ var factory = function() {
 			);
 			return handles;
 		};
-
 		return new Harness();
 	};
-
-	var dataPath = fs.buildPath( [ "~/.anvilplugins", "plugins.json" ] ),
-		packagePath = "./package.json";
-	
-	scheduler.parallel( [ dataPath, packagePath ], function( filePath, done ) {
-		realFs.readFile( filePath, "utf8", function( error, content ) {
-			if( !error ) {
-				fs.write( filePath, content, function() {
-					done();
-				} );
-			} else {
-				done();
-			}
-		} );
-	}, function() {} );
-
 	return harnessFactory;
 };
 
