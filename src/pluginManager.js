@@ -101,9 +101,21 @@ var pluginManagerFactory = function( _, anvil ) {
 	};
 
 	PluginManager.prototype.getEnabledPlugins = function( done ) {
+		var self = this;
 		anvil.fs.read( dataPath, function( json, err ) {
+			var list = [];
 			if(! err ) {
-				done( JSON.safeParse( json ).list );
+				try {
+					list = JSON.safeParse( json ).list;
+					done( list );
+				} catch ( error ) {
+					anvil.log.error( "~/.anvilplugins/plugins.json was corrupted and will be re-created. This will re-enable all installed plugins." );
+					self.getInstalled( pluginInstallPath, function( list ) {
+						anvil.fs.write( dataPath, JSON.stringify( { list: list }, null, 4 ), function() {
+							done( list );
+						} );
+					} );
+				}
 			} else {
 				done( [] );
 			}
