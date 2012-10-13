@@ -34,7 +34,7 @@ var pluginManagerFactory = function( _, anvil ) {
 
 	PluginManager.prototype.addPlugin = function( plugin, onComplete ) {
 		anvil.fs.read( dataPath, function( json ) {
-			var plugins = JSON.parse( json );
+			var plugins = JSON.safeParse( json );
 			if( ! _.any( plugins.list, function( name ) { return name === plugin; } ) ) {
 				plugins.list.push( plugin );
 				json = JSON.stringify( plugins, null, 4 );
@@ -103,7 +103,7 @@ var pluginManagerFactory = function( _, anvil ) {
 	PluginManager.prototype.getEnabledPlugins = function( done ) {
 		anvil.fs.read( dataPath, function( json, err ) {
 			if(! err ) {
-				done( JSON.parse( json ).list );
+				done( JSON.safeParse( json ).list );
 			} else {
 				done( [] );
 			}
