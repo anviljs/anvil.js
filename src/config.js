@@ -15,6 +15,7 @@ var configFactory = function( _, commander, path, anvil ) {
 		source: "./src",
 		spec: "./spec",
 		output: "./lib",
+		external: "./ext",
 		tasks: "./tasks",
 		log: {
 			debug: false,
