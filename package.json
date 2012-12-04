@@ -2,7 +2,7 @@
   "author": "Alex Robson <alex@sharplearningcurve.com> (http://sharplearningcurve.com)",
   "name": "anvil.js",
   "description": "an extensible build system",
-  "version": "0.8.11",
+  "version": "0.8.15",
   "repository": {
     "type": "git",
     "url": "git://github.com/appendto/anvil.js.git"
@@ -10,6 +10,7 @@
   "engines": {
     "node": "~0.8.3"
   },
+  "preferGlobal": true,
   "dependencies": {
     "colors": "0.6.0",
     "commander": "1.0.0",
@@ -29,5 +30,15 @@
   "scripts": {
     "install": "npm link npm --local",
     "postinstall": "node ./init.js"
-  }
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/anviljs/anvil.js/raw/master/LICENSE-MIT"
+    },
+    {
+      "type": "GPL",
+      "url": "https://github.com/anviljs/anvil.js/raw/master/LICENSE-GPL"
+    },
+  ]
 }

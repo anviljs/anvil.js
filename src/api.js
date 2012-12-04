@@ -1,4 +1,4 @@
- _ = require( "underscore" );
+_ = require( "underscore" );
 var commander = require( "commander" );
 var machina = require( "machina" );
 var postal = require( "postal" );
@@ -18,19 +18,7 @@ var manager = require( "./pluginManager.js" )( _, anvil );
 var locator = require( "./pluginLocator.js" )( _, manager, anvil );
 var config = require( "./config.js" )( _, commander, path, anvil );
 var activityManager = require( "./activityManager.js" )( _, machina, anvil );
-var Harness = require( "./pluginHarness.js" )(
-		scheduler,
-		crawler,
-		mkdir,
-		events,
-		bus,
-		manager,
-		locator,
-		config,
-		activityManager,
-		plugin,
-		log
-	);
+var Harness = require( "./pluginHarness.js" )();
 
 anvil.project.root = path.resolve( "./" );
 module.exports = {

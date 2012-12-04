@@ -9,6 +9,7 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		this.project = {
 			files: [],
 			directories: [],
+			dependencies: [],
 			getFile: function( spec ) {
 				spec = fs.buildPath( spec );
 				_.first( this.files, function( file ) {
@@ -36,6 +37,10 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 			"plugin.loaded": [ "instance" ],
 			"rebuild": [ "step" ]
 		};
+		this.unhandledResponse = {
+			"Error: watch EMFILE": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000",
+			"Error: EMFILE, too many open files": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000"
+		};
 		this.fs = fs;
 		this.scheduler = scheduler;
 		var self = this;
@@ -51,8 +56,12 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		process.removeAllListeners( "uncaughtException" );
 		process.on( "uncaughtException", function( err ) {
 			if( self.log ) {
-				self.log.error( "Unhandled exception: " + err + "\n" + err.stack );
-
+				var specialResponse = self.unhandledResponse[ err.toString() ];
+				if( specialResponse ) {
+					self.log.error( specialResponse );
+				} else {
+					self.log.error( "Unhandled exception: " + err + "\n" + err.stack );
+				}
 			} else {
 				console.log( "Unhandled exception: " + err + "\n" + err.stack );
 			}
@@ -81,7 +90,7 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 	};
 
 	Anvil.prototype.on = function( eventName, handler ) {
-		events.on( "anvil." + eventName, handler );
+		return events.on( "anvil." + eventName, handler );
 	};
 
 	Anvil.prototype.publish = function( topic, message ) {
