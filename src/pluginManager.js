@@ -34,7 +34,7 @@ var pluginManagerFactory = function( _, anvil ) {
 
 	PluginManager.prototype.addPlugin = function( plugin, onComplete ) {
 		anvil.fs.read( dataPath, function( json ) {
-			var plugins = JSON.parse( json );
+			var plugins = JSON.safeParse( json );
 			if( ! _.any( plugins.list, function( name ) { return name === plugin; } ) ) {
 				plugins.list.push( plugin );
 				json = JSON.stringify( plugins, null, 4 );
@@ -101,9 +101,21 @@ var pluginManagerFactory = function( _, anvil ) {
 	};
 
 	PluginManager.prototype.getEnabledPlugins = function( done ) {
+		var self = this;
 		anvil.fs.read( dataPath, function( json, err ) {
+			var list = [];
 			if(! err ) {
-				done( JSON.parse( json ).list );
+				try {
+					list = JSON.safeParse( json ).list;
+					done( list );
+				} catch ( error ) {
+					anvil.log.error( "~/.anvilplugins/plugins.json was corrupted and will be re-created. This will re-enable all installed plugins." );
+					self.getInstalled( pluginInstallPath, function( list ) {
+						anvil.fs.write( dataPath, JSON.stringify( { list: list }, null, 4 ), function() {
+							done( list );
+						} );
+					} );
+				}
 			} else {
 				done( [] );
 			}
@@ -153,7 +165,7 @@ var pluginManagerFactory = function( _, anvil ) {
 	PluginManager.prototype.getPluginList = function( done ) {
 		var self = this;
 		this.getEnabledPlugins( function( list ) {
-			var pluginOptions = anvil.loadedConfig.plugins;
+			var pluginOptions = anvil.loadedConfig ? anvil.loadedConfig.plugins : {};
 			if( pluginOptions ) {
 				if( pluginOptions.local ) {
 					list = _.union( list, pluginOptions.local );
@@ -188,7 +200,7 @@ var pluginManagerFactory = function( _, anvil ) {
 	PluginManager.prototype.getTasks = function( done ) {
 		var self = this,
 			list = [],
-			taskPath = anvil.loadedConfig.tasks ?
+			taskPath = ( anvil.loadedConfig && anvil.loadedConfig.tasks ) ?
 						anvil.fs.buildPath( anvil.loadedConfig.tasks ):
 						path.resolve( anvil.config.tasks );
 		anvil.log.step( "loading tasks from " + taskPath );
@@ -273,12 +285,14 @@ var pluginManagerFactory = function( _, anvil ) {
 			}
 			anvil.raise( "plugin.loaded", instance );
 			anvil.log.debug( "loaded plugin " + plugin );
+			return instance;
 		} catch ( err ) {
 			anvil.log.error( "Error loading plugin '" + plugin + "' : " + err.stack );
 			removals.push( function( done ) { self.removePlugin( plugin, function() {
 					anvil.log.step( "Plugin '" + plugin + "' cannot be loaded and has been disabled");
 				} );
 			} );
+			return undefined;
 		}
 	};
 
@@ -368,9 +382,9 @@ var pluginManagerFactory = function( _, anvil ) {
 					self.updatePlugin( pluginName, done );
 				};
 			} );
-			anvil.scheduler.pipeline( undefined, calls, function() { 
+			anvil.scheduler.pipeline( undefined, calls, function() {
 				anvil.log.complete( "Anvil has finished updating installed plugins" );
-				done(); 
+				done();
 			} );
 		} );
 	};

@@ -15,6 +15,7 @@ var configFactory = function( _, commander, path, anvil ) {
 		source: "./src",
 		spec: "./spec",
 		output: "./lib",
+		external: "./ext",
 		tasks: "./tasks",
 		log: {
 			debug: false,
@@ -109,7 +110,7 @@ var configFactory = function( _, commander, path, anvil ) {
 		if( anvil.fs.pathExists( file ) ) {
 			anvil.fs.read( file, function( content ) {
 				try {
-					json = JSON.parse( content );
+					json = JSON.safeParse( content );
 					onComplete( json );
 				} catch ( err ) {
 					anvil.log.warning( "Could not load local build file: " + err.stack );
@@ -127,7 +128,7 @@ var configFactory = function( _, commander, path, anvil ) {
 			anvil.fs.read( "~/.anvil", function( content ) {
 				var userDefaults = {};
 				try {
-					userDefaults = JSON.parse( content );
+					userDefaults = JSON.safeParse( content );
 					onComplete( userDefaults );
 				} catch ( err ) {
 					anvil.log.warning( "Could not load .anvil file: " + err.stack );

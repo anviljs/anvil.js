@@ -2,9 +2,7 @@
 
 Anvil started as a way to build a single javascript module from several source files. Build tools that require a lot of explicit/declarative instructions distract from getting work on the project done.
 
-Anvil has been rewritten as a general build system with a plugin architecture. It should be easy to add features or change almost any behavior as needed.
-
-The new version of anvil is not entirely backwards compatible. If you want to continue using the old version, you can still install it from npm by specifying the version number ( 0.7.9 ). If you need help converting your project to the new version, please send me an e-mail or submit an issue to the project and I'll help as I have time.
+Anvil has been rewritten as a general build system with a plugin architecture. It should be easy to add features or change almost any behavior as needed. There's a lot of work going on now that will add new ways to use and extend anvil.
 
 ## What Does It Do?
 
@@ -249,3 +247,24 @@ Special thanks to the following individuals who have contributed source code or 
  * Elijah Manor
  * Doug Neiner
  * Derick Bailey
+
+# Legal Bits
+
+"Anvil.js"( also referred to as "Anvil") is owned by Alex Robson.  All rights not explicitly granted in the MIT or GPL license are reserved. See the included LICENSE-* files for more details.
+
+Extensions to Anvil (plugins, commands, tasks, etc.) are not part of Anvil itself, and are the sole property of their respective maintainers.  While every effort is made to ensure accountability, there is absolutely no guarantee, warrantee, or assertion made as to the quality, fitness for a specific purpose, or lack of malice in any given extension.  Extensions published on the npm registry are not affiliated with or endorsed by myself (Alex Robson) or my employer unless otherwise stated in the repository for the extension.
+
+If you have a complaint about an extension, and cannot resolve it with the package owner, please express your concerns to anviljs@gmail.com.
+
+### In plain english
+
+This is mine; not my employer's. They have graciously supported the efforts and made contributions but are in no way responsible or liable for it's suitability or function.
+
+If you create and publish an extension, it's yours, and you are solely accountable
+for it.  Not me, not my employer.
+
+If other people create and publish an extension, it's theirs.  Not mine, not my employer's.
+
+Malicious extensions could be published; consider the author behind the extension and perhaps review the code. There is no vetting process for published extensions.
+
+If this concerns you, inspect the source before installing or using any extension.
