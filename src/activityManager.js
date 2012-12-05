@@ -69,8 +69,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					this.handleEvent( "build.stop" );
 				},
 				"command.activated": function( action ) {
-					console.log( "Action that should get called: " + action );
-					anvil.raise( "all.stop", 0 );
+					this.transition( "commandMode" );
 				},
 				"plugin.loaded": function( plugin ) {
 					var self = this;
@@ -121,6 +120,11 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					var start = anvil.config.activityOrder[ 0 ];
 					anvil.log.step( "restarting previously failed build" );
 					this.transition( start );
+				}
+			},
+			"commandMode": {
+				_onEnter: function() {
+					anvil.log.debug( "Entering command mode, no build will run" );
 				}
 			}
 		}

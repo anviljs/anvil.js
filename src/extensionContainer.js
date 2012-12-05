@@ -70,7 +70,7 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 			if( instance.extensionType === "plugins" ) {
 				this.setupCommandRoutes( instance );
 			} else {
-				this.setupCommandActions( instance );
+				this.setupCommandActions( instance, instance.commander, anvil.commander, 2 );
 			}
 		}
 	};
@@ -112,8 +112,47 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 	};
 
 	// this is going to hurt me more than it hurts you (hey, I had to write it to begin with...)
-	ExtensionContainer.prototype.setupCommandActions = function ( instance ) {
-		console.log( "Oh hai, I don't do things yet" );
+	ExtensionContainer.prototype.setupCommandActions = function ( instance, spec, commander, consumed ) {
+		var self = this;
+
+		_.each( spec, function( commandSpec, key ) {
+			if( key === "options" ) {
+				_.each( commandSpec, function( options ) {
+					self.commandOptions.push( options );
+				} );
+			} else {
+				var actionName = commandSpec.action,
+					call = instance[ actionName ],
+					cmd = commander
+							.command( key )
+							.description( commandSpec.description );
+
+				if( commandSpec.action ) {
+					cmd = cmd.action( function() {
+						anvil.raise( "command.activated", actionName );
+						var originalArgs = anvil.commander.rawArgs,
+							expectedCount = cmd._args.length + 1,
+							currentArgs = originalArgs.slice( consumed + 1, consumed + expectedCount ),
+							remainingArgs = originalArgs.slice( consumed + expectedCount ),
+							done = function() {
+								if( remainingArgs) {
+									cmd.parseArgs( remainingArgs );
+								}
+							},
+							args = currentArgs.concat( [ cmd, done ] );
+						instance[ actionName ].apply( instance, args );
+					} );
+				}
+				if( commandSpec.options ) {
+					_.each( commandSpec.options, function( options ) {
+						cmd = cmd.option.apply( cmd, options );
+					} );
+				}
+				if( commandSpec.commands ) {
+					self.setupCommandActions( instance, commandSpec.commands, cmd, consumed + cmd._args.length + 1 );
+				}
+			}
+		} );
 	};
 
 	// Look away, shield your eyes. For only sorrow lies before those who

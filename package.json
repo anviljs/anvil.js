@@ -13,7 +13,7 @@
   "preferGlobal": true,
   "dependencies": {
     "colors": "0.6.0",
-    "commander": "1.0.0",
+    "commander": "~1.1",
     "fs-watch-tree": "0.2.2",
     "machina": "~0.2.0",
     "mkdirp": "0.3.3",

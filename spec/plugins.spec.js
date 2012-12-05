@@ -14,6 +14,7 @@ var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
 require( "../src/utility.js")( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
+var command = require( "../src/command.js" )( _, anvil );
 var manager = require( "../src/extensionManager.js" )( _, anvil );
 var container = require( "../src/extensionContainer.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
