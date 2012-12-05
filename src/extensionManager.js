@@ -223,10 +223,10 @@ var extensionManagerFactory = function( _, anvil ) {
 		anvil.log.step( "loading local extensions from " + localPath );
 		this.getInstalled( localPath, function( extensions ) {
 			_.each( extensions, function( extension ) {
-				var basePath = anvil.fs.buildPath( [ localPath, extensions ] ),
-					scriptPath = anvil.fs.buildPath( [ basePath, extensions + ".js" ] ),
+				var basePath = anvil.fs.buildPath( [ localPath, extension ] ),
+					scriptPath = anvil.fs.buildPath( [ basePath, extension + ".js" ] ),
 					exists = anvil.fs.pathExists( scriptPath );
-				self.loadExtension( extensions, exists ? scriptPath : basePath , list, [] );
+				self.loadExtension( extension, exists ? scriptPath : basePath , list, [] );
 			} );
 			done( list );
 		} );

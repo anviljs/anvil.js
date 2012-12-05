@@ -63,9 +63,14 @@ var activityManagerFactory = function( _, machina, anvil ) {
 				_onEnter: function() {
 					this.handleEvent( "plugins.configured" );
 					this.handleEvent( "plugin.loaded" );
+					this.handleEvent( "command.activated" );
 					this.handleEvent( "rebuild" );
 					this.handleEvent( "config" );
 					this.handleEvent( "build.stop" );
+				},
+				"command.activated": function( action ) {
+					console.log( "Action that should get called: " + action );
+					anvil.raise( "all.stop", 0 );
 				},
 				"plugin.loaded": function( plugin ) {
 					var self = this;
