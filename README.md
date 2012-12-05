@@ -2,19 +2,26 @@
 
 Anvil started as a way to build a single javascript module from several source files. Build tools that require a lot of explicit/declarative instructions distract from getting work on the project done.
 
-Anvil has been rewritten as a general build system with a plugin architecture. It should be easy to add features or change almost any behavior as needed. There's a lot of work going on now that will add new ways to use and extend anvil.
+Anvil has been rewritten as a general build system with an extension-based architecture. It should be easy to add features or change almost any behavior as needed. There's a lot of work going on now that will add new ways to use and extend anvil.
+
+## !Recent Changes!
+Changes to terminology and concepts from the 0.8.* version:
+* An extension is anything you install from npm or anything anvil loads from your file system
+* A plugin is a type of extension
+* Commands will allow developers to extend anvil to perform specific tasks that aren't part of a build
+* Tasks will be a way for you to define individual instructions (ala Make) that can take dependencies on one another
 
 ## What Does It Do?
 
-All parts of the build process are implemented as plugins. Some plugins ship along with anvil's source so that it can do _something_ out of the box. Most of the interesting features will likely be plugins that you install.
+All parts of the build process are implemented as extensions (specifically as build plugins). Some extensions ship along with anvil's source so that it can do _something_ out of the box. Most of the interesting features will likely be extensions that you install.
 
 A baseline install can do the following:
 
-* Install, remove, enable or disable plugins
-* Automatically install any plugins your build file defines as dependencies
-* Run local tasks (follows the same api as a plugin)
+* Install, remove, enable or disable extensions
+* Automatically install any extensions your build file defines as dependencies
+* Run local extensions (an extension that's not installed from npm)
 * Continuously and incrementally build the project as files change
-* Create default build files based on installed plugins
+* Create default build files based on installed extensions
 * Combine resource files through a comment-based import syntax
 * Concat resource files in specified order using
     * JSON or YAML file that lists files to create from other files
@@ -44,7 +51,7 @@ Without a build file, anvil will use its default conventions to attempt to build
 * source is the path where _all_ project source belongs; this can be a flat or complex hierarchy
 * output is a list of paths to copy build output to.
 * spec is the folder where test specifications can be found
-* dependencies is a list of anvil plugin names that should be installed before the build can proceed
+* dependencies is a list of anvil extension names that should be installed before the build can proceed
 
 ## Building By Convention
 
@@ -52,11 +59,11 @@ If you don't specify your own build file, anvil assumes you intend to use a buil
 
 ## Writing New Build Files
 
-Keeping up with all the plugin defaults can be difficult. To see what's available by default for each plugin, you can write a new build file for customization.
+Keeping up with all the extension defaults can be difficult. To see what's available by default for each extension, you can write a new build file for customization.
 
     anvil --write {name}
 
-This command creates a build file in the current directory at {name}.json. It will include all the default settings for all the installed and built-in plugins.
+This command creates a build file in the current directory at {name}.json. It will include all the default settings for all the installed and built-in extensions.
 
 ## Combining source files, Import Style
 
@@ -162,76 +169,81 @@ You can tell anvil to run in quiet mode (it will still print errors (red) and st
 
     anvil -q
 
-# Plugins & Tasks
-Anvil has two primary points for extension: plugins (things installed by anvil from npm) and tasks (local plugins).
+# Extensions
+Anvil has three primary points for extension:
+* plugins - extensions to the build system
+* commands - utility features that run outside of the build
+* tasks - specialized functions that can be combined to give you explicit control of what anvil does
 
-## Plugins
-Anvil installs plugins from npm to a global location: ~/.anvilplugins/node_modules and keeps a manifest of installed and enabled plugins at: ~/.anvilplugins/plugins.json.
+An extension module can contain one or more of any of the three above types. Installing, uninstalling, enabling and disabling an extension module will affect **all** extensions defined within the module.
 
-Once a plugin is installed, anvil will load it and use it in the build process unless you:
-  * Disable it globally with '''anvil disable {pluginname}''' at the command line
-  * Explicitly include other plugins besides it in the build file
+## Installation
+Anvil installs extensions from npm to a global location: ~/.anvilextensions/node_modules and keeps a manifest of installed and enabled extensions at: ~/.anvilextensions/extensions.json.
+
+Once an extension is installed, anvil will load it unless you:
+  * Disable it globally with '''anvil disable {extensionname}''' at the command line
+  * Explicitly include other extensions besides it in the build file
   * Explicitly exclude it in the build file
 
-### When Plugins Misbehave
-Anvil will attempt to automatically disable a plugin that throws an exception that would break the build. This is to try and prevent an installed plugin from breaking your build system.
+### When Extensions Misbehave
+Anvil will attempt to automatically disable a extension that throws an exception that would break the build. This is to try and prevent an installed extension from breaking your build system.
 
 ### Installing & Uninstalling
-Anvil provides simple command line arguments to install or uninstall plugins to itself at a global level:
+Anvil provides simple command line arguments to install or uninstall extensions to itself at a global level:
 
-    anvil install {pluginname}
+    anvil install {extensionname}
 
 or
 
-    anvil uninstall {pluginname}
+    anvil uninstall {extensionname}
 
-You can also install plugins from a file path using the relative path to the plugin directory in place of the plugin's name.
+You can also install extensions from a file path using the relative path to the extension directory in place of the extension's name.
 
 ### Enabling & Disabling
-Anvil provides command line arguments that allow you to enable or disable plugins at the global level:
+Anvil provides command line arguments that allow you to enable or disable extensions at the global level:
 
-    anvil enable {pluginname}
+    anvil enable {extensionname}
 
 or
 
-    anvil disable {pluginname}
+    anvil disable {extensionname}
 
-Disabled plugins should never be loaded into a build session.
+Disabled extensions should never be loaded into a build session.
 
-### Updating Plugins
-Anvil will check npm for updates to all globally installed plugins with one simple command:
+### Updating Extensions
+Anvil will check npm for updates to all globally installed extensions with one simple command:
 
     anvil update
 
-This command will take longer the more plugins you have installed and the more plugins which require updates from npm. Note: anvil automatically does this every time you install a new anvil version from npm.
+This command will take longer the more extensions you have installed and the more extensions which require updates from npm. Note: anvil automatically does this every time you install a new anvil version from npm.
 
 
-### Including Specific Plugins
-Anvil's build file now supports explicit inclusion only so that only plugins which you specify in the build file will be run as part of the build.
+### Including Specific Extensions
+Anvil's build file now supports explicit inclusion only so that only extensions which you specify in the build file will be run as part of the build.
 
-    "plugins": {
+    "extensions": {
         "include": [ "anvil.one", "anvil.two", ... ]
     }
 
-### Excluding Specified Plugins
-Anvil also supports explicit exclusion so that all plugins except for those you specify in the build file will be run as part of the build.
+### Excluding Specified Extensions
+Anvil also supports explicit exclusion so that all extensions except for those you specify in the build file will be run as part of the build.
 
-    "plugins": {
+    "extension": {
         "exclude": [ "anvil.one", "anvil.two", ... ]
     }
 
-### Installing Plugins Locally For A Project
-You can now install a plugin locally to a project using npm like so:
+### Installing Extensions Locally For A Project
+You can now install an extension locally to a project using npm like so:
 
-    npm install {pluginname}
+    npm install {extensionname}
 
-In order for anvil to know about the plugin, you must add the following option to your build file:
+In order for anvil to know about the extension, you must add the following option to your build file:
 
-    "plugins": {
+    "extensions": {
         "local": [ "myLocallyInstalledPluginName" ]
     }
 
-Please note: if you have already installed a global version of the plugin, anvil will always prefer the locally installed plugin; if you wish to use a global version of the plugin, you must use npm to uninstall the local version. Anvil does not manage locally installed plugins.
+Please note: if you have already installed a global version of the extension, anvil will always prefer the locally installed extension; if you wish to use a global version of the extension, you must use npm to uninstall the local version. Anvil does not manage locally installed extensions.
 
 # Contributors
 

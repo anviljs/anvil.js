@@ -3,7 +3,7 @@ var commandFactory = function( _, anvil ) {
 	var Command = function() {
 		_.bindAll( this );
 		this.name = "";
-		this.commander = [];
+		this.commander = {};
 		this.config = {};
 		this.events = {};
 	};
@@ -50,6 +50,9 @@ var commandFactory = function( _, anvil ) {
 		var base = new Command();
 		var extended = _.extend( base, instance );
 		_.bindAll( extended );
+		anvil.extensions.commands[ instance.name ] = extended;
+		anvil.raise( "command.loaded", extended );
+		anvil.log.debug( "loaded command " + instance.name );
 		return extended;
 	};
 };
