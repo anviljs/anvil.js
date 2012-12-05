@@ -14,7 +14,7 @@ require( "../src/utility.js")( _, anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 var manager = require( "./fakeManager.js" )( _, anvil );
-var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
+var container = require( "../src/extensionContainer.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
 var activityManager = require( "../src/activityManager.js" )( _, machina, anvil );
 
@@ -27,10 +27,6 @@ describe( "when using activity manager during system start", function() {
 			done();
 		} );
 		config.initialize( [ "node", "anvil", "--pa", "test" ] );
-		setTimeout( function() {
-			buildComplete = true;
-			done();
-		}, 300 );
 	} );
 
 	it( "should complete build", function() {
@@ -38,7 +34,9 @@ describe( "when using activity manager during system start", function() {
 	} );
 
 	it( "should have run all plugins", function() {
-		_.all( manager.plugins, function( plugin ) { return plugin.instance.ran; } ).should.be.true;
+		_.all( anvil.extensions.plugins, function( plugin ) {
+			return plugin.ran;
+		} ).should.be.true;
 	} );
 
 } );

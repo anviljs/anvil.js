@@ -1,0 +1,7 @@
+{
+	"launchers": {
+		"Mocha": {
+			"command": "mocha ./spec/*.js"
+		}
+	}
+}

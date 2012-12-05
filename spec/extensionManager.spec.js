@@ -13,51 +13,51 @@ require( "../src/utility.js")( _, anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 
-var pluginManager = require( "../src/pluginManager.js" )( _, anvil );
+var extensionManager = require( "../src/extensionManager.js" )( _, anvil );
 
-describe( "when getting the list of loaded plugins", function() {
+describe( "when getting the list of loaded extensions", function() {
 	var list = [];
 
 	before( function( done ) {
-		pluginManager.getEnabledPlugins( function( instances ) {
+		extensionManager.getEnabledExtensions( function( instances ) {
 			list = instances;
 			done();
 		} );
 	} );
 
-	it( "should return the list of plugins installed", function() {
+	it( "should return the list of extensions installed", function() {
 		_.isEqual( list, [] ).should.not.ok;
 		list.length.should.equal( 9 );
 	} );
 } );
 
-describe( "when adding a new plugin", function() {
+describe( "when adding a new extension", function() {
 	var list = [],
 		err;
 
 	before( function( done ) {
-		pluginManager.addPlugin( "testPlugin", function() {
-			pluginManager.getEnabledPlugins( function( instances ) {
+		extensionManager.addExtension( "testExtension", function() {
+			extensionManager.getEnabledExtensions( function( instances ) {
 				list = instances;
 				done();
 			} );
 		} );
 	} );
 	
-	it( "should return the list of plugins installed", function() {
-		//list[ list.length - 1 ].name.should.equal( "testPlugin" );
+	it( "should return the list of extensions installed", function() {
+		//list[ list.length - 1 ].name.should.equal( "testExtension" );
 		( err == undefined ).should.ok;
 		list.length.should.equal( 10 );
 	} );
 } );
 
-describe( "when adding an existing plugin", function() {
+describe( "when adding an existing extension", function() {
 	var list = [],
 		err;
 
 	before( function( done ) {
-		pluginManager.addPlugin( "testPlugin", function() {
-			pluginManager.getEnabledPlugins( function( instances ) {
+		extensionManager.addExtension( "testExtension", function() {
+			extensionManager.getEnabledExtensions( function( instances ) {
 				list = instances;
 				done();
 			} );
@@ -65,20 +65,20 @@ describe( "when adding an existing plugin", function() {
 	} );
 	
 
-	it( "should return the list of plugins installed", function() {
-		list[ list.length - 1 ].should.equal( "testPlugin" );
+	it( "should return the list of extensions installed", function() {
+		list[ list.length - 1 ].should.equal( "testExtension" );
 		( err == undefined ).should.ok;
 		list.length.should.equal( 10 );
 	} );
 } );
 
-describe( "when removing an existing plugin", function() {
+describe( "when removing an existing extension", function() {
 	var list = [],
 		err;
 
 	before( function( done ) {
-		pluginManager.removePlugin( "testPlugin", function() {
-			pluginManager.getEnabledPlugins( function( instances ) {
+		extensionManager.removeExtension( "testExtension", function() {
+			extensionManager.getEnabledExtensions( function( instances ) {
 				list = instances;
 				done();
 			} );
@@ -86,20 +86,20 @@ describe( "when removing an existing plugin", function() {
 	} );
 	
 
-	it( "should return the list of plugins except the removed one", function() {
+	it( "should return the list of extensions except the removed one", function() {
 		_.isEqual( list, [] ).should.not.ok;
 		( err == undefined ).should.ok;
 		list.length.should.equal( 9 );
 	} );
 } );
 
-describe( "when removing a missing plugin", function() {
+describe( "when removing a missing extension", function() {
 	var list = [],
 		err;
 
 	before( function( done ) {
-		pluginManager.removePlugin( "lulzImNot4Real", function() {
-			pluginManager.getEnabledPlugins( function( instances ) {
+		extensionManager.removeExtension( "lulzImNot4Real", function() {
+			extensionManager.getEnabledExtensions( function( instances ) {
 				list = instances;
 				done();
 			} );
@@ -107,7 +107,7 @@ describe( "when removing a missing plugin", function() {
 	} );
 	
 
-	it( "should return the list of plugins installed", function() {
+	it( "should return the list of extensions installed", function() {
 		_.isEqual( list, [] ).should.not.ok;
 		( err == undefined ).should.ok;
 		list.length.should.equal( 9 );

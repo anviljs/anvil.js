@@ -14,7 +14,7 @@ require( "../src/utility.js")( _, anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 var manager = require( "./fakeManager.js" )( _, anvil );
-var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
+var container = require( "../src/extensionContainer.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
 
 var pluginFile = {
@@ -39,7 +39,7 @@ describe( "when setting up configuration and plugins", function() {
 	} );
 
 	it( "should dispatch completed commander to plugins", function() {
-		locator.instances[ "pluginA" ].config.should.equal( "test" );
+		anvil.extensions.plugins[ "pluginA" ].config.commandLine.should.equal( "test" );
 	} );
 
 } );
