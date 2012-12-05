@@ -121,41 +121,50 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 					self.commandOptions.push( options );
 				} );
 			} else {
-				var actionName = commandSpec.action,
-					call = instance[ actionName ],
-					cmd = commander
-							.command( key )
-							.description( commandSpec.description );
-
-				if( commandSpec.action ) {
-					cmd = cmd.action( function() {
-						anvil.raise( "command.activated", actionName );
-						var originalArgs = anvil.commander.rawArgs,
-							expectedCount = cmd._args.length + 1,
-							currentArgs = originalArgs.slice( consumed + 1, consumed + expectedCount ),
-							remainingArgs = originalArgs.slice( consumed + expectedCount ),
-							done = function() {
-								if( remainingArgs.length > 0 ) {
-									cmd.parseArgs( remainingArgs );
-								}
-							},
-							args = currentArgs.concat( [ cmd, done ] );
-						while( args.length <= expectedCount ) {
-							args.unshift( undefined );
-						}
-						instance[ actionName ].apply( instance, args );
-					} );
-				}
-				if( commandSpec.options ) {
-					_.each( commandSpec.options, function( options ) {
-						cmd = cmd.option.apply( cmd, options );
-					} );
-				}
-				if( commandSpec.commands ) {
-					self.setupCommandActions( instance, commandSpec.commands, cmd, consumed + cmd._args.length + 1 );
-				}
+				var keys = key.split(",");
+				_.each( keys, function( k ) {
+					k = k.trim();
+					self.wireupCommandSpec( k, commandSpec, instance, commander, consumed );
+				} );
 			}
-		} );
+ 		} );
+	};
+
+	ExtensionContainer.prototype.wireupCommandSpec = function( key, commandSpec, instance, commander, consumed ) {
+		var self = this,
+			actionName = commandSpec.action,
+			call = instance[ actionName ],
+			cmd = commander
+					.command( key )
+					.description( commandSpec.description );
+
+		if( commandSpec.action ) {
+			cmd = cmd.action( function() {
+				anvil.raise( "command.activated", actionName );
+				var originalArgs = anvil.commander.rawArgs,
+					expectedCount = cmd._args.length + 1,
+					currentArgs = originalArgs.slice( consumed + 1, consumed + expectedCount ),
+					remainingArgs = originalArgs.slice( consumed + expectedCount ),
+					done = function() {
+						if( remainingArgs.length > 0 ) {
+							cmd.parseArgs( remainingArgs );
+						}
+					},
+					args = currentArgs.concat( [ cmd, done ] );
+				while( args.length <= expectedCount ) {
+					args.unshift( undefined );
+				}
+				instance[ actionName ].apply( instance, args );
+			} );
+		}
+		if( commandSpec.options ) {
+			_.each( commandSpec.options, function( options ) {
+				cmd = cmd.option.apply( cmd, options );
+			} );
+		}
+		if( commandSpec.commands ) {
+			self.setupCommandActions( instance, commandSpec.commands, cmd, consumed + cmd._args.length + 1 );
+		}
 	};
 
 	// Look away, shield your eyes. For only sorrow lies before those who
