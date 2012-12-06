@@ -15,7 +15,8 @@ var extensionManagerFactory = function( _, anvil ) {
 			"anvil.headers",
 			"anvil.identify",
 			"anvil.output",
-			"anvil.plugin",
+			"anvil.extension",
+			"anvil.scaffold.cli",
 			"anvil.token",
 			"anvil.transform",
 			"anvil.workset"
@@ -281,7 +282,7 @@ var extensionManagerFactory = function( _, anvil ) {
 	};
 
 	// generates a list of installed extensions
-	ExtensionManager.prototype.list = function( ignore, done ) {
+	ExtensionManager.prototype.list = function( done ) {
 		var self = this;
 		anvil.log.complete( "Installed extension list: " );
 		this.getInstalled( extensionInstallPath, function( extensions ) {
@@ -393,7 +394,7 @@ var extensionManagerFactory = function( _, anvil ) {
 	};
 
 	// updates all installed extensions
-	ExtensionManager.prototype.update = function( ignored, done ) {
+	ExtensionManager.prototype.update = function( done ) {
 		var self = this;
 		this.getInstalled( extensionInstallPath, function( list ) {
 			var calls = _.map( list, function( extensionName ) {
