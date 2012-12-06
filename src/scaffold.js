@@ -26,12 +26,6 @@ var scaffoldFactory = function( _, anvil ) {
 		this.parse( this.output, "", done );
 	};
 
-	Scaffold.prototype.file = function( pathSpec ) {
-		return function( viewModel, done ) {
-			anvil.fs.read( pathSpec, done );
-		};
-	};
-
 	Scaffold.prototype.parse = function( content, pathSpec, done ) {
 		var self = this;
 		if( _.isFunction( content ) ) {
@@ -166,6 +160,12 @@ var scaffoldFactory = function( _, anvil ) {
 		anvil.raise( "scaffold.loaded", extended );
 		anvil.log.debug( "loaded scaffold " + instance.type );
 		return extended;
+	};
+
+	anvil.scaffold.file = function( pathSpec ) {
+		return function( viewModel, done ) {
+			anvil.fs.read( pathSpec, done );
+		};
 	};
 
 };
