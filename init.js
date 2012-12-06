@@ -16,8 +16,8 @@ require( "./lib/utility.js")( _, anvil );
 var plugin = require( "./lib/plugin.js" )( _, anvil );
 var log = require( "./lib/log.js" )( anvil );
 var consoleLog = require( "./lib/consoleLogger.js" )( _, anvil );
-var manager = require( "./lib/pluginManager.js" )( _, anvil );
-var locator = require( "./lib/pluginLocator.js" )( _, manager, anvil );
+var manager = require( "./lib/extensionManager.js" )( _, anvil );
+var container = require( "./lib/extensionContainer.js" )( _, manager, anvil );
 var config = require( "./lib/config.js" )( _, commander, path, anvil );
 var plugins = [
 		"anvil.combiner",
@@ -25,7 +25,8 @@ var plugins = [
 		"anvil.headers",
 		"anvil.identify",
 		"anvil.output",
-		"anvil.plugin",
+		"anvil.extension",
+		"anvil.scaffold.cli",
 		"anvil.token",
 		"anvil.transform",
 		"anvil.workset"
@@ -45,7 +46,7 @@ manager.checkDependencies( plugins, function() {
 	commander.prompt( "Check for updates for all installed plugins? (this could take a minute)\n ([Y]/N): ", function( resp ) {
 		if( resp === "y" || resp === "Y" || resp === "" ) {
 			clearTimeout( timeout );
-			manager.update( undefined, function() {
+			manager.update( function() {
 				anvil.log.complete( "All installed plugins are up to date!" );
 				process.exit();
 			} );
