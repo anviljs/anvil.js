@@ -69,6 +69,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					this.handleEvent( "build.stop" );
 				},
 				"command.activated": function( action ) {
+					this.commandAction = action;
 					this.transition( "commandMode" );
 				},
 				"plugin.loaded": function( plugin ) {
@@ -125,6 +126,9 @@ var activityManagerFactory = function( _, machina, anvil ) {
 			"commandMode": {
 				_onEnter: function() {
 					anvil.log.debug( "Entering command mode, no build will run" );
+				},
+				"plugins.configured": function() {
+					this.commandAction();
 				}
 			}
 		}

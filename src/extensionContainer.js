@@ -130,6 +130,7 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
  		} );
 	};
 
+	// to the pain ...
 	ExtensionContainer.prototype.wireupCommandSpec = function( key, commandSpec, instance, commander, consumed ) {
 		var self = this,
 			actionName = commandSpec.action,
@@ -140,7 +141,6 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 
 		if( commandSpec.action ) {
 			cmd = cmd.action( function() {
-				anvil.raise( "command.activated", actionName );
 				var originalArgs = anvil.commander.rawArgs,
 					expectedCount = cmd._args.length + 1,
 					currentArgs = originalArgs.slice( consumed + 1, consumed + expectedCount ),
@@ -154,7 +154,9 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 				while( args.length <= expectedCount ) {
 					args.unshift( undefined );
 				}
-				instance[ actionName ].apply( instance, args );
+				anvil.raise( "command.activated", function() {
+					instance[ actionName ].apply( instance, args );
+				} );
 			} );
 		}
 		if( commandSpec.options ) {
