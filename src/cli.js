@@ -15,6 +15,7 @@ var anvil = require( "./anvil.js" )( _, scheduler, files, events, bus );
 require( "./utility.js")( _, anvil );
 var plugin = require( "./plugin.js" )( _, anvil );
 var command = require( "./command.js" )( _, anvil );
+var command = require( "./scaffold.js" )( _, anvil );
 var log = require( "./log.js" )( anvil );
 var consoleLog = require( "./consoleLogger.js" )( _, anvil );
 var manager = require( "./extensionManager.js" )( _, anvil );

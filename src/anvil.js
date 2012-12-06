@@ -5,7 +5,9 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		this.extensions = {
 			plugins: {},
 			commands: {},
-			tasks: {}
+			tasks: {},
+			scaffolds: {},
+			widgets: {}
 		};
 		this.config = {};
 		this.project = {

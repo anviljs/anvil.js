@@ -7,9 +7,12 @@ Anvil has been rewritten as a general build system with an extension-based archi
 ## !Recent Changes!
 Changes to terminology and concepts from the 0.8.* version:
 * An extension is anything you install from npm or anything anvil loads from your file system
-* A plugin is a type of extension
+* Plugins add features to and extend the build process
 * Commands will allow developers to extend anvil to perform specific tasks that aren't part of a build
 * Tasks will be a way for you to define individual instructions (ala Make) that can take dependencies on one another
+* Scaffolds provide ways to generate structure and files from metadata
+
+Huge thanks go to Eli Perelman, Doug Neiner and Brian Edgerton for providing general ideas, specifications and implementations that lead to this new direction!
 
 ## What Does It Do?
 
@@ -174,6 +177,7 @@ Anvil has three primary points for extension:
 * plugins - extensions to the build system
 * commands - utility features that run outside of the build
 * tasks - specialized functions that can be combined to give you explicit control of what anvil does
+* scaffolds - folder structure and source generators
 
 An extension module can contain one or more of any of the three above types. Installing, uninstalling, enabling and disabling an extension module will affect **all** extensions defined within the module.
 
@@ -249,15 +253,16 @@ Please note: if you have already installed a global version of the extension, an
 
 Special thanks to the following individuals who have contributed source code or ideas to help make anvil less buggy and more useful:
 
+ * Doug Neiner
+ * Eli Perelman
+ * Brian Edgerton
  * Jim Cowart
+ * Jonathan Creamer
+ * Mike Hostetler
+ * Elijah Manor
  * Aaron McCall
  * Mike Stenhouse
  * Robert Messerle
- * Mike Hostetler
- * Jonathan Creamer
- * Brian Edgerton
- * Elijah Manor
- * Doug Neiner
  * Derick Bailey
 
 # Legal Bits

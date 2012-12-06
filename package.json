@@ -19,7 +19,8 @@
     "mkdirp": "0.3.3",
     "postal": "~0.7.0",
     "should": "0.6.3",
-    "underscore": "~1.4.0"
+    "underscore": "~1.4.0",
+    "handlebars": "~1.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},
