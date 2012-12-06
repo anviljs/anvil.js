@@ -90,7 +90,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 						self.pipelines[ activity ] = _.map( sorted, function( plugin ) {
 							if( plugin.run ) {
 								return function( done ) {
-									anvil.log.event( "running plugin: '" + plugin.name + "'" );
+									anvil.log.event( "plugin: '" + plugin.name + "'" );
 									plugin.run.apply( plugin, [ done, activity ] );
 								};
 							}

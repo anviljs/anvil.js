@@ -52,7 +52,7 @@ var extensionManagerFactory = function( _, anvil ) {
 	// if there are any missing extensions, anvil will install them via npm before
 	// allowing the start-up process to continue
 	ExtensionManager.prototype.checkDependencies = function( dependencies, done ) {
-		anvil.log.step( "checking for " + dependencies.length + " build dependencies " );
+		anvil.log.debug( "checking for " + dependencies.length + " build dependencies " );
 		var self = this;
 		this.getInstalled( extensionInstallPath, function( list ) {
 			var installers = _.map( dependencies, function( dependency ) {
@@ -153,7 +153,7 @@ var extensionManagerFactory = function( _, anvil ) {
 	ExtensionManager.prototype.getExtensions = function( done ) {
 		var self =this,
 			list = [];
-		anvil.log.step( "loading extensions" );
+		anvil.log.debug( "loading extensions" );
 		
 		this.getExtensionList( function( extensions ) {
 			var removals = [];
@@ -220,7 +220,7 @@ var extensionManagerFactory = function( _, anvil ) {
 			localPath = ( anvil.loadedConfig && anvil.loadedConfig.localExtensions ) ?
 						anvil.fs.buildPath( anvil.loadedConfig.localExtensions ):
 						path.resolve( anvil.config.localExtensions );
-		anvil.log.step( "loading local extensions from " + localPath );
+		anvil.log.debug( "loading local extensions from " + localPath );
 		this.getInstalled( localPath, function( extensions ) {
 			_.each( extensions, function( extension ) {
 				var basePath = anvil.fs.buildPath( [ localPath, extension ] ),
