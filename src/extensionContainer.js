@@ -151,6 +151,9 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 						}
 					},
 					args = currentArgs.concat( [ cmd, done ] );
+				if( key[0] === "*" ) {
+					args.unshift( arguments['0'] );
+				}
 				while( args.length <= expectedCount ) {
 					args.unshift( undefined );
 				}

@@ -17,6 +17,8 @@ var extensionManagerFactory = function( _, anvil ) {
 			"anvil.output",
 			"anvil.extension",
 			"anvil.scaffold.cli",
+			"anvil.scaffolding",
+			"anvil.task.cli",
 			"anvil.token",
 			"anvil.transform",
 			"anvil.workset"
