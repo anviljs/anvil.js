@@ -14,10 +14,13 @@ var bus = require( "./bus.js")( _, postal );
 var anvil = require( "./anvil.js" )( _, scheduler, files, events, bus );
 require( "./utility.js")( _, anvil );
 var plugin = require( "./plugin.js" )( _, anvil );
+var command = require( "./command.js" )( _, anvil );
+var scaffold = require( "./scaffold.js" )( _, anvil );
+var task = require( "./task.js" )( _, anvil );
 var log = require( "./log.js" )( anvil );
 var consoleLog = require( "./consoleLogger.js" )( _, anvil );
-var manager = require( "./pluginManager.js" )( _, anvil );
-var locator = require( "./pluginLocator.js" )( _, manager, anvil );
+var manager = require( "./extensionManager.js" )( _, anvil );
+var container = require( "./extensionContainer.js" )( _, manager, anvil );
 var config = require( "./config.js" )( _, commander, path, anvil );
 var activityManager = require( "./activityManager.js" )( _, machina, anvil );
 

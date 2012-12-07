@@ -1,17 +1,16 @@
 var fakeManagerFactory = function( _, anvil ) {
-	
+	var plugins = [];
 	var fakeManager = {
-		plugins: [],
 		checkDependencies: function( dependencies, done ) {
 			done();
 		},
-		getPlugins: function( done ) {
-			_.each( this.plugins, function( plugin ) {
-				anvil.raise( "plugin.loaded", plugin.instance );
+		getExtensions: function( done ) {
+			_.each( plugins, function( plugin ) {
+				anvil.plugin( plugin );
 			} );
-			done( this.plugins );
+			done();
 		},
-		getTasks: function( done ) {
+		getLocalExtensions: function( done ) {
 			done();
 		}
 	};
@@ -24,9 +23,10 @@ var fakeManagerFactory = function( _, anvil ) {
 		],
 		prerequisites: [ "pluginC" ],
 		config: {},
+		ran: false,
 
 		configure: function( config, command, done ) {
-			this.config = command.pa;
+			this.config.commandLine = command.pa;
 			anvil.config.activityOrder = [ "test1" ];
 			done();
 		},
@@ -41,6 +41,7 @@ var fakeManagerFactory = function( _, anvil ) {
 		name: "pluginB",
 		activity: "test1",
 		prerequisites: [  ],
+		ran: false,
 
 		run: function( done ) {
 			this.ran = true;
@@ -52,6 +53,7 @@ var fakeManagerFactory = function( _, anvil ) {
 		name: "pluginC",
 		activity: "test1",
 		prerequisites: [ "pluginB" ],
+		ran: false,
 
 		run: function( done ) {
 			this.ran = true;
@@ -59,16 +61,9 @@ var fakeManagerFactory = function( _, anvil ) {
 		}
 	};
 
-	_.bindAll( pluginA );
-	_.bindAll( pluginB );
-	_.bindAll( pluginC );
 	_.bindAll( fakeManager );
 
-	fakeManager.plugins = [
-		{ name: "pluginA", instance: pluginA },
-		{ name: "pluginB", instance: pluginB },
-		{ name: "pluginC", instance: pluginC }
-	];
+	plugins = [ pluginA, pluginB, pluginC ];
 
 	return fakeManager;
 };
