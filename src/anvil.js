@@ -2,9 +2,13 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 	
 	var Anvil = function() {
 		_.bindAll( this );
-		this.plugins = {};
-		this.pluginCount = 0;
-		this.configuredPlugins = 0;
+		this.extensions = {
+			plugins: {},
+			commands: {},
+			tasks: {},
+			scaffolds: {},
+			widgets: {}
+		};
 		this.config = {};
 		this.project = {
 			files: [],
@@ -49,10 +53,6 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 			process.exit( exitCode );
 		} );
 
-		this.on( "plugin.loaded", function( plugin ) {
-			self.plugins[ plugin.name ] = plugin;
-		} );
-		
 		process.removeAllListeners( "uncaughtException" );
 		process.on( "uncaughtException", function( err ) {
 			if( self.log ) {
@@ -84,7 +84,7 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		if( file ) {
 			this.writeConfig( file + ".json" );
 		} else {
-			this.log.complete( "plugin configuration complete" );
+			this.log.debug( "plugin configuration complete" );
 			this.raise( "plugins.configured" );
 		}
 	};

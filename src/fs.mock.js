@@ -211,7 +211,7 @@ var fsFactory = function( _, path ) {
 
 	FileSystemMock.prototype.raiseEvent = function( fileEvent ) {
 		var watcher = _.find( this.watchers, function( watcher, watchPath ) {
-			return fileEvent.name.indexOf( path.resolve( watchPath ) ) >= 0;
+			return fileEvent.name.indexOf( watchPath.replace( "./", "" ) ) >= 0;
 		} );
 
 		if( watcher ) {
@@ -235,10 +235,15 @@ var fsFactory = function( _, path ) {
 	FileSystemMock.prototype.write = function( pathSpec, content, onComplete ) {
 		pathSpec = this.buildPath( pathSpec );
 		var self = this,
-			file = this.files[ pathSpec ];
+			file = this.files[ pathSpec ],
+			p = path.dirname( pathSpec ),
+			pathObj = this.paths[ p ];
 		if( !file ) {
 			file = new FileMock( pathSpec );
 			this.files[ pathSpec ] = file;
+			if( !pathObj ) {
+				this.paths[ p ] = {};
+			}
 		}
 		file.write( content, function() {
 			self.raiseEvent( {

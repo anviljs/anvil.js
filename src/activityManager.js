@@ -63,9 +63,14 @@ var activityManagerFactory = function( _, machina, anvil ) {
 				_onEnter: function() {
 					this.handleEvent( "plugins.configured" );
 					this.handleEvent( "plugin.loaded" );
+					this.handleEvent( "command.activated" );
 					this.handleEvent( "rebuild" );
 					this.handleEvent( "config" );
 					this.handleEvent( "build.stop" );
+				},
+				"command.activated": function( action ) {
+					this.commandAction = action;
+					this.transition( "commandMode" );
 				},
 				"plugin.loaded": function( plugin ) {
 					var self = this;
@@ -86,7 +91,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 						self.pipelines[ activity ] = _.map( sorted, function( plugin ) {
 							if( plugin.run ) {
 								return function( done ) {
-									anvil.log.event( "running plugin: '" + plugin.name + "'" );
+									anvil.log.event( "plugin: '" + plugin.name + "'" );
 									plugin.run.apply( plugin, [ done, activity ] );
 								};
 							}
@@ -116,6 +121,14 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					var start = anvil.config.activityOrder[ 0 ];
 					anvil.log.step( "restarting previously failed build" );
 					this.transition( start );
+				}
+			},
+			"commandMode": {
+				_onEnter: function() {
+					anvil.log.debug( "Entering command mode, no build will run" );
+				},
+				"plugins.configured": function() {
+					this.commandAction();
 				}
 			}
 		}

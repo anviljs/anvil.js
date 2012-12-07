@@ -14,8 +14,9 @@ var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
 require( "../src/utility.js")( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
-var manager = require( "../src/pluginManager.js" )( _, anvil );
-var locator = require( "../src/pluginLocator.js" )( _, manager, anvil );
+var command = require( "../src/command.js" )( _, anvil );
+var manager = require( "../src/extensionManager.js" )( _, anvil );
+var container = require( "../src/extensionContainer.js" )( _, manager, anvil );
 var config = require( "../src/config.js" )( _, commander, path, anvil );
 var activityManager = require( "../src/activityManager.js" )( _, machina, anvil );
 var setup = require( "./project.setup.js" )( _, fs, path, scheduler, realFS );
@@ -95,7 +96,7 @@ describe( "when scanning project directory with file plugin", function() {
 			fs.files[ root + "/lib/tokenized.js" ].should.be.ok;
 			fs.files[ root + "/lib/tokenized.js" ].content.should.equal( "// author: Alex Robson <alex@sharplearningcurve.com> (http://sharplearningcurve.com)\n" +
 			"// project: anvil.js\n" +
-			"// version: 0.8.15\n" +
+			"// version: 0.9.0\n" +
 			" var a = 'this value';" );
 		} );
 

@@ -20,24 +20,23 @@ var mockPluginManager = {
 	checkDependencies: function( list, done ) {
 		done();
 	},
-	getPlugins: function( done ) {
-		done( [
-			{ name: "testPlugin", instance: { test: function() { return "hello anvil!"; } } }
-		] );
+	getExtensions: function( done ) {
+		anvil.plugin( { name: "testPlugin", test: function() { return "hello anvil!"; } } );
+		done();
 	},
-	getTasks: function( done ) {
+	getLocalExtensions: function( done ) {
 		done();
 	}
 };
 
-var pluginLocator = require( "../src/pluginLocator.js" )( _, mockPluginManager, anvil );
+var extensionContainer = require( "../src/extensionContainer.js" )( _, mockPluginManager, anvil );
 
-describe( "when loading configured plugins", function() {
+describe( "when loading configured extensions", function() {
 
-	pluginLocator.loadPlugins( {}, { option: function() {} } );
+	extensionContainer.loadExtensions( {}, { option: function() {} } );
 
 	it( "should correctly store instance of plugin", function() {
-		pluginLocator.instances[ "testPlugin" ].test().should.equal( "hello anvil!" );
+		anvil.extensions.plugins[ "testPlugin" ].test().should.equal( "hello anvil!" );
 	} );
 
 } );
