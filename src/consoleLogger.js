@@ -2,13 +2,27 @@ var consoleLogFactory = function( _, anvil ) {
 	
 	var ConsoleLogger = function() {
 		_.bindAll( this );
+		anvil.console = this;
+		this.on();
+	};
 
-		anvil.on( "log.debug", this.onDebug );
-		anvil.on( "log.event", this.onEvent );
-		anvil.on( "log.step", this.onStep );
-		anvil.on( "log.complete", this.onComplete );
-		anvil.on( "log.warning", this.onWarning );
-		anvil.on( "log.error", this.onError );
+	ConsoleLogger.prototype.on = function() {
+		this.handles = [
+			anvil.on( "log.debug", this.onDebug ),
+			anvil.on( "log.event", this.onEvent ),
+			anvil.on( "log.step", this.onStep ),
+			anvil.on( "log.complete", this.onComplete ),
+			anvil.on( "log.warning", this.onWarning ),
+			anvil.on( "log.error", this.onError )
+		];
+	};
+
+	ConsoleLogger.prototype.off = function() {
+		if( this.handles && this.handles.length ) {
+			_.each( this.handles, function( handle ) {
+				handle.cancel();
+			} );
+		}
 	};
 
 	ConsoleLogger.prototype.log = function( level, x ) {

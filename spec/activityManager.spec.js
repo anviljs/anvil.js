@@ -13,6 +13,7 @@ var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
 require( "../src/utility.js")( _, anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
 var command = require( "../src/command.js" )( _, anvil );
+var scaffold = require( "../src/scaffold.js" )( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 var manager = require( "./fakeManager.js" )( _, anvil );
 var container = require( "../src/extensionContainer.js" )( _, manager, anvil );
