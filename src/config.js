@@ -26,7 +26,8 @@ var configFactory = function( _, commander, path, anvil ) {
 			complete: true,
 			warning: false,
 			error: true
-		}
+		},
+		port: 8471
 	};
 
 	anvil.config = defaultConfig;

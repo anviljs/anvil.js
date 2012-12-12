@@ -85,7 +85,13 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 
 	Anvil.prototype.onConfig = function( config ) {
 		this.config = config;
-		this.raise( "config", this.onPluginsConfigured );
+		try {
+			this.http.init();
+		} catch ( err ) {
+			console.log( err.stack );
+		}
+		
+		this.raise( "config", this.onExtensionsConfigured );
 	};
 
 	Anvil.prototype.onCommander = function( config, commander ) {
@@ -93,7 +99,7 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		this.raise( "commander", config, commander );
 	};
 
-	Anvil.prototype.onPluginsConfigured = function() {
+	Anvil.prototype.onExtensionsConfigured = function() {
 		this.pluginConfigurationCompleted = true;
 		var file = this.commander ? this.commander.write : undefined;
 		if( file ) {
