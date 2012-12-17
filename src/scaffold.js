@@ -30,7 +30,12 @@ var scaffoldFactory = function( _, anvil ) {
 		var self = this;
 		if( _.isFunction( content ) ) {
 			content.call( self, _.deepExtend( self._viewContext, true ), function( data ) {
-				self.write( data, pathSpec, done );
+				if( data )
+				{
+					self.write( data, pathSpec, done );
+				} else {
+					done();
+				}
 			} );
 		} else {
 			self.write( content, pathSpec, done );
