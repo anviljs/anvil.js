@@ -10,6 +10,9 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 			widgets: {}
 		};
 		this.config = {};
+		this.env = {
+
+		};
 		this.project = {
 			files: [],
 			directories: [],
@@ -66,6 +69,18 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 				console.log( "Unhandled exception: " + err + "\n" + err.stack );
 			}
 		} );
+
+		this.initEnvironment();
+	};
+
+	Anvil.prototype.initEnvironment = function() {
+		var gitConfigPath = this.fs.buildPath( [ "~/.gitconfig" ] ),
+			gitConfig = this.fs.readSync( gitConfigPath );
+
+		if( !_.isEmpty( gitConfig ) ) {
+			this.env.userName = gitConfig.match(/[\t]name[ ][=][ ](.+)[\n]/ )[1];
+			this.env.email = gitConfig.match(/[\t]email[ ][=][ ](.+)[\n]/ )[1];
+		}
 	};
 
 	Anvil.prototype.onConfig = function( config ) {
