@@ -2,6 +2,7 @@ var configFactory = function( _, commander, path, anvil ) {
 
 	var defaultConfig = {
 		activityOrder: [
+			"pre-build",
 			"identify",
 			"pull",
 			"combine",
@@ -9,7 +10,8 @@ var configFactory = function( _, commander, path, anvil ) {
 			"compile",
 			"post-process",
 			"push",
-			"test"
+			"test",
+			"post-build"
 		],
 		working: "./.anvil/tmp",
 		source: "./src",

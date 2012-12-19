@@ -75,9 +75,9 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 
 	Anvil.prototype.initEnvironment = function() {
 		var gitConfigPath = this.fs.buildPath( [ "~/.gitconfig" ] ),
-			gitConfig = this.fs.readSync( gitConfigPath );
+			gitConfig = this.fs.read( gitConfigPath );
 
-		if( !_.isEmpty( gitConfig ) ) {
+		if( !_.isEmpty( gitConfig ) && _.isString( gitConfig ) ) {
 			this.env.userName = gitConfig.match(/[\t]name[ ][=][ ](.+)[\n]/ )[1];
 			this.env.email = gitConfig.match(/[\t]email[ ][=][ ](.+)[\n]/ )[1];
 		}
