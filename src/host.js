@@ -15,6 +15,7 @@ var hostFactory = function( _, anvil ) {
 			init: this.init,
 			registerPath: this.registerPath
 		};
+		this.topics = {};
 	};
 
 	Host.prototype.init = function( done ) {
@@ -38,7 +39,25 @@ var hostFactory = function( _, anvil ) {
 				_.each( spec, function( callback, verb ) {
 					if( _.isFunction( callback ) ) {
 						self.registerRoute( widgetPath + route, verb, function( req, resp ) {
-							callback.apply( widget, [ req, resp ] );
+							var envelope = {
+								data: req.body,
+								headers: req.headers,
+								reply: function( envelope ) {
+									var code = envelope.statusCode || 200;
+									resp.send( 200, envelope.data );
+								}
+							};
+							callback.apply( widget, [ envelope ] );
+						} );
+						self.registerTopic( name + "/" + route, verb, function( message, socket ) {
+							var envelope = {
+								data: message.data || message,
+								headers: message.headers || [],
+								reply: function( envelope ) {
+									socket.emit( message.replyTo || "trash", envelope );
+								}
+							};
+							callback.apply( widget, [ envelope ] );
 						} );
 					} else {
 						self.registerRoute( widgetPath + route, verb, function( req, resp ) {
@@ -60,18 +79,37 @@ var hostFactory = function( _, anvil ) {
 		this.app[ method ]( url, callback );
 	};
 
+	Host.prototype.registerTopic = function( url, method, callback ) {
+		var self = this,
+			topic = url.replace( /[\/]/g, "." ) + ":" + method;
+		console.log( "registering topic: " + topic );
+		if( this.topics[ topic ] ) {
+			this.topics[ topic ].push( callback );
+		} else {
+			this.topics[ topic ] = [ callback ];
+		}
+		_.each( this.clients, function( client ) {
+			client.on( topic, function( data ) { callback( data, client ); } );
+		} );
+	};
+
 	Host.prototype.addClient = function( socket ) {
 		var self = this;
 		this.clients.push( socket );
+		_.each( this.topics, function( callbacks, topic ) {
+			_.each( callbacks, function( callback ) {
+				if( callback ) {
+					socket.on( topic, function( data ) { callback( data, socket ); } );
+				}
+			} );
+		} );
 		socket.on( "end", this.removeClient );
-		this.raise( "socket.connected", socket );
 	};
 
 	Host.prototype.removeClient = function( socket ) {
 		var index = this.clients.indexOf( socket );
 		if( index >= 0 ) {
 			this.clients.splice( index, 1 );
-			this.raise( "socket.disconnected", socket );
 		}
 	};
 

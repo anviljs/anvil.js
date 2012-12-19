@@ -85,10 +85,12 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 
 	Anvil.prototype.onConfig = function( config ) {
 		this.config = config;
-		try {
-			this.http.init();
-		} catch ( err ) {
-			console.log( err.stack );
+		if( this.config.host ) {
+			try {
+				this.http.init();
+			} catch ( err ) {
+				console.log( err.stack );
+			}
 		}
 		
 		this.raise( "config", this.onExtensionsConfigured );

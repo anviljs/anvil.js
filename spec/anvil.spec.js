@@ -11,6 +11,7 @@ var events = require( "../src/eventAggregator.js" )( _ );
 var bus = require( "../src/bus.js")( _, postal );
 var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
 require( "../src/utility.js")( _, anvil );
+var host = require( "./host.mock.js" )( _, anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
 var command = require( "../src/command.js" )( _, anvil );
 var scaffold = require( "../src/scaffold.js" )( _, anvil );

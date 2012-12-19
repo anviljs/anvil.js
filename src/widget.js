@@ -53,8 +53,8 @@ var widgetFactory = function( _, anvil ) {
 		var extended = _.extend( base, instance );
 		_.bindAll( extended );
 		anvil.extensions.widgets[ instance.name ] = extended;
-		anvil.raise( "command.loaded", extended );
-		anvil.log.debug( "loaded command " + instance.name );
+		anvil.raise( "widget.loaded", extended );
+		anvil.log.debug( "loaded widget " + instance.name );
 		return extended;
 	};
 };
