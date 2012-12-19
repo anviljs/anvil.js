@@ -24,11 +24,14 @@ var scaffoldFactory = function( _, anvil ) {
 			done();
 		}
 		this._processData();
+		var clean = function( callback ) {
+			return function() { callback(); };
+		};
 		anvil.scheduler.pipeline( undefined, [
-				function( done ) { self.runTasks( "before", done ); },
-				function( done ) { self.parse( self.output, "", done ); },
-				function( done ) { self.transformFiles( done ); },
-				function( done ) { self.runTasks( "after", done ); }
+				function( done ) { self.runTasks( "before", clean( done ) ); },
+				function( done ) { self.parse( self.output, "", clean( done ) ); },
+				function( done ) { self.transformFiles( clean( done ) ); },
+				function( done ) { self.runTasks( "after", clean( done ) ); }
 			], done );
 	};
 
@@ -62,7 +65,7 @@ var scaffoldFactory = function( _, anvil ) {
 	};
 
 	Scaffold.prototype.runTasks = function( type, done ) {
-		if( this.tasks && this.tasks[ type ] ) {
+		if( this.tasks && this.tasks[ type ] && !_.isEmpty( this.tasks[ type ] ) ) {
 			var taskList = _.map( this.tasks[ type ], function( options, taskName ) {
 				return function( done ) {
 					var task = anvil.extensions.tasks[ taskName ];
@@ -73,6 +76,7 @@ var scaffoldFactory = function( _, anvil ) {
 					}
 				};
 			} );
+			anvil.log.step( "Executing scaffold tasks" );
 			anvil.scheduler.pipeline( undefined, taskList, done );
 		} else {
 			done();
@@ -151,7 +155,7 @@ var scaffoldFactory = function( _, anvil ) {
 	};
 
 	Scaffold.prototype.transformFiles = function( done ) {
-		if( this.transform ) {
+		if( this.transform && !_.isEmpty( this.transform ) ) {
 			_.each( this.transform, function( call, file ) {
 				anvil.fs.transform( file, call, file, done );
 			} );
