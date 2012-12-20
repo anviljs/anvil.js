@@ -46,7 +46,8 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		};
 		this.unhandledResponse = {
 			"Error: watch EMFILE": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000",
-			"Error: EMFILE, too many open files": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000"
+			"Error: EMFILE, too many open files": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000",
+			"Error: EBADF, close": {}
 		};
 		this.fs = fs;
 		this.scheduler = scheduler;
@@ -61,7 +62,9 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 			if( self.log ) {
 				var specialResponse = self.unhandledResponse[ err.toString() ];
 				if( specialResponse ) {
-					self.log.error( specialResponse );
+					if( !_.isEmpty( specialResponse ) ) {
+						self.log.error( specialResponse );
+					}
 				} else {
 					self.log.error( "Unhandled exception: " + err + "\n" + err.stack );
 				}
