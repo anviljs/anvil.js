@@ -1,3 +1,5 @@
+var minimatch = require( "minimatch" );
+
 var fsFactory = function( _, path ) {
 
 	var FileMock = function( fullPath ) {
@@ -136,6 +138,10 @@ var fsFactory = function( _, path ) {
 		from = this.buildPath( from );
 		to = this.buildPath( to );
 		this.files[ to ] = this.files[ from ];
+	};
+
+	FileSystemMock.prototype.match = function( paths, pattern, options ) {
+		return minimatch.match( paths, pattern, options || {} );
 	};
 
 	FileSystemMock.prototype.metadata = function( pathSpec, onComplete ) {

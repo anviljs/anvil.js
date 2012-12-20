@@ -1,4 +1,5 @@
-var watchTree = require( "fs-watch-tree" ).watchTree;
+var watchTree = require( "fs-watch-tree" ).watchTree,
+	minimatch = require( "minimatch" );
 
 var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 
@@ -217,6 +218,10 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 		} catch ( err ) {
 			done( err );
 		}
+	};
+
+	FileSystem.prototype.match = function( paths, pattern, options ) {
+		return minimatch.match( paths, pattern, options || {} );
 	};
 
 	FileSystem.prototype.metadata = function( pathSpec, onStat ) {
