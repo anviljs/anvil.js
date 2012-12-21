@@ -10,6 +10,9 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 			widgets: {}
 		};
 		this.config = {};
+		this.env = {
+
+		};
 		this.project = {
 			files: [],
 			directories: [],
@@ -43,7 +46,8 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		};
 		this.unhandledResponse = {
 			"Error: watch EMFILE": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000",
-			"Error: EMFILE, too many open files": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000"
+			"Error: EMFILE, too many open files": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000",
+			"Error: EBADF, close": {}
 		};
 		this.fs = fs;
 		this.scheduler = scheduler;
@@ -58,7 +62,9 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 			if( self.log ) {
 				var specialResponse = self.unhandledResponse[ err.toString() ];
 				if( specialResponse ) {
-					self.log.error( specialResponse );
+					if( !_.isEmpty( specialResponse ) ) {
+						self.log.error( specialResponse );
+					}
 				} else {
 					self.log.error( "Unhandled exception: " + err + "\n" + err.stack );
 				}
@@ -66,11 +72,31 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 				console.log( "Unhandled exception: " + err + "\n" + err.stack );
 			}
 		} );
+
+		this.initEnvironment();
+	};
+
+	Anvil.prototype.initEnvironment = function() {
+		var gitConfigPath = this.fs.buildPath( [ "~/.gitconfig" ] ),
+			gitConfig = this.fs.read( gitConfigPath );
+
+		if( !_.isEmpty( gitConfig ) && _.isString( gitConfig ) ) {
+			this.env.userName = gitConfig.match(/[\t]name[ ][=][ ](.+)[\n]/ )[1];
+			this.env.email = gitConfig.match(/[\t]email[ ][=][ ](.+)[\n]/ )[1];
+		}
 	};
 
 	Anvil.prototype.onConfig = function( config ) {
 		this.config = config;
-		this.raise( "config", this.onPluginsConfigured );
+		if( this.config.host ) {
+			try {
+				this.http.init();
+			} catch ( err ) {
+				console.log( err.stack );
+			}
+		}
+		
+		this.raise( "config", this.onExtensionsConfigured );
 	};
 
 	Anvil.prototype.onCommander = function( config, commander ) {
@@ -78,7 +104,7 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		this.raise( "commander", config, commander );
 	};
 
-	Anvil.prototype.onPluginsConfigured = function() {
+	Anvil.prototype.onExtensionsConfigured = function() {
 		this.pluginConfigurationCompleted = true;
 		var file = this.commander ? this.commander.write : undefined;
 		if( file ) {

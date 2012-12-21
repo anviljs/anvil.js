@@ -1,9 +1,9 @@
 {
-	"dependencies": [ "anvil.mocha" ],
+	"dependencies": [ ],
 	"anvil.testem": {
 		"launchers": {
 			"Mocha": {
-				"command": "mocha spec/*.spec.js"
+				"command": "mocha spec/*.spec.js --reporter spec"
 			}
 		},
 		"launch": "Mocha"

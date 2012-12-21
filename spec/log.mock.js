@@ -26,7 +26,7 @@ var logFactory = function( anvil ) {
 		},
 
 		warning: function( text ) {
-			this.warnLog.push( text );
+			this.warningLog.push( text );
 		},
 
 		error: function( text ) {

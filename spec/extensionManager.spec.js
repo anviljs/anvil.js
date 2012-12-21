@@ -9,6 +9,7 @@ var scheduler = require( "../src/scheduler.js" )( _ );
 var events = require( "../src/eventAggregator.js" )( _ );
 var bus = require( "../src/bus.js")( _, postal );
 var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
+var host = require( "./host.mock.js" )( _, anvil );
 require( "../src/utility.js")( _, anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
@@ -27,7 +28,7 @@ describe( "when getting the list of loaded extensions", function() {
 
 	it( "should return the list of extensions installed", function() {
 		_.isEqual( list, [] ).should.not.ok;
-		list.length.should.equal( 9 );
+		list.length.should.equal( 12 );
 	} );
 } );
 
@@ -47,7 +48,7 @@ describe( "when adding a new extension", function() {
 	it( "should return the list of extensions installed", function() {
 		//list[ list.length - 1 ].name.should.equal( "testExtension" );
 		( err == undefined ).should.ok;
-		list.length.should.equal( 10 );
+		list.length.should.equal( 13 );
 	} );
 } );
 
@@ -68,7 +69,7 @@ describe( "when adding an existing extension", function() {
 	it( "should return the list of extensions installed", function() {
 		list[ list.length - 1 ].should.equal( "testExtension" );
 		( err == undefined ).should.ok;
-		list.length.should.equal( 10 );
+		list.length.should.equal( 13 );
 	} );
 } );
 
@@ -89,7 +90,7 @@ describe( "when removing an existing extension", function() {
 	it( "should return the list of extensions except the removed one", function() {
 		_.isEqual( list, [] ).should.not.ok;
 		( err == undefined ).should.ok;
-		list.length.should.equal( 9 );
+		list.length.should.equal( 12 );
 	} );
 } );
 
@@ -110,6 +111,6 @@ describe( "when removing a missing extension", function() {
 	it( "should return the list of extensions installed", function() {
 		_.isEqual( list, [] ).should.not.ok;
 		( err == undefined ).should.ok;
-		list.length.should.equal( 9 );
+		list.length.should.equal( 12 );
 	} );
 } );

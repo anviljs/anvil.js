@@ -1,3 +1,4 @@
+var minimatch = require( "minimatch" );
 var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 
 	var FSCrawler = function() {

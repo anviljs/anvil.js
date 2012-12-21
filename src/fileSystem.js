@@ -1,4 +1,5 @@
-var watchTree = require( "fs-watch-tree" ).watchTree;
+var watchTree = require( "fs-watch-tree" ).watchTree,
+	minimatch = require( "minimatch" );
 
 var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 
@@ -88,7 +89,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 		this.ensurePath( toDir, function() {
 			self.getFiles( from, from, function( files, directories ) {
 				scheduler.parallel( files, function( file, done ) {
-					var relative = file.fullPath.replace( from, "" );
+					var relative = path.dirname( file.fullPath ).replace( from, "" );
 					self.copyFile( file.fullPath, [ to, relative, file.name ], done );
 				}, onComplete );
 			} );
@@ -219,6 +220,10 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 		}
 	};
 
+	FileSystem.prototype.match = function( paths, pattern, options ) {
+		return minimatch.match( paths, pattern, options || {} );
+	};
+
 	FileSystem.prototype.metadata = function( pathSpec, onStat ) {
 		pathSpec = this.buildPath( pathSpec );
 		try {
@@ -241,16 +246,25 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 
 	FileSystem.prototype.read = function( pathSpec, onContent ) {
 		pathSpec = this.buildPath( pathSpec );
-		try {
-			fs.readFile( pathSpec, "utf8", function( error, content ) {
-				if( error ) {
-					onContent( "", error );
-				} else {
-					onContent( content );
-				}
-			} );
-		} catch ( err ) {
-			onContent( "", err );
+		if( onContent ) {
+			try {
+				fs.readFile( pathSpec, "utf8", function( error, content ) {
+					if( error ) {
+						onContent( "", error );
+					} else {
+						onContent( content );
+					}
+				} );
+			} catch ( err ) {
+				onContent( "", err );
+			}
+		} else {
+			pathSpec = this.buildPath( pathSpec );
+			try {
+				return fs.readFileSync( pathSpec, "utf8" );
+			} catch( error ) {
+				return error;
+			}
 		}
 	};
 
@@ -259,15 +273,6 @@ var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
 		to = this.buildPath( to );
 		var self = this;
 		fs.rename( from, to, done );
-	};
-
-	FileSystem.prototype.readSync = function( pathSpec ) {
-		pathSpec = this.buildPath( pathSpec );
-		try {
-			return fs.readFileSync( pathSpec, "utf8" );
-		} catch( error ) {
-			return error;
-		}
 	};
 
 	FileSystem.prototype.transform = function( from, transform, to, onComplete ) {

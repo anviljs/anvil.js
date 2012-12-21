@@ -18,19 +18,33 @@ var scaffoldFactory = function( _, anvil ) {
 	};
 
 	Scaffold.prototype.build = function( done ) {
+		var self = this;
 		if( !this.output ) {
 			anvil.log.warning( "Scaffold + '" + this.type + "' did not specify any output" );
 			done();
 		}
 		this._processData();
-		this.parse( this.output, "", done );
+		var clean = function( callback ) {
+			return function() { callback(); };
+		};
+		anvil.scheduler.pipeline( undefined, [
+				function( done ) { self.runTasks( "before", clean( done ) ); },
+				function( done ) { self.parse( self.output, "", clean( done ) ); },
+				function( done ) { self.transformFiles( clean( done ) ); },
+				function( done ) { self.runTasks( "after", clean( done ) ); }
+			], done );
 	};
 
 	Scaffold.prototype.parse = function( content, pathSpec, done ) {
 		var self = this;
 		if( _.isFunction( content ) ) {
 			content.call( self, _.deepExtend( self._viewContext, true ), function( data ) {
-				self.write( data, pathSpec, done );
+				if( data )
+				{
+					self.write( data, pathSpec, done );
+				} else {
+					done();
+				}
 			} );
 		} else {
 			self.write( content, pathSpec, done );
@@ -48,6 +62,25 @@ var scaffoldFactory = function( _, anvil ) {
 	Scaffold.prototype.render = function( options ) {
 		var template = handlebars.compile( options.template );
 		return template( options.data );
+	};
+
+	Scaffold.prototype.runTasks = function( type, done ) {
+		if( this.tasks && this.tasks[ type ] && !_.isEmpty( this.tasks[ type ] ) ) {
+			var taskList = _.map( this.tasks[ type ], function( options, taskName ) {
+				return function( done ) {
+					var task = anvil.extensions.tasks[ taskName ];
+					if( task ) {
+						task.run( options, done );
+					} else {
+						done();
+					}
+				};
+			} );
+			anvil.log.step( "Executing scaffold tasks" );
+			anvil.scheduler.pipeline( undefined, taskList, done );
+		} else {
+			done();
+		}
 	};
 
 	Scaffold.prototype.write = function( content, pathSpec, done ) {
@@ -118,6 +151,16 @@ var scaffoldFactory = function( _, anvil ) {
 				anvil.log.debug( "Created file: " + pathSpec );
 				done();
 			});
+		}
+	};
+
+	Scaffold.prototype.transformFiles = function( done ) {
+		if( this.transform && !_.isEmpty( this.transform ) ) {
+			_.each( this.transform, function( call, file ) {
+				anvil.fs.transform( file, call, file, done );
+			} );
+		} else {
+			done();
 		}
 	};
 
