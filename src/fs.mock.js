@@ -1,3 +1,5 @@
+var minimatch = require( "minimatch" );
+
 var fsFactory = function( _, path ) {
 
 	var FileMock = function( fullPath ) {
@@ -138,6 +140,10 @@ var fsFactory = function( _, path ) {
 		this.files[ to ] = this.files[ from ];
 	};
 
+	FileSystemMock.prototype.match = function( paths, pattern, options ) {
+		return minimatch.match( paths, pattern, options || {} );
+	};
+
 	FileSystemMock.prototype.metadata = function( pathSpec, onComplete ) {
 		var fullPath = this.buildPath( pathSpec );
 		var file = this.files[ fullPath ];
@@ -188,7 +194,7 @@ var fsFactory = function( _, path ) {
 			if( onComplete ) {
 				onComplete( "", "Cannot read " + pathSpec + "; it does not exist" );
 			} else {
-				throw new Exception( "Cannot read " + pathSpec + "; it does not exist" );
+				return new Error( "Cannot read " + pathSpec + "; it does not exist" );
 			}
 		}
 	};
