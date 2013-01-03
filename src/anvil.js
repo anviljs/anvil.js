@@ -1,5 +1,4 @@
-var anvilFactory = function( _, scheduler, fs, events, bus ) {
-	
+var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 	var Anvil = function() {
 		_.bindAll( this );
 		this.extensions = {
@@ -11,7 +10,6 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		};
 		this.config = {};
 		this.env = {
-
 		};
 		this.project = {
 			files: [],
@@ -24,8 +22,8 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 				} );
 			}
 		};
+		this.addEvents = Monologue.mixin;
 		this.bus = bus;
-		this.events = events;
 		this.eventDef = {
 			"all.stop": [ "code" ],
 			"build.stop": [ "reason" ],
@@ -53,9 +51,7 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 		this.scheduler = scheduler;
 		var self = this;
  
-		this.on( "all.stop", function( exitCode ) {
-			process.exit( exitCode );
-		} );
+		this.goPostal( "anvil" );
 
 		process.removeAllListeners( "uncaughtException" );
 		process.on( "uncaughtException", function( err ) {
@@ -96,12 +92,12 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 			}
 		}
 		
-		this.raise( "config", this.onExtensionsConfigured );
+		this.emit( "config", { callback: this.onExtensionsConfigured } );
 	};
 
 	Anvil.prototype.onCommander = function( config, commander ) {
 		this.commander = commander;
-		this.raise( "commander", config, commander );
+		this.emit( "commander", { config: config, commander: commander } );
 	};
 
 	Anvil.prototype.onExtensionsConfigured = function() {
@@ -111,37 +107,13 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 			this.writeConfig( file + ".json" );
 		} else {
 			this.log.debug( "plugin configuration complete" );
-			this.raise( "plugins.configured" );
+			this.emit( "plugins.configured" );
 		}
 	};
 
-	Anvil.prototype.on = function( eventName, handler ) {
-		return events.on( "anvil." + eventName, handler );
-	};
-
-	Anvil.prototype.publish = function( topic, message ) {
-		var e = this.eventDef[ topic ];
-		if( e ) {
-			args.unshift( "anvil." + topic );
-			events.raise.apply( undefined, args );
-		}
-		bus.publish( "anvil", topic, message );
-	};
-
-	Anvil.prototype.raise = function( eventName ) {
-		var e = this.eventDef[ eventName ],
-			fullArgs = Array.prototype.slice.call( arguments ),
-			args = fullArgs.slice( 1 );
-		if( e ) {
-			var msg = _.object( e, args );
-			bus.publish( "anvil", eventName, msg );
-		}
-		args.unshift( "anvil." + eventName );
-		events.raise.apply( undefined, args );
-	};
-
-	Anvil.prototype.subscribe = function( eventName, handler ) {
-		bus.subscribe( "anvil", eventName, handler );
+	Anvil.prototype.stop = function( code ) {
+		anvil.emit( "all.stop", { code: code } );
+		process.exit( exitCode );
 	};
 
 	Anvil.prototype.writeConfig = function( file ) {
@@ -151,10 +123,12 @@ var anvilFactory = function( _, scheduler, fs, events, bus ) {
 				if( err ) {
 					self.log.error( "Could not write config to " + file + " : " + err + "\n" + err.stack );
 				} else {
-					self.log.complete( "Configuration defaults written to " + file + " successfully" );
+					self.log.complete( "Configuration written to " + file + " successfully" );
 				}
 			} );
 	};
+
+	Monologue.mixin( Anvil );
 
 	return new Anvil();
 };

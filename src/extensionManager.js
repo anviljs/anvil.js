@@ -66,7 +66,7 @@ var extensionManagerFactory = function( _, anvil ) {
 								done();
 							} else {
 								anvil.log.error( "Fatal: Could not install missing build dependency " + dependency );
-								anvil.raise( "all.stop", -1 );
+								anvil.stop( -1 );
 							}
 						} );
 					};
@@ -169,7 +169,7 @@ var extensionManagerFactory = function( _, anvil ) {
 				if( removals.length > 0 ) {
 					_.defer( function() {
 						anvil.scheduler.pipeline( undefined, removals, function() {
-							anvil.raise( "all.stop", -1 );
+							anvil.stop( -1 );
 						} );
 					} );
 				}

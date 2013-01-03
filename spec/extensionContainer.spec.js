@@ -3,13 +3,15 @@ require( "should" );
 var _ = require( "underscore" );
 var commander = require( "commander" );
 var machina = require( "machina" );
-var postal = require( "postal" );
 var path = require( "path" );
 var fs = require( "../src/fs.mock.js" )( _, path );
 var scheduler = require( "../src/scheduler.js" )( _ );
-var events = require( "../src/eventAggregator.js" )( _ );
+var Monologue = require( "monologue.js" )( _ );
+var postal = require( "postal" );
+var bridge = require( "monopost" );
+bridge( _, Monologue, postal );
 var bus = require( "../src/bus.js")( _, postal );
-var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
+var anvil = require( "../src/anvil.js" )( _, scheduler, fs, Monologue, bus );
 var host = require( "./host.mock.js" )( _, anvil );
 require( "../src/utility.js")( _, anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
@@ -34,7 +36,7 @@ var extensionContainer = require( "../src/extensionContainer.js" )( _, mockPlugi
 
 describe( "when loading configured extensions", function() {
 
-	extensionContainer.loadExtensions( {}, { option: function() {} } );
+	extensionContainer.loadExtensions( { config: {}, commander: { option: function() {} } } );
 
 	it( "should correctly store instance of plugin", function() {
 		anvil.extensions.plugins[ "testPlugin" ].test().should.equal( "hello anvil!" );

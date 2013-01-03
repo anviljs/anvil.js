@@ -9,9 +9,12 @@ var mkdir = require( "mkdirp" ).mkdirp;
 var scheduler = require( "./lib/scheduler.js" )( _ );
 var crawler = require( "./lib/fileCrawler.js" )( _, fs, path, scheduler );
 var files = require( "./lib/fileSystem.js" )( _, fs, path, mkdir, crawler, scheduler );
-var events = require( "./lib/eventAggregator.js" )( _ );
+var Monologue = require( "monologue.js" )( _ );
+var postal = require( "postal" );
+var bridge = require( "monopost" );
+bridge( _, Monologue, postal );
 var bus = require( "./lib/bus.js")( _, postal );
-var anvil = require( "./lib/anvil.js" )( _, scheduler, files, events, bus );
+var anvil = require( "./lib/anvil.js" )( _, scheduler, files, Monologue, bus );
 require( "./lib/utility.js")( _, anvil );
 var plugin = require( "./lib/plugin.js" )( _, anvil );
 var log = require( "./lib/log.js" )( anvil );
@@ -34,7 +37,7 @@ var plugins = [
 		"anvil.workset"
 	];
 
-anvil.events.on( "all.stop", function() {
+anvil.on( "all.stop", function() {
 	process.exit();
 } );
 

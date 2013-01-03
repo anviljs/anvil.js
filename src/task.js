@@ -19,12 +19,10 @@ var taskFactory = function( _, anvil ) {
 		checkArg( this, opt2 );
 	};
 
+	anvil.addEvents( Task );
+
 	Task.prototype.configure = function( config, command, done ) {
 		done();
-	};
-
-	Task.prototype.on = function( eventName, handler ) {
-		anvil.events.on( this.name + "." + eventName, handler );
 	};
 
 	Task.prototype.getTask = function( taskName ) {
@@ -72,38 +70,13 @@ var taskFactory = function( _, anvil ) {
 		done();
     };
 
-	Task.prototype.publish = function( topic, message ) {
-		var e = this.events[ topic ];
-		if( e ) {
-			var args = _.flatten( _.pick( message, e ) );
-			args.unshift( this.name + "." + topic );
-			anvil.events.raise.apply( undefined, args );
-		}
-		anvil.bus.publish( this.name, topic, message );
-	};
-
-	Task.prototype.raise = function( eventName ) {
-		var e = this.events[ eventName ],
-			fullArgs = Array.prototype.slice.call( arguments ),
-			args = fullArgs.slice( 1 );
-		if( args.length > 0 && e ) {
-			var msg = _[ "object" ]( e, args );
-			anvil.bus.publish( this.name, eventName, msg );
-		}
-		args.unshift( this.name + "." + eventName );
-		anvil.events.raise.apply( undefined, args );
-	};
-
-	Task.prototype.subscribe = function( eventName, handler ) {
-		anvil.bus.subscribe( this.name, eventName, handler );
-	};
-
 	anvil.task = function( name, description, opt1, opt2 ) {
 		var instance = new Task( name, description, opt1, opt2 );
 		_.bindAll( instance );
 		anvil.extensions.tasks[ instance.name ] = instance;
-		anvil.raise( "task.loaded", instance );
+		anvil.emit( "task.loaded", { instance: instance } );
 		anvil.log.debug( "loaded task " + instance.name );
+		instance.goPostal( instance.name );
 		return instance;
 	};
 };

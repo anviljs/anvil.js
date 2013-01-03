@@ -14,8 +14,9 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 	};
 
 	// call configure on all extensions
-	ExtensionContainer.prototype.configureExtensions = function( done ) {
-		var extensions = this.getExtensions(),
+	ExtensionContainer.prototype.configureExtensions = function( args ) {
+		var done = args.callback,
+			extensions = this.getExtensions(),
 			remaining = extensions.length,
 			configDone = function() {
 				if( --remaining === 0 ) {
@@ -37,7 +38,7 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 				anvil.log.error( "Error configuring extension '" + extension.name + "' : " + err + "\n" + err.stack );
 				anvil.extensionManager.removePlugin( extension.name, function() {
 					anvil.log.error( "Extension '" + extension.name + "' cannot be configured and has been disabled");
-					anvil.raise( "all.stop", -1 );
+					anvil.stop( -1 );
 				} );
 			}
 		} );
@@ -76,8 +77,10 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 	};
 
 	// use the extension manager to load all the extensions
-	ExtensionContainer.prototype.loadExtensions = function( config, commander ) {
-		var self = this;
+	ExtensionContainer.prototype.loadExtensions = function( args ) {
+		var self = this,
+			config = args.config,
+			commander = args.commander;
 		extManager.checkDependencies( config.dependencies || [], function() {
 			try {
 				anvil.scheduler.mapped( {
@@ -92,7 +95,7 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 							anvil.log.error( "Error initializing extension '" + extension.name + "': " + err + "\n" + err.stack );
 							extManager.removePlugin( extension.name, function() {
 								anvil.log.error( "Plugin '" + extension.name + "' cannot be loaded and has been disabled");
-								anvil.raise( "all.stop", -1 );
+								anvil.stop( -1 );
 							} );
 						}
 					} );
@@ -102,11 +105,11 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 							anvil.commander.option.apply( anvil.commander, options );
 						}
 					} );
-					anvil.raise( "commander.configured" );
+					anvil.emit( "commander.configured" );
 				} );
 			} catch ( err ) {
 				anvil.log.error( "Fatal: attempt to initialize extensions was an abismal fail: " + err + "\n" + err.stack );
-				anvil.raise( "all.stop", -1 );
+				anvil.stop( -1 );
 			}
 		} );
 	};
@@ -157,9 +160,9 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 				while( args.length <= expectedCount ) {
 					args.unshift( undefined );
 				}
-				anvil.raise( "command.activated", function() {
+				anvil.emit( "command.activated", { callback: function() {
 					instance[ actionName ].apply( instance, args );
-				} );
+				} } );
 			} );
 		}
 		if( commandSpec.options ) {
