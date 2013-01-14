@@ -8,7 +8,8 @@ var _ = require( "underscore" ),
 	hostedFlags = [ "--host", "--ci" ],
 	intersect = _.intersection( process.argv, hostedFlags ),
 	anvil,
-	cliPath = path.resolve( path.dirname( __filename ), "./anvil-cli" );
+	cliPath = path.resolve( path.dirname( __filename ), "./anvil-cli" ),
+	pendingRestart = false;
 
 if ( _.isEmpty(intersect) ) {
 	var args = process.argv.slice( 2 );
@@ -33,21 +34,25 @@ if ( _.isEmpty(intersect) ) {
 					env: process.env
 				} );
 			anvil.on( "exit", function( code, signal ) {
-				if( code === 0 ) {
+				if( code === 0 && !pendingRestart) {
 					process.exit( 0 );
 				}
 			} );
+			pendingRestart = false;
 		},
-		watch = fs.watch( "./build.json",
-			function() {
-				console.log( "Changes to build.json detected; restarting anvil..." );
-				var instance = anvil;
-				instance.on( "exit", function() {
-					start();
-				} );
-				instance.kill( "SIGTERM" );
-			} ),
 		killSwitch;
+	if( fs.existsSync( "./build.json" ) ) {
+		watch = fs.watch( "./build.json",
+		function() {
+			console.log( "Changes to build.json detected; restarting anvil..." );
+			pendingRestart = true;
+			var instance = anvil;
+			instance.on( "exit", function() {
+				start();
+			} );
+			instance.kill( "SIGTERM" );
+		} );
+	}
 
 	killSwitch = function() {
 		killSwitch = function() {};
