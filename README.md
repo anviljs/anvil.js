@@ -6,11 +6,15 @@ Anvil has been rewritten as a general build system with an extension-based archi
 
 ## !Recent Changes!
 Changes to terminology and concepts from the 0.8.* version:
+* Several changes to core as of 0.9.0 RC4 will break older plugins, please be patient as we work to resolve these issues.
 * An extension is anything you install from npm or anything anvil loads from your file system
 * Plugins add features to and extend the build process
 * Commands will allow developers to extend anvil to perform specific tasks that aren't part of a build
 * Tasks will be a way for you to define individual instructions (ala Make) that can take dependencies on one another
 * Scaffolds provide ways to generate structure and files from metadata
+* The event system now uses Jim Cowart's monologue; this only affects extension authors
+* The anvil.http extension has been moved into anvil's core
+* Process hosting (the ability to run external programs) has been added to anvil's core
 
 Huge thanks go to Eli Perelman, Doug Neiner and Brian Edgerton for providing general ideas, specifications and implementations that lead to this new direction!
 
@@ -33,6 +37,8 @@ A baseline install can do the following:
     * values from package.json
     * JSON or YAML key/value files
 * Add file headers to final build output based on output file type
+* Host static resources in an HTTP server
+* Start and manage external processes
 
 ## Installation
 
@@ -115,7 +121,7 @@ Anvil allows you to combine source files by listing the order of concatenation i
         - ./file2c.js
 
 
-Anvi will create file1.js and file2.js by concatenating the corresponding list of files in the order they appear.
+Anvil will create file1.js and file2.js by concatenating the corresponding list of files in the order they appear.
 
 ### Individual Files
 This approach allows you to create a list of files to concatenate to create the final outcome. The name and location of the file will be identical to the original but anvil will strip the .json or .yaml extension off.
@@ -248,6 +254,70 @@ In order for anvil to know about the extension, you must add the following optio
     }
 
 Please note: if you have already installed a global version of the extension, anvil will always prefer the locally installed extension; if you wish to use a global version of the extension, you must use npm to uninstall the local version. Anvil does not manage locally installed extensions.
+
+# HTTP and process hosting
+Anvil will spin up an http server and processes to assist you with testing and continuous integration if a --host flag is provided at the command line or "host": true is added to the build file.
+
+## HTTP Host
+
+### "port"
+Specifies what port the server will listen to. The default is 3080.
+
+Example:
+```javascript
+    "port": 3080
+```
+
+### "paths"
+A hash where the key is the relative url to map to a specific directory or file. The following example shows the default setting which causes the output directory to get mapped to the top level.
+
+Example:
+The following configuration would allow anvil to host your source tree from http://localhost:3080/src:
+```javascript            
+    "paths": {
+        "/src": "./src"
+    }
+```
+
+### API
+The following calls are available from anvil.http and should be used by extensions that want to add static resources, provide middleware or provide a 'compiler' that anvil would use to translate a file format to a browser-friendly format (i.e. CoffeeScript to JavaScript).
+
+#### registerPath( url, filePath )
+Register static files to serve at a specific relative url.
+
+#### addMiddleware( middleware )
+Provide a function that can change the result of a call returned to the browser. Middleware is a function of the form: function( body, req, res ) where body is the complete body of the request, and req and res are the original request and response objects provided by express.
+
+#### addCompiler( extension, mimeType, compiler )
+Provide a function that can translate from one source format to another. Extension is the extension (including the leading period, '.coffee') of the original requested file that the compiler can process. MimeType is the resulting format ( 'text/javascript' ). Compiler is a function of the form: function( content, done ) where content is the original source and the done argument is a callback of the form function( result, error ).
+
+## Process Hosting
+
+In hosting mode, if processes have been specified in the build file, anvil will start and manage these processes.
+
+```javascript
+"processes": {
+    "process-alias": {
+        "command": "",
+        "args": [],
+        "restart": true | false,
+        "ignore": [ "" ],
+        "watch": [ "" ],
+        "killSignal": "" | [ "" ],
+        "stdio": "inherit" | "ignore"
+    }
+}
+```
+### Kill Signals
+By default, SIGTERM is the signal sent to the process to stop it. In some cases, you'll need to send a SIGINT or some other signal instead. In very rare cases, you may want to send multiple signals; if this is the case you can provide an array of signals.
+
+### stdio
+A value of "inherit" will cause the process to print output to Anvil's console. If this gets too noisy, you can use "ignore" to prevent that output from hitting the console.
+
+### With CI
+In CI mode, the restart flag set to true will cause anvil to restart the process after a build has completed.
+
+The ignore and watch arrays allow you to specify (using minimatch's glob format) which files should or should cause the process to restart when changes occur.
 
 # Contributors
 
