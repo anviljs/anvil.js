@@ -26,7 +26,8 @@
     "open": "~0.0.2",
     "minimatch": "~0.2.6",
     "monologue.js": "~0.1.1",
-    "monopost": "~0.1.1"
+    "monopost": "~0.1.1",
+    "win-fork": "~1.0.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},

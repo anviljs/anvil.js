@@ -1,4 +1,4 @@
-var spawn = require( "child_process" ).spawn;
+var spawn = require( "win-fork" );
 
 module.exports = function( _, anvil ) {
 
