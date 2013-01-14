@@ -5,9 +5,11 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 		_.bindAll( this );
 		this.commandOptions = [
 			[ "-b, --build [build file]", "Use a custom build file", "./build.json" ],
-			[ "--write [build file]", "Create a new build file based on default config" ],
 			[ "-q, --quiet", "Only print completion and error messages" ],
-			[ "--verbose", "Include debug and warning messages in log" ]
+			[ "-h, --host", "Activate anvil's HTTP and process hosting" ],
+			[ "--browser", "opens tab in your default browser" ],
+			[ "--verbose", "Include debug and warning messages in log" ],
+			[ "--write [build file]", "Create a new build file based on default config" ]
 		];
 		anvil.on( "commander", this.loadExtensions );
 		anvil.on( "config", this.configureExtensions );
