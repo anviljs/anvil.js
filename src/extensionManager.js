@@ -143,7 +143,7 @@ var extensionManagerFactory = function( _, anvil ) {
 					if( directory !== extPath ) {
 						list.push( directory.replace( extPath, "" ).replace( path.sep, "" ) );
 					}
-				}, [ extPath ], 1 );
+				}, [ "**/.DS_Store", extPath ], 1 );
 				done( list );
 			} );
 		} else {
