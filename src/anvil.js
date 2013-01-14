@@ -101,6 +101,10 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 			this.log.debug( "plugin configuration complete" );
 			this.emit( "plugins.configured" );
 
+			if( this.commander.browser || this.config.browser ) {
+				this.config.browser = true;
+			}
+
 			if( this.commander.host || this.config.host ) {
 				this.config.host = true;
 				try {
@@ -109,16 +113,16 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 					console.log( err.stack );
 				}
 			}
-
-			if( this.commander.browser || this.config.browser ) {
-				this.config.browser = true;
-			}
 		}
 	};
 
 	Anvil.prototype.stop = function( code ) {
 		this.emit( "all.stop", { code: code } );
 		process.exit( code );
+	};
+
+	Anvil.prototype.stopBuild = function( reason ) {
+		this.emit( "build.stop", { reason: reason } );
 	};
 
 	Anvil.prototype.updateConfig = function( update, done ) {
