@@ -17,7 +17,7 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 			dependencies: [],
 			getFile: function( spec ) {
 				spec = fs.buildPath( spec );
-				_.first( this.files, function( file ) {
+				return _.find( this.files, function( file ) {
 					return file.fullPath === spec;
 				} );
 			}
