@@ -84,6 +84,20 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 
 	Anvil.prototype.onConfig = function( config ) {
 		this.config = config;
+		if( this.commander ) {
+			if( this.commander.browser || this.config.browser ) {
+				this.config.browser = true;
+			}
+
+			if( this.commander.host || this.config.host ) {
+				this.config.host = true;
+				try {
+					this.http.init();
+				} catch ( err ) {
+					console.log( err.stack );
+				}
+			}
+		}
 		this.emit( "config", { callback: this.onExtensionsConfigured } );
 	};
 
@@ -100,19 +114,6 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 		} else {
 			this.log.debug( "plugin configuration complete" );
 			this.emit( "plugins.configured" );
-
-			if( this.commander.browser || this.config.browser ) {
-				this.config.browser = true;
-			}
-
-			if( this.commander.host || this.config.host ) {
-				this.config.host = true;
-				try {
-					this.http.init();
-				} catch ( err ) {
-					console.log( err.stack );
-				}
-			}
 		}
 	};
 
@@ -122,7 +123,7 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 	};
 
 	Anvil.prototype.stopBuild = function( reason ) {
-		this.emit( "build.stop", { reason: reason } );
+		this.emit( "build.stop", reason );
 	};
 
 	Anvil.prototype.updateConfig = function( update, done ) {

@@ -2,7 +2,7 @@
   "author": "Alex Robson <alex@sharplearningcurve.com> (http://sharplearningcurve.com)",
   "name": "anvil.js",
   "description": "an extensible build system",
-  "version": "0.9.0-RC4",
+  "version": "0.9.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/appendto/anvil.js.git"

@@ -51,6 +51,53 @@ describe( "when running calls in parallel", function() {
 	} );
 } );
 
+describe( "when running calls in parallel without done", function() {
+	var accumulator = 0,
+		start = [ 2, 3, 4 ],
+		call = function( x, done ) {
+			if( x % 2 === 0 ) {
+				accumulator += x;
+				done( accumulator );
+			}
+		},
+		expected = 6;
+
+	it( "should fail so hard", function( done ) {
+		var completed = false;
+		scheduler.parallel( start, call, function( result ) {
+			result.should.equal( expected );
+			completed = true;
+		} );
+		setTimeout( function() {
+			completed.should.not.be;
+			done();
+		}, 200 );
+	} );
+} );
+
+describe( "when running pipeline without done", function() {
+	var start = 100,
+		steps = [
+			function( x, done ) { done( x / 2 ); },
+			function( x, done ) { done( x - 25 ); },
+			function( x, done ) { /* do nothing */ },
+			function( x, done ) { done( x + 5 ); }
+		],
+		expected = 10;
+
+	it( "should run pipeline in order", function( done ) {
+		var completed = false;
+		scheduler.pipeline( start, steps, function( result ) {
+			result.should.equal( expected );
+			completed = true;
+		} );
+		setTimeout( function() {
+			completed.should.not.be;
+			done();
+		}, 200 );
+	} );
+} );
+
 describe( "when aggregating mapped calls ", function() {
 	var calls = {
 		one: function( done ) { setTimeout( function() { done( 1 ); }, 10 ); },

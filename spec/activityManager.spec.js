@@ -13,6 +13,8 @@ var bridge = require( "monopost" );
 bridge( _, Monologue, postal );
 var bus = require( "../src/bus.js")( _, postal );
 var anvil = require( "../src/anvil.js" )( _, scheduler, fs, Monologue, bus );
+var minimatch = require( "minimatch" );
+anvil.minimatch = minimatch;
 var host = require( "./host.mock.js" )( _, anvil );
 require( "../src/utility.js")( _, anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );

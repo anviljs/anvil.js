@@ -14,6 +14,8 @@ bridge( _, Monologue, postal );
 var bus = require( "../src/bus.js")( _, postal );
 var anvil = require( "../src/anvil.js" )( _, scheduler, fs, Monologue, bus );
 require( "../src/utility.js")( _, anvil );
+var minimatch = require( "minimatch" );
+anvil.minimatch = minimatch;
 var host = require( "./host.mock.js" )( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );

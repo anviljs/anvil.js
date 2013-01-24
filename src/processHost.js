@@ -11,29 +11,31 @@ module.exports = function( _, anvil ) {
 	};
 
 	Process.prototype.allowRestart = function( file ) {
-		console.log( "check restart for change on " + file );
 		var ignore = this.config.ignore,
 			watch = this.config.watch,
-			noIgnore = _.isEmpty( ignore ),
-			noWatch = _.isEmpty( watch );
+			watching = !_.isEmpty( watch ),
+			ignoring = !_.isEmpty( ignore ),
+			noConfig = !watching && !ignoring,
+			ignored = ignoring && this.contains( ignore, file ),
+			watched = watching && this.contains( watch, file );
 
-		if( noIgnore && noWatch ) {
+		if( noConfig ) {
 			return true;
-		} else if( !noIgnore && this.contains( this.config.ignore, file ) ) {
+		} else if( ignored ) {
 			return false;
-		} else if( !noWatch && this.contains( this.config.watch, file ) ) {
+		} else if( watched ) {
 			return true;
+		} else if( watching ) {
+			return false;
 		} else {
-			return false;
+			return true;
 		}
 	};
 
 	Process.prototype.contains = function ( list, file ) {
 		var patterns = _.isArray( list ) ? list : [ list ];
-		console.log( patterns );
 		return _.any( patterns, function( pattern ) {
 			var matched = anvil.minimatch( file, pattern );
-			console.log( file + " ? " + pattern + " = " + matched );
 			return matched;
 		} );
 	};
@@ -100,6 +102,7 @@ module.exports = function( _, anvil ) {
 		this.config = anvil.config.processes;
 		this.processes = {};
 		this.lastChanged = "";
+		this.started = false;
 
 		shutdown = function() {
 			shutdown = function() {};
@@ -112,7 +115,6 @@ module.exports = function( _, anvil ) {
 		} );
 
 		anvil.on( "file.change", function( change ) {
-			console.log( change );
 			self.lastChanged = change.file;
 		} );
 
@@ -125,6 +127,7 @@ module.exports = function( _, anvil ) {
 
 		process.on( "SIGINT", shutdown );
 		process.on( "SIGTERM", shutdown );
+		process.on( "exit", shutdown );
 		_.bindAll( this );
 	};
 
@@ -132,6 +135,7 @@ module.exports = function( _, anvil ) {
 		var self = this,
 			valid = this.config[ id ],
 			process = id ? this.processes[ id ] : undefined;
+		this.started = true;
 		if( id == undefined ) {
 			_.each( this.processes, function( process, pid ) {
 				self.start( id );
