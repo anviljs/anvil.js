@@ -37,8 +37,8 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 					configDone();
 				}
 			} catch ( err ) {
-				anvil.log.error( "Error configuring extension '" + extension.name + "' : " + err + "\n" + err.stack );
-				anvil.extensionManager.removePlugin( extension.name, function() {
+				anvil.log.step( "Error configuring extension '" + extension.name + "' : " + err + "\n" + err.stack );
+				extManager.removeExtension( extension.name, function() {
 					anvil.log.error( "Extension '" + extension.name + "' cannot be configured and has been disabled");
 					anvil.stop( -1 );
 				} );
@@ -95,8 +95,8 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 							self.initExtension( extension );
 						} catch ( err ) {
 							anvil.log.error( "Error initializing extension '" + extension.name + "': " + err + "\n" + err.stack );
-							extManager.removePlugin( extension.name, function() {
-								anvil.log.error( "Plugin '" + extension.name + "' cannot be loaded and has been disabled");
+							extManager.removeExtension( extension.name, function() {
+								anvil.log.step( "Plugin '" + extension.name + "' cannot be loaded and has been disabled");
 								anvil.stop( -1 );
 							} );
 						}
