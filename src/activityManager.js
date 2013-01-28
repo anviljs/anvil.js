@@ -9,10 +9,8 @@ var activityManagerFactory = function( _, machina, anvil ) {
 
 		handleEvent: function( eventName ) {
 			var self = this;
-			anvil.on( eventName, function() {
-				var args = Array.prototype.slice.call( arguments );
-				args.unshift( eventName );
-				self.handle.apply( self, args );
+			anvil.on( eventName, function( args ) {
+				self.handle( eventName, args );
 			} );
 		},
 
@@ -28,7 +26,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 		},
 
 		onBuildStop: function( reason ) {
-			anvil.log.error( "The build has stopped because: " + reason );
+			anvil.log.error( "The build has stopped because: \n" + reason );
 			this.transition( "interrupted" );
 		},
 
@@ -68,12 +66,14 @@ var activityManagerFactory = function( _, machina, anvil ) {
 					this.handleEvent( "config" );
 					this.handleEvent( "build.stop" );
 				},
-				"command.activated": function( action ) {
+				"command.activated": function( args ) {
+					action = args.callback;
 					this.commandAction = action;
 					this.transition( "commandMode" );
 				},
-				"plugin.loaded": function( plugin ) {
-					var self = this;
+				"plugin.loaded": function( args ) {
+					var self = this,
+						plugin = args.instance;
 					if( plugin.activities ) {
 						_.each( plugin.activities, function( activity ) {
 							self.addPluginToActivity( plugin, activity );
@@ -108,9 +108,10 @@ var activityManagerFactory = function( _, machina, anvil ) {
 			"finished": {
 				_onEnter: function() {
 					anvil.log.complete( "build completed" );
-					anvil.raise( "build.done" );
+					anvil.emit( "build.done" );
 				},
-				"rebuild": function( startingWith ) {
+				"rebuild": function( args ) {
+					var startingWith = args.step;
 					this.activityIndex = _.indexOf( anvil.config.activityOrder, startingWith );
 					anvil.log.step( this.activityIndex === 0 ? "rebuilding project" : "starting incremental build" );
 					this.transition( startingWith );

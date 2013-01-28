@@ -101,9 +101,11 @@ var factory = function() {
 		Harness.prototype.buildOnly = function( done ) {
 			var self = this,
 				handles = this.subscribe();
-			anvil.on( "build.done", function() {
-				_.each( handles, function( handle ) { handle.cancel(); } );
-				done();
+			anvil.on( "build.done", {
+				callback: function() {
+					_.each( handles, function( handle ) { handle.cancel(); } );
+					done();
+				}
 			} );
 			anvil.scheduler.parallel(
 				this.files,
@@ -121,7 +123,7 @@ var factory = function() {
 			_.each( [ "debug", "event", "step", "complete", "warning", "error" ],
 				function( type ) {
 					handles.push( anvil.on( "log." + type, function( x ) {
-						self.logs[ type ].push( x );
+						self.logs[ type ].push( x.message );
 					} ) );
 				}
 			);

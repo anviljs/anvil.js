@@ -3,15 +3,19 @@ require( "should" );
 var _ = require( "underscore" );
 var commander = require( "commander" );
 var machina = require( "machina" );
-var postal = require( "postal" );
 var path = require( "path" );
 var realFS = require( "fs" );
 var fs = require( "../src/fs.mock.js" )( _, path );
 var scheduler = require( "../src/scheduler.js" )( _ );
-var events = require( "../src/eventAggregator.js" )( _ );
+var Monologue = require( "monologue.js" )( _ );
+var postal = require( "postal" );
+var bridge = require( "monopost" );
+bridge( _, Monologue, postal );
 var bus = require( "../src/bus.js")( _, postal );
-var anvil = require( "../src/anvil.js" )( _, scheduler, fs, events, bus );
+var anvil = require( "../src/anvil.js" )( _, scheduler, fs, Monologue, bus );
 require( "../src/utility.js")( _, anvil );
+var minimatch = require( "minimatch" );
+anvil.minimatch = minimatch;
 var host = require( "./host.mock.js" )( _, anvil );
 var log = require( "./log.mock.js" )( anvil );
 var plugin = require( "../src/plugin.js" )( _, anvil );
@@ -98,15 +102,15 @@ describe( "when scanning project directory with file plugin", function() {
 			fs.files[ root + "/lib/tokenized.js" ].should.be.ok;
 			fs.files[ root + "/lib/tokenized.js" ].content.should.equal( "// author: Alex Robson <alex@sharplearningcurve.com> (http://sharplearningcurve.com)\n" +
 			"// project: anvil.js\n" +
-			"// version: 0.9.0-RC3\n" +
+			"// version: 0.9.0-RC4\n" +
 			" var a = 'this value';" );
 		} );
 
 		it( "should raise file change event on file change", function( done ) {
-			anvil.on( "file.changed", function( fileEvent, file ) {
-				fileEvent.should.equal( "change" );
-				file.should.equal( root + "/src/test.js" );
+			anvil.on( "file.changed", function( args ) {
 				done();
+				args.change.should.equal( "change" );
+				args.file.should.equal( root + "/src/test.js" );
 			} );
 			fs.write( root + "/src/test.js", "this is new content", function() {} );
 		} );

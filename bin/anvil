@@ -1,2 +1,66 @@
 #!/usr/bin/env node
-require( "../lib/cli.js" )();
+
+var _ = require( "underscore" ),
+	fs = require( "fs" ),
+	path = require( "path" ),
+	spawn = require( "win-fork" ),
+	hostedFlags = [ "--host", "--ci" ],
+	intersect = _.intersection( process.argv, hostedFlags ),
+	anvil,
+	cliPath = path.resolve( path.dirname( __filename ), "./anvil-cli" ),
+	pendingRestart = false;
+
+if ( _.isEmpty(intersect) ) {
+	var args = process.argv.slice( 2 );
+	anvil = spawn(
+			cliPath,
+			args,
+			{
+				cwd: process.cwd(),
+				stdio: "inherit",
+				env: process.env
+			}
+		);
+} else {
+	var args = process.argv.slice( 2 ),
+		start = function() {
+			anvil = spawn(
+				cliPath,
+				args,
+				{
+					cwd: process.cwd(),
+					stdio: "inherit",
+					env: process.env
+				} );
+			anvil.on( "exit", function( code, signal ) {
+				if( code === 0 && !pendingRestart) {
+					process.exit( 0 );
+				}
+			} );
+			pendingRestart = false;
+		},
+		killSwitch;
+	if( fs.existsSync( "./build.json" ) ) {
+		watch = fs.watch( "./build.json",
+		function() {
+			console.log( "Changes to build.json detected; restarting anvil..." );
+			pendingRestart = true;
+			var instance = anvil;
+			instance.on( "exit", function() {
+				start();
+			} );
+			instance.kill( "SIGTERM" );
+		} );
+	}
+
+	killSwitch = function() {
+		killSwitch = function() {};
+		anvil.kill( "SIGTERM" );
+		process.exit( 0 );
+	};
+
+	start();
+
+	process.on( "SIGINT", killSwitch );
+	process.on( "SIGTERM", killSwitch );
+}
