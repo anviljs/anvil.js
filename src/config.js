@@ -27,7 +27,9 @@ var configFactory = function( _, commander, path, anvil ) {
 			warning: false,
 			error: true
 		},
-		port: 8471
+		port: 3080,
+		httpPaths: {},
+		processes: {}
 	};
 
 	anvil.config = defaultConfig;
@@ -46,7 +48,7 @@ var configFactory = function( _, commander, path, anvil ) {
 
 		if( config.working === config.source ) {
 			anvil.log.error( "Source, working and source directories MUST be seperate directories." );
-			anvil.raise( "all.stop", -1 );
+			anvil.emit( "all.stop", { code: -1 } );
 		}
 	};
 

@@ -1,7 +1,6 @@
-var watchTree = require( "fs-watch-tree" ).watchTree,
-	minimatch = require( "minimatch" );
+var watchTree = require( "fs-watch-tree" ).watchTree;
 
-var fileFactory = function( _, fs, path, mkdir, crawler, scheduler, utility ) {
+var fileFactory = function( _, fs, path, mkdir, crawler, minimatch, scheduler, utility ) {
 
 	var FileSystem = function() {
 		_.bindAll( this );

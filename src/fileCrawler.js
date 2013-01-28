@@ -20,24 +20,15 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 						qualified.push( path.resolve( directory, item ) );
 					} );
 					self.classifyHandles( qualified, function( files, directories ) {
-						fileList = fileList.concat( files );
-						fileList = _.reject( fileList, function( file ) {
-							return _.any( filter, function( exclusion ) { return file.match( exclusion ); } );
-						} );
-						directoryList = directoryList.concat( directories );
-						directoryList = _.reject( directoryList, function( directory ) {
-							return _.any( filter, function( exclusion ) { return directory.match( exclusion ); } );
-						} );
+						fileList = self.filter( fileList.concat( files ), filter );
+						directoryList = self.filter( directoryList.concat( directories ), filter );
 						if( directories.length > 0 && ( level <= limit || limit < 0 ) ) {
 							scheduler.parallel( directories,
 								function( directory, done ) {
 									self.crawl( directory, done, filter, limit, level );
 								},
 								function( files ) {
-									fileList = fileList.concat( _.flatten( files ) );
-									fileList = _.reject( fileList, function( file ) {
-										return _.any( filter, function( exclusion ) { return file.match( exclusion ); } );
-									} );
+									fileList = self.filter( fileList.concat( _.flatten( files ) ), filter );
 									onComplete( fileList, directoryList, filter );
 								}
 							);
@@ -82,6 +73,15 @@ var fsCrawlerFactory = function( _, fs, path, scheduler ) {
 				onComplete( { file: file, isDirectory: stat.isDirectory() } );
 			}
 		} );
+	};
+
+	FSCrawler.prototype.filter = function( list, filter ) {
+		var exclusions = [];
+		_.each( filter, function( pattern ) {
+			var matches = minimatch.match( list, pattern, { matchBase: true, dot: true } );
+			exclusions = exclusions.concat( matches );
+		} );
+		return _.without( list, exclusions );
 	};
 
 	return new FSCrawler();
