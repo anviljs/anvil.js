@@ -34,6 +34,7 @@ var plugins = [
 		"anvil.task.cli",
 		"anvil.token",
 		"anvil.transform",
+		"anvil.testem",
 		"anvil.workset"
 	];
 

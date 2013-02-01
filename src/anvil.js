@@ -45,7 +45,8 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 		this.unhandledResponse = {
 			"Error: watch EMFILE": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000",
 			"Error: EMFILE, too many open files": "Your operating system has prevented anvil from watching files by limiting the number of allowed file handles. You can correct this temporarily with: \n\t ulimit -n 10000 \nand then permanently with: \n\t launchctl limit maxfiles 10000",
-			"Error: EBADF, close": {}
+			"Error: EBADF, close": {},
+			"Error: OK, close": {}
 		};
 		this.fs = fs;
 		this.scheduler = scheduler;
@@ -77,8 +78,10 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 			gitConfig = this.fs.read( gitConfigPath );
 
 		if( !_.isEmpty( gitConfig ) && _.isString( gitConfig ) ) {
-			this.env.userName = gitConfig.match(/[\t]name[ ][=][ ](.+)[\n]/ )[1];
-			this.env.email = gitConfig.match(/[\t]email[ ][=][ ](.+)[\n]/ )[1];
+			var userMatch = gitConfig.match(/[\t]name[ ][=][ ](.+)[\n]/ ),
+				emailMatch = gitConfig.match(/[\t]email[ ][=][ ](.+)[\n]/ );
+			this.env.userName = userMatch && userMatch.length ? userMatch[1] : "";
+			this.env.email = emailMatch && emailMatch.length ? emailMatch[1] : "";
 		}
 	};
 
