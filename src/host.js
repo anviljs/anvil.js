@@ -7,6 +7,36 @@ var open = require( "open" );
 var url = require( "url" );
 var net = require( "net" );
 
+var getScriptInjection = function() {
+	return [
+		 '<script type="text/javascript">'
+		,'	(function(window, undefined){'
+		,'		function loadScript(src) {'
+		,'			var script = document.createElement("script");'
+		,'			script.src = src;'
+		,'			script.type = "text/javascript";'
+		,'			document.getElementsByTagName("body")[0].appendChild(script);'
+		,'		}'
+		,'		if(typeof io === "undefined") {'
+		,'			if ( typeof define === "function" && define.amd ) {'
+		,'			require.config({'
+		,'			    paths: {'
+		,'			        "io" : "/socket.io/socket.io"'
+		,'			    }'
+		,'		    });'
+		,'		    require(["io"], function(io) {'
+		,'			    loadScript("/anvil/buildHook.js");'
+		,'			});'
+		,'		} else {'
+		,'			loadScript("/socket.io/socket.io.js");'
+		,'			loadScript("/anvil/buildHook.js");'
+		,'			}'
+		,'		}'
+		,'	}(window));'
+		,'</script>'
+	].join('\n');
+};
+
 module.exports = function( _, anvil ) {
 	
 	var Host = function() {
@@ -94,7 +124,7 @@ module.exports = function( _, anvil ) {
 			var original = body.toString();
 			if( original.match( /[<][\/]body[>]/ ) ) {
 				var modified = original.replace( /[<][\/]body[>]/,
-					"<script src=\"/socket.io/socket.io.js\"></script>\n<script src=\"/anvil/buildHook.js\"></script>\n</body>"
+					getScriptInjection() + "\n</body>"
 				);
 				res._headers[ "content-length" ] = modified.length;
 				res.end( modified );

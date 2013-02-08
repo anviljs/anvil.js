@@ -37,7 +37,8 @@
   "main": "./lib/api.js",
   "scripts": {
     "install": "npm link npm --local",
-    "postinstall": "node ./init.js"
+    "postinstall": "node ./init.js",
+	"test": "anvil --testem"
   },
   "licenses": [
     {
