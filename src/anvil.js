@@ -95,8 +95,8 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 			if( this.commander.host || this.config.host ) {
 				this.config.host = true;
 				try {
-					if( !this.httpPaths[ "/" ] ) {
-						this.httpPaths[ "/" ] = this.config.output;
+					if( !this.config.httpPaths[ "/" ] ) {
+						this.config.httpPaths[ "/" ] = this.config.output;
 					}
 					this.http.init();
 				} catch ( err ) {
