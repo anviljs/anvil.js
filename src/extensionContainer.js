@@ -6,8 +6,9 @@ var extensionContainerFactory = function( _, extManager, anvil ) {
 		this.commandOptions = [
 			[ "-b, --build [build file]", "Use a custom build file", "./build.json" ],
 			[ "-q, --quiet", "Only print completion and error messages" ],
-			[ "--host", "Activate anvil's HTTP and process hosting" ],
+			[ "--host [port]", "Activate anvil's HTTP and process hosting [3080]", 3080 ],
 			[ "--browser", "opens tab in your default browser" ],
+			[ "--port", "set the port for the HTTP host" ],
 			[ "--verbose", "Include debug and warning messages in log" ],
 			[ "--write [build file]", "Create a new build file based on default config" ]
 		];
