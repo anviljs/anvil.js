@@ -66,7 +66,7 @@ var scaffoldFactory = function( _, anvil ) {
 		// Fake it out by injecting an empty comment that will be removed from output,
 		// still producting an empty string
 		if ( options.mode === "file" && options.template === "" ) {
-			options.template = "{{! }}";
+			options.template = "{{#if emptyhack}}{{/if}}";
 		}
 		
 		var template = handlebars.compile( options.template );
