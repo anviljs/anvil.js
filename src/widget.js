@@ -5,6 +5,7 @@ var widgetFactory = function( _, anvil ) {
 	var Widget = function() {
 		_.bindAll( this );
 		this.name = "";
+		this.category = "build";
 		this.config = {};
 		this.events = {};
 	};

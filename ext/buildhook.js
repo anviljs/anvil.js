@@ -1,11 +1,16 @@
 var socket, port;
 
 window.onload = function() {
+	var refresh = true;
 	port = window.location.port;
-	socket = io.connect( "http://" + document.domain + ':' + port + '/' );
+	socket = window.anvilSocket = io.connect( "http://" + document.domain + ':' + port + '/' );
+	window.enableRefresh = function() { refresh = true; };
+	window.disableRefresh = function() { refresh = false; };
 	socket.on('connect', function () {
 		socket.on( 'refresh', function () {
-			window.location.reload();
+			if( refresh ) {
+				window.location.reload();
+			}
 		} );
 		socket.on( 'reconnecting', function() {
 			console.log( 'Lost connection to anvil, attempting to reconnect', 'warning' );
