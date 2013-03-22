@@ -62,6 +62,12 @@ var scaffoldFactory = function( _, anvil ) {
 	};
 
 	Scaffold.prototype.render = function( options ) {
+		// Handlebars blows up if you pass an empty string to compile.
+		// Don't pass empty content through Handlebars
+		if ( !options.template ) {
+			return;
+		}
+		
 		var template = handlebars.compile( options.template );
 		return template( options.data );
 	};
