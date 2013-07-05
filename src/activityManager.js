@@ -42,7 +42,7 @@ var activityManagerFactory = function( _, machina, anvil ) {
 						while( !self.states[ nextActivity ] && self.activityIndex < totalActivities ) {
 							nextActivity = order[ ++self.activityIndex ];
 						}
-						if( self.activityIndex >= totalActivities ) {
+						if( self.activityIndex >= totalActivities && self.state != "finished" ) {
 							self.transition( "finished" );
 						} else {
 							self.transition( nextActivity );
