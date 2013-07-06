@@ -4,19 +4,8 @@ Anvil started as a way to build a single javascript module from several source f
 
 Anvil has been rewritten as a general build system with an extension-based architecture. It should be easy to add features or change almost any behavior as needed. There's a lot of work going on now that will add new ways to use and extend anvil.
 
-## !Recent Changes!
-Changes to terminology and concepts from the 0.8.* version:
-* Several changes to core as of 0.9.0 RC4 will break older plugins, please be patient as we work to resolve these issues.
-* An extension is anything you install from npm or anything anvil loads from your file system
-* Plugins add features to and extend the build process
-* Commands will allow developers to extend anvil to perform specific tasks that aren't part of a build
-* Tasks will be a way for you to define individual instructions (ala Make) that can take dependencies on one another
-* Scaffolds provide ways to generate structure and files from metadata
-* The event system now uses Jim Cowart's monologue; this only affects extension authors
-* The anvil.http extension has been moved into anvil's core
-* Process hosting (the ability to run external programs) has been added to anvil's core
-
-Huge thanks go to Eli Perelman, Doug Neiner and Brian Edgerton for providing general ideas, specifications and implementations that lead to this new direction!
+## IMPORTANT ##
+Please see changelog.md to see a list of recent updates and bug fixes.
 
 ## What Does It Do?
 
