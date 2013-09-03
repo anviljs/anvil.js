@@ -1,6 +1,7 @@
 require( "should" );
 
 var _ = require( "underscore" );
+require( "../src/underscorePatch.js" )( _ );
 var commander = require( "commander" );
 var machina = require( "machina" );
 var path = require( "path" );

@@ -1,6 +1,7 @@
 require( "should" );
 
 var _ = require( "underscore" );
+require( "../src/underscorePatch.js" )( _ );
 var postal = require( "postal" );
 var bus = require( "../src/bus.js" )( _, postal );
 

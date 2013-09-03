@@ -1,4 +1,5 @@
 _ = require( "underscore" );
+require( "./underscorePatch" )( _ );
 var commander = require( "commander" );
 var machina = require( "machina" );
 var fs = require( "fs" );

@@ -1,5 +1,6 @@
 require( "should" );
 var _ = require( "underscore" );
+require( "../src/underscorePatch.js" )( _ );
 var scheduler = require( "../src/scheduler.js" )( _ );
 
 describe( "when building an item through a pipeline", function() {
