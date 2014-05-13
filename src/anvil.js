@@ -22,6 +22,7 @@ var anvilFactory = function( _, scheduler, fs, Monologue, bus ) {
 				} );
 			}
 		};
+
 		this.addEvents = Monologue.mixin;
 		this.bus = bus;
 		this.eventDef = {

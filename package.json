@@ -2,7 +2,7 @@
   "author": "Alex Robson <alex@sharplearningcurve.com> (http://sharplearningcurve.com)",
   "name": "anvil.js",
   "description": "an extensible build system",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "repository": {
     "type": "git",
     "url": "git://github.com/appendto/anvil.js.git"
@@ -14,12 +14,12 @@
   "dependencies": {
     "colors": "0.6.0",
     "commander": "~1.1",
-    "fs-watch-tree": "0.2.2",
+    "chokidar": "0.6.2",
     "machina": "~0.2.0",
     "mkdirp": "0.3.3",
     "postal": "~0.7.0",
     "should": "0.6.3",
-    "underscore": "~1.4.3",
+    "underscore": "~1.5.1",
     "handlebars": "~1.0",
     "express": "~3.0",
     "socket.io": "~0.9",

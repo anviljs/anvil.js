@@ -1,6 +1,28 @@
-var watchTree = require( "fs-watch-tree" ).watchTree;
+var chokidar = require( "chokidar" ),
+	watcher;
 
-var fileFactory = function( _, fs, path, mkdir, crawler, minimatch, scheduler, utility ) {
+var fileFactory = function( _, fs, path, mkdir, crawler, minimatch, scheduler, Monologue ) {
+
+	var addWatchPath = function( p, emitter ) {
+		if( !watcher ) {
+			watcher = chokidar.watch( p, { persistent: true } );
+			watcher
+				.on( "change", function( eventPath ) {
+					emitter.emit( "file.change", {
+						name: path.relative( process.cwd(), eventPath ),
+						path: eventPath
+					} );
+				} )
+				.on( "unlink", function( eventPath ) {
+					emitter.emit( "file.deleted", {
+						name: path.relative( process.cwd(), eventPath ),
+						path: eventPath
+					} );
+				} );
+		} else {
+			watcher.add( p );
+		}
+	};
 
 	var FileSystem = function() {
 		_.bindAll( this );
@@ -289,17 +311,9 @@ var fileFactory = function( _, fs, path, mkdir, crawler, minimatch, scheduler, u
 		} );
 	};
 
-	FileSystem.prototype.watch = function( pathSpec, onEvent ) {
+	FileSystem.prototype.watch = function( pathSpec ) {
 		pathSpec = this.buildPath( pathSpec );
-		var self = this;
-
-		return watchTree( pathSpec,
-			_.debounce( function( event ) {
-				if( !event.isDirectory() ) {
-					onEvent( event );
-				}
-			}, 1000, true )
-		);
+		addWatchPath( pathSpec, this );
 	};
 
 	FileSystem.prototype.write = function( pathSpec, content, onComplete ) {
@@ -318,7 +332,7 @@ var fileFactory = function( _, fs, path, mkdir, crawler, minimatch, scheduler, u
 			}
 		} );
 	};
-
+	Monologue.mixin( FileSystem );
 	return new FileSystem();
 };
 

@@ -1,6 +1,7 @@
 require( "should" );
 require( "should" );
 var _ = require( "underscore" );
+require( "../src/underscorePatch.js" )( _ );
 var machina = require( "machina" );
 var path = require( "path" );
 var fs = require( "../src/fs.mock.js" )( _, path );

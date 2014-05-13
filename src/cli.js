@@ -1,4 +1,5 @@
 _ = require( "underscore" );
+require( "./underscorePatch" )( _ );
 var commander = require( "commander" );
 var machina = require( "machina" );
 var fs = require( "fs" );
@@ -8,8 +9,8 @@ var colors = require( "colors" );
 var scheduler = require( "./scheduler.js" )( _ );
 var crawler = require( "./fileCrawler.js" )( _, fs, path, scheduler );
 var minimatch = require( "minimatch" );
-var files = require( "./fileSystem.js" )( _, fs, path, mkdir, crawler, minimatch, scheduler );
 var Monologue = require( "monologue.js" )( _ );
+var files = require( "./fileSystem.js" )( _, fs, path, mkdir, crawler, minimatch, scheduler, Monologue );
 var postal = require( "postal" );
 var bridge = require( "monopost" );
 bridge( _, Monologue, postal );

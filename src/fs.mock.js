@@ -150,6 +150,9 @@ var fsFactory = function( _, path ) {
 		onComplete( { lastModified: state.mtime } );
 	};
 
+	FileSystemMock.prototype.on = function() {
+	};
+
 	FileSystemMock.prototype.pathExists = function( pathSpec, callback ) {
 		var fullPath = this.buildPath( pathSpec ),
 			exists = false;

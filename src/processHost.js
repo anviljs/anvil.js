@@ -18,7 +18,6 @@ module.exports = function( _, anvil ) {
 			noConfig = !watching && !ignoring,
 			ignored = ignoring && this.contains( ignore, file ),
 			watched = watching && this.contains( watch, file );
-
 		if( noConfig ) {
 			return true;
 		} else if( ignored ) {
@@ -83,7 +82,7 @@ module.exports = function( _, anvil ) {
 		if( !this.running ) {
 			this.start();
 		}
-		if( this.config.restart && this.allowRestart( changedFile ) ) {
+		else if( this.config.restart && this.allowRestart( changedFile ) ) {
 			this.once( "exit", function() {
 				setTimeout( function() {
 					self.start();
@@ -114,8 +113,8 @@ module.exports = function( _, anvil ) {
 			self.config = anvil.config.processes;
 		} );
 
-		anvil.on( "file.change", function( change ) {
-			self.lastChanged = change.file;
+		anvil.on( "file.changed", function( change ) {
+			self.lastChanged = change.path;
 		} );
 
 		anvil.on( "build.done", function( args ) {
