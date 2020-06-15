@@ -21,7 +21,7 @@
     "should": "0.6.3",
     "underscore": "~1.5.1",
     "handlebars": "~1.0",
-    "express": "~3.0",
+    "express": "~4.17",
     "socket.io": "~0.9",
     "open": "~0.0.2",
     "minimatch": "~0.2.6",
